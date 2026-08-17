@@ -15,8 +15,8 @@ export default class TrautsLabPlugin extends Plugin {
       (leaf: WorkspaceLeaf) => new TrautsLabView(leaf, this)
     );
 
-    // 2. Add Ribbon Icon
-    this.addRibbonIcon('layout-dashboard', 'Abrir TrautsLab OS Command Center', () => {
+    // 2. Add Ribbon Icon (Zap / Lightning)
+    this.addRibbonIcon('zap', 'TrautsLab OS — Command Center', () => {
       this.activateView();
     });
 

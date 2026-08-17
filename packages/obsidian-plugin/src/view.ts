@@ -21,13 +21,13 @@ export class TrautsLabView extends ItemView {
   }
 
   getIcon(): string {
-    return 'layout-dashboard';
+    return 'zap';
   }
 
   async onOpen() {
     const container = this.containerEl.children[1] as HTMLElement;
     container.empty();
-    container.addClass('trautslab-obsidian-root');
+    container.classList.add('trautslab-obsidian-root');
 
     this.renderDashboard(container);
   }
