@@ -114,15 +114,30 @@ async function main() {
     if (!termOutput.includes('macbook')) throw new Error('Shell output no inicializado');
   }, '07_terminal_drawer_expanded.png');
 
-  // 8. High Contrast Accessibility Mode
-  await assertStep('8. Activación de Modo Alto Contraste (Accesibilidad WCAG AAA)', async () => {
+  // 8. Light Mode Theme Toggle Testing
+  await assertStep('8. Activación y verificación de Light Mode (Tema Claro)', async () => {
+    await page.click('#btn-toggle-theme');
+    await new Promise(r => setTimeout(r, 400));
+    const isLight = await page.$eval('body', el => el.classList.contains('theme-light'));
+    if (!isLight) throw new Error('Clase theme-light no aplicada en body');
+  }, '10_light_mode_overview.png');
+
+  // 9. High Contrast Accessibility Mode
+  await assertStep('9. Activación de Modo Alto Contraste (Accesibilidad WCAG AAA)', async () => {
     await page.click('#btn-high-contrast');
     const hasClass = await page.$eval('body', el => el.classList.contains('high-contrast'));
     if (!hasClass) throw new Error('Clase high-contrast no aplicada');
+    // Toggle back
+    await page.click('#btn-high-contrast');
   }, '08_high_contrast_accessibility_mode.png');
 
-  // 9. Keyboard Shortcuts E2E
-  await assertStep('9. Verificación de atajos de teclado (1, 2, 3, 4, V, Esc)', async () => {
+  // 10. Keyboard Shortcuts E2E (including 'L' for theme and 1-4 for tabs)
+  await assertStep('10. Verificación de atajos de teclado (1, 2, 3, 4, L, V, Esc)', async () => {
+    await page.keyboard.press('KeyL'); // Switch back to Dark Mode via key L
+    await new Promise(r => setTimeout(r, 200));
+    const isDark = await page.$eval('body', el => el.classList.contains('theme-dark'));
+    if (!isDark) throw new Error('Atajo L no conmutó a tema oscuro');
+
     await page.keyboard.press('Digit2'); // Go to Intel
     await page.waitForSelector('#view-intel.active');
     await page.keyboard.press('Digit1'); // Back to Overview

@@ -26,11 +26,39 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(18, 24, 38, 0.65);
+  background: var(--background-secondary-alt, rgba(18, 24, 38, 0.65));
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--background-modifier-border, rgba(255, 255, 255, 0.08));
   border-radius: 12px;
   padding: 12px 18px;
+}
+
+.theme-light .trautslab-topbar {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(203, 213, 225, 0.8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.theme-light .obsidian-glass-card {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
+}
+
+.theme-light .t-item {
+  background: rgba(241, 245, 249, 0.7);
+  color: var(--text-normal);
+}
+
+.theme-light .skill-btn-action {
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  color: var(--text-normal);
+}
+
+.theme-light .skill-btn-action:hover {
+  background: #f8fafc;
+  border-color: rgba(99, 102, 241, 0.35);
 }
 
 .brand-group {

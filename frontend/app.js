@@ -59,7 +59,31 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 3. High Contrast Mode Toggle
+  // 3. Theme Toggle (Light / Dark Mode)
+  const btnToggleTheme = document.getElementById('btn-toggle-theme');
+  const themeToggleIcon = document.getElementById('theme-toggle-icon');
+
+  function applyTheme(theme) {
+    document.body.classList.remove('theme-dark', 'theme-light');
+    document.body.classList.add(`theme-${theme}`);
+    localStorage.setItem('trautslab-theme', theme);
+    if (themeToggleIcon) {
+      themeToggleIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+    if (btnToggleTheme) {
+      btnToggleTheme.setAttribute('title', theme === 'dark' ? 'Cambiar a Modo Claro (Tecla L)' : 'Cambiar a Modo Oscuro (Tecla L)');
+    }
+  }
+
+  const savedTheme = localStorage.getItem('trautslab-theme') || 'dark';
+  applyTheme(savedTheme);
+
+  btnToggleTheme?.addEventListener('click', () => {
+    const isDark = document.body.classList.contains('theme-dark');
+    applyTheme(isDark ? 'light' : 'dark');
+  });
+
+  // 4. High Contrast Mode Toggle
   btnHighContrast?.addEventListener('click', () => {
     document.body.classList.toggle('high-contrast');
   });
@@ -191,6 +215,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === '2') switchTab('intel');
     if (e.key === '3') switchTab('skills');
     if (e.key === '4') switchTab('memory');
+
+    // 'l' or 'L' for light/dark theme toggle
+    if (e.key.toLowerCase() === 'l') {
+      e.preventDefault();
+      const isDark = document.body.classList.contains('theme-dark');
+      applyTheme(isDark ? 'light' : 'dark');
+    }
 
     // 't' or 'T' for terminal
     if (e.key.toLowerCase() === 't') {
