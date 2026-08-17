@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0",
   "category": "daily_agenda",
-  "generated_at": "2026-08-17T19:42:52.887Z",
+  "generated_at": "2026-08-17T19:45:42.664Z",
   "expires_at": "2026-08-17T23:59:59Z",
-  "quick_summary_tts": "He actualizado 'Reunión' para hoy a las 11:00 AM.",
+  "quick_summary_tts": "He agendado 'Ayúdame ndo la cena' para hoy a las 8PM:00 PM. Tienes 4 compromisos programados.",
   "data": {
-    "eventsCount": 3,
+    "eventsCount": 4,
     "events": [
       {
         "time": "06:11 PM",
@@ -18,8 +18,14 @@
         "status": "scheduled"
       },
       {
-        "time": "11:00 AM",
+        "time": "11:30 AM",
         "title": "Reunión",
+        "priority": "high",
+        "status": "scheduled"
+      },
+      {
+        "time": "8PM:00 PM",
+        "title": "Ayúdame ndo la cena",
         "priority": "high",
         "status": "scheduled"
       }

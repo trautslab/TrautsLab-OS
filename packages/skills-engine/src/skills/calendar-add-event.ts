@@ -1,6 +1,7 @@
 /**
- * TrautsLab OS — Calendar Add Event Skill
- * Deterministically parses and adds events to today's agenda & cache
+ * TrautsLab OS — Universal Multi-Day Calendar Event Scheduler
+ * Deterministically parses dynamic dates, times, and activities across any time horizon
+ * and synchronizes directly into Obsidian Vault markdown notes and Tier 2 caches.
  */
 
 import { Skill, SkillContext, SkillMetadata, SkillResult } from '../types.js';
@@ -8,22 +9,29 @@ import { Tier2CacheManager } from '@trautslab/vault-engine';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
+export interface ParsedEventDetails {
+  title: string;
+  time: string;
+  targetDate: string; // YYYY-MM-DD
+  dateLabel: string;  // "hoy", "mañana", "el 18 de agosto", etc.
+}
+
 export class CalendarAddEventSkill implements Skill {
   readonly metadata: SkillMetadata = {
     id: 'calendar-add-event',
     name: 'Calendar Event Scheduler',
     domain: 'productivity',
     tier: 1,
-    description: 'Añade un nuevo evento o compromiso a la agenda del día y actualiza el caché Tier 2.'
+    description: 'Añade o actualiza compromisos para hoy o cualquier fecha futura en Obsidian Vault.'
   };
 
   async execute(ctx: SkillContext): Promise<SkillResult> {
     const start = Date.now();
-    const query = (ctx.args?.eventText as string || ctx.args?.query as string || 'Cena de hoy 8:00 PM').trim();
+    const query = (ctx.args?.eventText as string || ctx.args?.query as string || 'Cena 8:00 PM').trim();
+    const baseDate = ctx.timestamp ? new Date(ctx.timestamp) : new Date();
 
-    // 1. Extract Event Title and Time
-    const parsed = this.extractEventDetails(query);
-    const todayStr = (ctx.timestamp || new Date()).toISOString().split('T')[0];
+    // 1. Universal Spatio-Temporal Event Parsing
+    const parsed = this.parseEventDetails(query, baseDate);
 
     // List all candidate vault locations
     const candidateVaults = [
@@ -39,128 +47,198 @@ export class CalendarAddEventSkill implements Skill {
       try {
         const outputDir = path.join(vaultPath, 'OUTPUT');
         await fs.mkdir(outputDir, { recursive: true });
-        const agendaMdPath = path.join(outputDir, `daily-agenda-${todayStr}.md`);
+        const agendaMdPath = path.join(outputDir, `daily-agenda-${parsed.targetDate}.md`);
 
-        // 2. Read or initialize daily agenda markdown
+        // 2. Read or initialize daily agenda markdown with full frontmatter
         let currentMd = '';
+        let exists = false;
         try {
           currentMd = await fs.readFile(agendaMdPath, 'utf-8');
+          exists = true;
         } catch {
-          currentMd = `# Agenda Diaria y Cronograma — ${todayStr}\n\n| Hora | Actividad / Compromiso | Ubicación | Prioridad | Estado |\n| :--- | :--- | :--- | :--- | :--- |\n`;
+          currentMd = `---
+title: "Agenda y Compromisos Diarios: ${parsed.targetDate}"
+domain: "productivity"
+created_at: "${parsed.targetDate}"
+updated_at: "${parsed.targetDate}"
+tags: ["agenda", "calendar", "daily-brief", "tasks"]
+summary: "Agenda diaria para Jhonny Lorenzo (${parsed.targetDate})."
+---
+
+# Agenda y Compromisos Diarios — ${parsed.targetDate}
+
+> **Estado:** 1 Evento Programado  
+> **Propietario:** Jhonny Lorenzo  
+
+---
+
+## 🕒 Cronograma del Día
+
+| Hora | Actividad / Compromiso | Ubicación | Prioridad | Estado |
+| :--- | :--- | :--- | :--- | :--- |
+
+---
+
+## 🎯 Notas y Foco del Día
+`;
         }
 
-        // 3. Update Tier 2 Cache (OUTPUT/cache/today-agenda.json)
-        const cacheMgr = new Tier2CacheManager(vaultPath);
-        await cacheMgr.ensureCacheDir();
+        // 3. Update or Insert Event in Markdown
+        const cleanTitle = parsed.title;
+        const rowRegex = new RegExp(`\\|[^\\n]*\\*\\*${cleanTitle}\\*\\*[^\\n]*\\|`, 'i');
+        const newRow = `| \`${parsed.time}\` | **${cleanTitle}** | N/A | \`HIGH\` | 🟡 Programado |`;
 
-        const existingPayload = await cacheMgr.getCache<any>('today-agenda');
-        const existingEvents = existingPayload?.data?.events || [];
-
-        // Check if event already exists
-        const existingIdx = existingEvents.findIndex((e: any) => 
-          e.title.toLowerCase().includes(parsed.title.toLowerCase()) || 
-          parsed.title.toLowerCase().includes(e.title.toLowerCase())
-        );
-
-        let updatedEvents: any[] = [];
         let isUpdate = false;
-
-        if (existingIdx !== -1) {
+        if (rowRegex.test(currentMd)) {
           isUpdate = true;
-          updatedEvents = existingEvents.map((e: any, idx: number) => {
-            if (idx === existingIdx) {
-              return { ...e, time: parsed.time, status: 'scheduled' };
-            }
-            return e;
-          });
-
-          // Replace row in markdown if exists
-          const rowRegex = new RegExp(`\\|[^\\n]*\\*\\*${parsed.title}\\*\\*[^\\n]*\\|`, 'i');
-          const newRow = `| \`${parsed.time}\` | **${parsed.title}** | N/A | \`HIGH\` | 🟡 Programado |`;
-          if (rowRegex.test(currentMd)) {
-            currentMd = currentMd.replace(rowRegex, newRow);
-          } else {
-            currentMd += `${newRow}\n`;
-          }
+          currentMd = currentMd.replace(rowRegex, newRow);
         } else {
-          updatedEvents = [...existingEvents, {
-            time: parsed.time,
-            title: parsed.title,
-            priority: 'high',
-            status: 'scheduled'
-          }];
-          const newRow = `| \`${parsed.time}\` | **${parsed.title}** | N/A | \`HIGH\` | 🟡 Programado |\n`;
-          currentMd += newRow;
+          // Find table insertion position
+          const tableHeaderMarker = '| :--- | :--- | :--- | :--- | :--- |\n';
+          if (currentMd.includes(tableHeaderMarker)) {
+            currentMd = currentMd.replace(tableHeaderMarker, `${tableHeaderMarker}${newRow}\n`);
+          } else {
+            currentMd += `\n${newRow}\n`;
+          }
         }
 
         await fs.writeFile(agendaMdPath, currentMd, 'utf-8');
         createdArtifacts.push(agendaMdPath);
 
-        const quickSummary = isUpdate
-          ? `He actualizado '${parsed.title}' para hoy a las ${parsed.time}.`
-          : `He agendado '${parsed.title}' a las ${parsed.time}. Tienes ${updatedEvents.length} eventos programados para hoy.`;
+        // 4. Update Tier 2 Cache if it's for today
+        const todayStr = baseDate.toISOString().split('T')[0];
+        const cacheMgr = new Tier2CacheManager(vaultPath);
+        await cacheMgr.ensureCacheDir();
 
-        await cacheMgr.setCache('today-agenda', {
-          schema_version: '1.0',
-          category: 'daily_agenda',
-          generated_at: new Date().toISOString(),
-          expires_at: `${todayStr}T23:59:59Z`,
-          quick_summary_tts: quickSummary,
-          data: {
-            eventsCount: updatedEvents.length,
-            events: updatedEvents
+        if (parsed.targetDate === todayStr) {
+          const existingPayload = await cacheMgr.getCache<any>('today-agenda');
+          const existingEvents = existingPayload?.data?.events || [];
+          const idx = existingEvents.findIndex((e: any) => e.title.toLowerCase() === cleanTitle.toLowerCase());
+          
+          let updatedEvents: any[] = [];
+          if (idx !== -1) {
+            updatedEvents = existingEvents.map((e: any, i: number) => i === idx ? { ...e, time: parsed.time } : e);
+          } else {
+            updatedEvents = [...existingEvents, { time: parsed.time, title: cleanTitle, priority: 'high', status: 'scheduled' }];
           }
-        });
+
+          const quickSummary = isUpdate
+            ? `He actualizado '${cleanTitle}' para hoy a las ${parsed.time}.`
+            : `He agendado '${cleanTitle}' para hoy a las ${parsed.time}. Tienes ${updatedEvents.length} compromisos programados.`;
+
+          await cacheMgr.setCache('today-agenda', {
+            schema_version: '1.0',
+            category: 'daily_agenda',
+            generated_at: new Date().toISOString(),
+            expires_at: `${todayStr}T23:59:59Z`,
+            quick_summary_tts: quickSummary,
+            data: {
+              eventsCount: updatedEvents.length,
+              events: updatedEvents
+            }
+          });
+        }
       } catch (err) {
         console.warn(`[CalendarAddEventSkill] Warning writing to ${vaultPath}:`, err);
       }
     }
 
-    const quickSummary = `He ${query.toLowerCase().includes('cambi') ? 'actualizado' : 'agendado'} '${parsed.title}' para hoy a las ${parsed.time}.`;
+    const actionWord = query.toLowerCase().includes('cambi') || query.toLowerCase().includes('muev') ? 'actualizado' : 'agendado';
+    const message = `✓ He ${actionWord} '${parsed.title}' para ${parsed.dateLabel} (${parsed.targetDate}) a las ${parsed.time}. Guardado en tu Obsidian Vault.`;
 
     return {
       success: true,
       skillId: this.metadata.id,
       executionTimeMs: Date.now() - start,
-      message: `✓ Evento procesado con éxito: "${parsed.title}" a las ${parsed.time}. ${quickSummary}`,
+      message,
       artifactsCreated: createdArtifacts,
       cacheKeysUpdated: ['today-agenda']
     };
   }
 
-  private extractEventDetails(raw: string): { title: string; time: string } {
-    let clean = raw.trim();
+  /**
+   * Universal, non-overfitting parser for dates, times and event titles
+   */
+  public parseEventDetails(raw: string, baseDate: Date = new Date()): ParsedEventDetails {
+    const text = raw.trim();
+    const lower = text.toLowerCase();
 
-    // Check for title keywords
-    let title = 'Cena';
-    if (clean.toLowerCase().includes('cena')) {
-      title = 'Cena';
-    } else if (clean.toLowerCase().includes('reunion') || clean.toLowerCase().includes('reunión')) {
-      title = 'Reunión';
-    } else if (clean.toLowerCase().includes('demo')) {
-      title = 'Grabación Demo';
-    } else if (clean.toLowerCase().includes('almuerzo')) {
-      title = 'Almuerzo';
+    // 1. Resolve Target Date
+    let targetDateObj = new Date(baseDate);
+    let dateLabel = 'hoy';
+
+    // Relative dates
+    if (lower.includes('pasado mañana') || lower.includes('pasado manana')) {
+      targetDateObj.setDate(targetDateObj.getDate() + 2);
+      dateLabel = 'pasado mañana';
+    } else if (lower.includes('mañana') || lower.includes('manana')) {
+      targetDateObj.setDate(targetDateObj.getDate() + 1);
+      dateLabel = 'mañana';
+    } else if (lower.includes('hoy')) {
+      dateLabel = 'hoy';
+    } else {
+      // Days of the week in Spanish
+      const daysMap: Record<string, number> = {
+        'domingo': 0, 'lunes': 1, 'martes': 2, 'miércoles': 3, 'miercoles': 3,
+        'jueves': 4, 'viernes': 5, 'sábado': 6, 'sabado': 6
+      };
+      for (const [dayName, dayIndex] of Object.entries(daysMap)) {
+        if (new RegExp(`\\b${dayName}\\b`, 'i').test(lower)) {
+          const currentDay = baseDate.getDay();
+          let diff = dayIndex - currentDay;
+          if (diff <= 0) diff += 7; // Next occurrence
+          targetDateObj.setDate(targetDateObj.getDate() + diff);
+          dateLabel = `el ${dayName}`;
+          break;
+        }
+      }
+
+      // Explicit day and month: e.g. "18 de agosto", "25 de septiembre", "el 18 de ago"
+      const monthsMap: Record<string, number> = {
+        'enero': 0, 'ene': 0, 'febrero': 1, 'feb': 1, 'marzo': 2, 'mar': 2,
+        'abril': 3, 'abr': 3, 'mayo': 4, 'may': 4, 'junio': 5, 'jun': 5,
+        'julio': 6, 'jul': 6, 'agosto': 7, 'ago': 7, 'septiembre': 8, 'sep': 8, 'setiembre': 8,
+        'octubre': 9, 'oct': 9, 'noviembre': 10, 'nov': 10, 'diciembre': 11, 'dic': 11
+      };
+
+      const dateMatch = lower.match(/(?:el\s*)?(\d{1,2})\s*(?:de|\/)\s*([a-záéíóú]+|\d{1,2})/i);
+      if (dateMatch) {
+        const dayNum = parseInt(dateMatch[1], 10);
+        const monthVal = dateMatch[2].toLowerCase();
+        let monthNum = -1;
+
+        if (monthsMap[monthVal] !== undefined) {
+          monthNum = monthsMap[monthVal];
+        } else if (/^\d{1,2}$/.test(monthVal)) {
+          monthNum = parseInt(monthVal, 10) - 1;
+        }
+
+        if (monthNum >= 0 && monthNum <= 11 && dayNum >= 1 && dayNum <= 31) {
+          targetDateObj = new Date(baseDate.getFullYear(), monthNum, dayNum);
+          dateLabel = `el ${dayNum} de ${dateMatch[2]}`;
+        }
+      }
     }
 
-    // Extract all time candidates (e.g. "6:19", "6:09 de la tarde", "6:09", "8pm")
-    const timeRegex = /(?:(?:a las|cambies a las|cambia a las|pactada a las|a las)\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana)?)/gi;
-    const matches = Array.from(clean.matchAll(timeRegex)).filter(m => m[1] && /\d/.test(m[1]));
+    const targetDate = targetDateObj.toISOString().split('T')[0];
 
-    let targetTimeStr = '08:00 PM';
+    // 2. Extract Time
+    const timeRegex = /(?:(?:a las|cambies a las|cambia a las|pactada a las|para las)\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana|a\s*m|p\s*m)?)/gi;
+    const matches = Array.from(text.matchAll(timeRegex)).filter(m => m[1] && /\d/.test(m[1]));
+
+    let targetTimeStr = '09:00 AM';
 
     if (matches.length > 0) {
-      // The intended new time is usually the last time mentioned in a reschedule request
       const lastMatch = matches[matches.length - 1];
-      let rawTime = lastMatch[1].toUpperCase().trim();
+      let rawTime = lastMatch[1].toUpperCase().trim()
+        .replace(/\s+/g, ' ')
+        .replace(/A\s*M/g, 'AM')
+        .replace(/P\s*M/g, 'PM');
 
       if (rawTime.includes('DE LA TARDE') || rawTime.includes('DE LA NOCHE')) {
-        rawTime = rawTime.replace(/DE LA TARDE|DE LA NOCHE/gi, '').trim();
-        const [h, m] = rawTime.split(':');
-        const hourNum = parseInt(h, 10);
-        rawTime = `${hourNum < 12 ? hourNum : hourNum - 12}:${m || '00'} PM`;
-      } else if (rawTime.includes('DE LA MAÑANA')) {
-        rawTime = rawTime.replace(/DE LA MAÑANA/gi, '').trim() + ' AM';
+        rawTime = rawTime.replace(/DE LA TARDE|DE LA NOCHE/gi, '').trim() + ' PM';
+      } else if (rawTime.includes('DE LA MAÑANA') || rawTime.includes('DE LA MANANA')) {
+        rawTime = rawTime.replace(/DE LA MAÑANA|DE LA MANANA/gi, '').trim() + ' AM';
       }
 
       if (!rawTime.includes('AM') && !rawTime.includes('PM')) {
@@ -181,6 +259,29 @@ export class CalendarAddEventSkill implements Skill {
       targetTimeStr = `${h.padStart(2, '0')}:${m ? m.padStart(2, '0') : '00'} ${ampm}`;
     }
 
-    return { title, time: targetTimeStr };
+    // 3. Extract Dynamic Event Title (Non-Overfitting)
+    let cleanTitle = text
+      .replace(/(?:agéndame|agendame|agenda|programa|prográmame|programame|quiero que me agendes|quiero que|me avises sobre|avísame sobre|avisame sobre|recuérdame|recuerdame|pon|agrega|añade|cambia|cambiar|reprograma|mueve)\s*(?:una|un|el|la)?/gi, '')
+      .replace(/(?:para\s*)?(?:hoy|mañana|manana|pasado mañana|pasado manana|lunes|martes|miércoles|miercoles|jueves|viernes|sábado|sabado|domingo)/gi, '')
+      .replace(/(?:el\s*)?\d{1,2}\s*(?:de|\/)\s*(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre|\d{1,2})/gi, '')
+      .replace(/(?:a las|para las|cambies a las|cambia a las|pactada a las)?\s*\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana|a\s*m|p\s*m)?/gi, '')
+      .replace(/(?:sobre|de|que se trata sobre)\s*/gi, '')
+      .replace(/[.,:;]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    // Capitalize first letter
+    if (cleanTitle.length > 0) {
+      cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
+    } else {
+      cleanTitle = 'Compromiso';
+    }
+
+    return {
+      title: cleanTitle,
+      time: targetTimeStr,
+      targetDate,
+      dateLabel
+    };
   }
 }

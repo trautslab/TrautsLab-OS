@@ -22,8 +22,8 @@ export class VoiceIntentRouter {
 
     // 2. Check for TIER 1: Calendar Scheduling, Modification & Action Directives
     const isCalendarAction = 
-      /\b(agendar|agendando|agéndame|agendame|agenda la|agenda el|agenda una|agenda un|programa|programar|programando|prográmame|pon|poner|crea|crear|añade|añadir|agrega|agregar|cambia|cambiar|cambies|cambiame|mueve|mover|reprograma|reprogramar|pasa|pasar|posterga|postergar|modifica|modificar)\b/i.test(normalized) ||
-      (/\b(cena|almuerzo|desayuno|reunion|reunión|meet|call|cita|evento|compromiso|recordatorio)\b/i.test(normalized) && /\b(\d{1,2}(?::\d{2})?|\d{1,2}\s*(?:am|pm|hrs|horas)|a las|tarde|noche|mañana)\b/i.test(normalized)) ||
+      /\b(agendar|agendando|agéndame|agendame|agendes|agende|agendarme|agenda|programa|programar|programando|prográmame|programame|programes|programe|anota|anótame|anotame|anotes|pon|poner|ponme|crea|crear|añade|añadir|añádeme|agrega|agregar|agrégame|cambia|cambiar|cambies|cambiame|mueve|mover|reprograma|reprogramar|reprogrames|pasa|pasar|posterga|postergar|modifica|modificar|modifiques|recuérdame|recuerdame|avísame|avisame)\b/i.test(normalized) ||
+      (/\b(cena|almuerzo|desayuno|reunion|reunión|meet|call|cita|evento|compromiso|recordatorio|estudiar|clase|entrenamiento|doctor|médico|dentista)\b/i.test(normalized) && /\b(\d{1,2}(?::\d{2})?|\d{1,2}\s*(?:am|pm|hrs|horas)|a las|tarde|noche|mañana|pasado mañana)\b/i.test(normalized)) ||
       /\b(cambies a las|cambia a las|pactada a las|para las)\b/i.test(normalized);
 
     if (isCalendarAction) {
