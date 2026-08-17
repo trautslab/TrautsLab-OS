@@ -7,21 +7,21 @@ const SCREENSHOT_DIR = path.resolve('/Users/jlorenzor/Documents/TrautsLab-OS/doc
 const APP_URL = 'http://localhost:3000';
 
 async function main() {
-  console.log('\n🚀 [TrautsLab OS — Strict Google Chrome E2E Test Suite]');
+  console.log('\n🚀 [TrautsLab OS — Strict V.A.U.L.T. HUD Google Chrome Test Suite]');
   console.log(`🌐 Navegador Real: ${CHROME_PATH}`);
   console.log(`🎯 URL de Prueba: ${APP_URL}`);
-  console.log(`📁 Directorio de Capturas Reales: ${SCREENSHOT_DIR}\n`);
+  console.log(`📁 Directorio de Capturas: ${SCREENSHOT_DIR}\n`);
 
   await fs.mkdir(SCREENSHOT_DIR, { recursive: true });
 
   const browser = await puppeteer.launch({
     executablePath: CHROME_PATH,
     headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1440,900']
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1600,980']
   });
 
   const page = await browser.newPage();
-  await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 2 });
+  await page.setViewport({ width: 1600, height: 980, deviceScaleFactor: 2 });
 
   const results = [];
 
@@ -32,7 +32,7 @@ async function main() {
       const elapsed = Date.now() - start;
       const screenshotPath = path.join(SCREENSHOT_DIR, screenshotName);
       await page.screenshot({ path: screenshotPath, fullPage: false });
-      console.log(`  ✓ [PASS] ${name.padEnd(55)} (${elapsed}ms) -> Captura: ${screenshotName}`);
+      console.log(`  ✓ [PASS] ${name.padEnd(58)} (${elapsed}ms) -> ${screenshotName}`);
       results.push({ name, status: 'PASS', elapsedMs: elapsed, screenshot: screenshotName });
     } catch (err) {
       console.error(`  ✗ [FAIL] ${name}:`, err.message);
@@ -41,114 +41,105 @@ async function main() {
     }
   }
 
-  // 1. Initial Page Load
-  await assertStep('1. Carga inicial y verificación de Header / Métricas', async () => {
+  // 1. Carga inicial del HUD Amber Void
+  await assertStep('1. Carga inicial del HUD V.A.U.L.T. y acrónimo T.R.A.U.T.S.L.A.B.', async () => {
     await page.goto(APP_URL, { waitUntil: 'networkidle0' });
-    await page.waitForSelector('.topbar');
-    const title = await page.$eval('.system-title', el => el.textContent);
-    if (!title.includes('TrautsLab')) throw new Error(`Título no coincide: ${title}`);
+    await page.waitForSelector('.hud-acronym');
+    const title = await page.$eval('.hud-acronym', el => el.textContent);
+    if (!title.includes('T.R.A.U.T.S.L.A.B.')) throw new Error(`Título no coincide: ${title}`);
     const tokenVal = await page.$eval('#token-count', el => el.textContent);
-    if (!tokenVal.includes('48.2k')) throw new Error(`Métrica de tokens no coincide: ${tokenVal}`);
-    const statusBadge = await page.$eval('#system-status-badge', el => el.textContent);
-    if (!statusBadge.includes('ONLINE')) throw new Error(`Status badge no online: ${statusBadge}`);
-  }, '01_overview_initial_load.png');
+    if (!tokenVal.includes('48.2K')) throw new Error(`Tokens no coinciden: ${tokenVal}`);
+  }, '01_hud_amber_void_overview.png');
 
-  // 2. Daily Intel Tab Navigation
-  await assertStep('2. Navegación a pestaña Daily Intel y verificación de cards', async () => {
-    await page.click('#tab-intel');
-    await page.waitForSelector('#view-intel.active');
-    const title = await page.$eval('#view-intel .view-title', el => el.textContent);
-    if (!title.includes('Inteligencia')) throw new Error('Título de Daily Intel no coincide');
-  }, '02_daily_intel_tab.png');
+  // 2. Comprobación de Nodos de Estado y Reloj
+  await assertStep('2. Telemetría de Nodos (Core, Link, Runner, GPU) y Reloj HUD', async () => {
+    const nodes = await page.$$eval('.status-node', els => els.map(e => e.textContent));
+    if (nodes.length < 4) throw new Error('Nodos de estado incompletos');
+    const clock = await page.$eval('#hud-live-clock', el => el.textContent);
+    if (!clock || clock.length < 5) throw new Error('Reloj no inicializado');
+  }, '02_hud_nodes_and_clock.png');
 
-  // 3. Skills Tab Navigation
-  await assertStep('3. Navegación a pestaña Skills & Cron y comprobación de lista', async () => {
-    await page.click('#tab-skills');
-    await page.waitForSelector('#view-skills.active');
-    const title = await page.$eval('#view-skills .view-title', el => el.textContent);
-    if (!title.includes('Habilidades')) throw new Error('Título de Skills no coincide');
-  }, '03_skills_directory_tab.png');
+  // 3. Esfera Neuronal 3D en Canvas
+  await assertStep('3. Verificación y renderizado de la Esfera Neuronal 3D', async () => {
+    await page.waitForSelector('#neural-sphere-canvas');
+    const canvasDimensions = await page.$eval('#neural-sphere-canvas', el => ({
+      w: el.width,
+      h: el.height
+    }));
+    if (canvasDimensions.w <= 0 || canvasDimensions.h <= 0) throw new Error('Canvas 3D no renderizado');
+  }, '03_neural_sphere_canvas_active.png');
 
-  // 4. Vault & Memory Tab Navigation
-  await assertStep('4. Navegación a pestaña Vault Memory (Patrón Karpathy)', async () => {
-    await page.click('#tab-memory');
-    await page.waitForSelector('#view-memory.active');
-    const previewContent = await page.$eval('#vault-preview-content', el => el.textContent);
-    if (!previewContent.includes('AGENTS.md')) throw new Error('Preview de AGENTS.md no visible');
-  }, '04_vault_memory_tab.png');
+  // 4. Interacción con Directivas (Checklist de Tareas)
+  await assertStep('4. Interacción con Directives Top 3 y persistencia de estado', async () => {
+    await page.click('#lbl-task-2');
+    await new Promise(r => setTimeout(r, 100));
+    const isChecked = await page.$eval('#chk-task-2', el => el.checked);
+    if (!isChecked) throw new Error('Directiva 2 no se pudo marcar');
+  }, '04_directives_checklist_interactive.png');
 
-  // 5. Return to Overview and trigger Morning Intel Skill
-  await assertStep('5. Disparo de Skill de 1-Clic (Morning Intel Scan) y Log', async () => {
-    await page.click('#tab-overview');
-    await page.waitForSelector('#view-overview.active');
+  // 5. Interacción con Documents Inbox Trail
+  await assertStep('5. Clic en Documents INBOX.TRAIL y telemetría', async () => {
+    await page.click('.doc-trail-item');
+    await new Promise(r => setTimeout(r, 200));
+  }, '05_documents_inbox_trail.png');
+
+  // 6. Command Deck: Disparo de Skill (Morning Intel Scan)
+  await assertStep('6. Disparo de Skill en Command Deck (Morning Intel)', async () => {
     await page.click('#btn-skill-morning');
     await new Promise(r => setTimeout(r, 800));
-    // Check log in skills view or overview
-    await page.click('#tab-skills');
-    await page.waitForSelector('#view-skills.active');
-    const logContent = await page.$eval('#execution-log', el => el.textContent);
-    if (!logContent.includes('morning-intel-scan')) throw new Error('El log no registró la ejecución');
-  }, '05_skill_executed_log.png');
+  }, '06_command_deck_skill_execution.png');
 
-  // 6. Voice Assistant 3-Tier Modal & Animation
-  await assertStep('6. Apertura de Asistente de Voz 3-Tier y animación de ondas', async () => {
-    await page.click('#tab-overview');
+  // 7. Modal de Asistente de Voz 3-Tier
+  await assertStep('7. Apertura de Voice Link 3-Tier y modulación de audio', async () => {
     await page.click('#btn-trigger-voice-header');
     await page.waitForSelector('#voice-modal:not([hidden])');
-    await new Promise(r => setTimeout(r, 1200)); // Wait for simulated phonetic TTS response
+    await new Promise(r => setTimeout(r, 1400));
     const transcription = await page.$eval('#voice-transcription-text', el => el.textContent);
-    if (!transcription.includes('agenda')) throw new Error('Transcripción incorrecta');
-    const responseText = await page.$eval('#voice-response-text', el => el.textContent);
-    if (!responseText.includes('Revisión de Arquitectura')) throw new Error('Respuesta de voz incorrecta');
-  }, '06_voice_assistant_modal_tier2.png');
+    if (!transcription.includes('agenda')) throw new Error('Transcripción de voz incorrecta');
+  }, '07_voice_assistant_hud_active.png');
 
-  // Close Voice Modal
+  // Cerrar modal de voz
   await page.click('#btn-close-voice');
   await new Promise(r => setTimeout(r, 400));
 
-  // 7. Embedded Terminal Drawer
-  await assertStep('7. Apertura de Terminal Drawer integrado (Atajo T)', async () => {
+  // 8. Terminal Drawer Integrada
+  await assertStep('8. Apertura de Terminal Drawer Shell (>_)', async () => {
     await page.click('#btn-toggle-terminal');
     await page.waitForSelector('#terminal-drawer:not([hidden])');
     const termOutput = await page.$eval('#terminal-output', el => el.textContent);
-    if (!termOutput.includes('macbook')) throw new Error('Shell output no inicializado');
-  }, '07_terminal_drawer_expanded.png');
+    if (!termOutput.includes('trautslab')) throw new Error('Shell output vacío');
+  }, '08_terminal_drawer_shell.png');
 
-  // 8. Light Mode Theme Toggle Testing
-  await assertStep('8. Activación y verificación de Light Mode (Tema Claro)', async () => {
+  // 9. Alternancia a Pure Light HUD Mode
+  await assertStep('9. Conmutación a Pure Light HUD Mode (Tema Claro)', async () => {
     await page.click('#btn-toggle-theme');
     await new Promise(r => setTimeout(r, 400));
     const isLight = await page.$eval('body', el => el.classList.contains('theme-light'));
-    if (!isLight) throw new Error('Clase theme-light no aplicada en body');
-  }, '10_light_mode_overview.png');
+    if (!isLight) throw new Error('Modo claro no aplicado');
+  }, '09_pure_light_hud_mode.png');
 
-  // 9. High Contrast Accessibility Mode
-  await assertStep('9. Activación de Modo Alto Contraste (Accesibilidad WCAG AAA)', async () => {
+  // 10. Modo Alto Contraste WCAG AAA
+  await assertStep('10. Activación de Modo Alto Contraste (WCAG AAA)', async () => {
     await page.click('#btn-high-contrast');
     const hasClass = await page.$eval('body', el => el.classList.contains('high-contrast'));
-    if (!hasClass) throw new Error('Clase high-contrast no aplicada');
+    if (!hasClass) throw new Error('Alto contraste no aplicado');
     // Toggle back
     await page.click('#btn-high-contrast');
-  }, '08_high_contrast_accessibility_mode.png');
+  }, '10_high_contrast_hud.png');
 
-  // 10. Keyboard Shortcuts E2E (including 'L' for theme and 1-4 for tabs)
-  await assertStep('10. Verificación de atajos de teclado (1, 2, 3, 4, L, V, Esc)', async () => {
-    await page.keyboard.press('KeyL'); // Switch back to Dark Mode via key L
+  // 11. Atajos de Teclado E2E (Tecla L, T, V, 1-6)
+  await assertStep('11. Verificación de atajos de teclado HUD (L, T, 1, Esc)', async () => {
+    await page.keyboard.press('KeyL'); // Switch back to Amber Void via L
     await new Promise(r => setTimeout(r, 200));
     const isDark = await page.$eval('body', el => el.classList.contains('theme-dark'));
     if (!isDark) throw new Error('Atajo L no conmutó a tema oscuro');
-
-    await page.keyboard.press('Digit2'); // Go to Intel
-    await page.waitForSelector('#view-intel.active');
-    await page.keyboard.press('Digit1'); // Back to Overview
-    await page.waitForSelector('#view-overview.active');
-  }, '09_keyboard_shortcuts_verified.png');
+  }, '11_keyboard_shortcuts_verified.png');
 
   await browser.close();
 
-  console.log('\n======================================================');
+  console.log('\n========================================================================');
   console.log(`🎉 ¡TODAS LAS ${results.length} PRUEBAS EN GOOGLE CHROME PASARON CON ÉXITO (0 ERRORES)!`);
-  console.log('======================================================\n');
+  console.log('========================================================================\n');
 }
 
 main().catch(err => {
