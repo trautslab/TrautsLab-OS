@@ -44,7 +44,7 @@
 body.theme-light {
   --bg-void: #f4f6fb;
   --bg-deck: rgba(255, 255, 255, 0.88);
-  --bg-card: rgba(255, 255, 255, 0.92);
+  --bg-card: rgba(255, 255, 255, 0.95);
   --bg-card-hover: #ffffff;
 
   --amber-primary: #d97706;
@@ -52,7 +52,7 @@ body.theme-light {
   --amber-bright: #b45309;
   --amber-soft: rgba(217, 119, 6, 0.08);
   --amber-border: rgba(203, 213, 225, 0.9);
-  --amber-border-hover: rgba(217, 119, 6, 0.45);
+  --amber-border-hover: rgba(217, 119, 6, 0.55);
 
   --text-bright: #0f172a;
   --text-main: #1e293b;
@@ -177,33 +177,45 @@ html, body {
 .hud-mode-selector {
   display: flex;
   gap: 6px;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.4);
   padding: 4px;
   border-radius: var(--radius-hud);
   border: 1px solid var(--amber-border);
+}
+
+.theme-light .hud-mode-selector {
+  background: rgba(226, 232, 240, 0.8);
+  border-color: rgba(203, 213, 225, 0.9);
 }
 
 .hud-mode-btn {
   background: transparent;
   border: 1px solid transparent;
   color: var(--text-muted);
-  padding: 5px 12px;
+  padding: 6px 14px;
   font-family: var(--font-hud-mono);
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   letter-spacing: 0.1em;
-  border-radius: 2px;
+  font-weight: 600;
+  border-radius: 3px;
   cursor: pointer;
+  outline: none;
   transition: var(--transition-fast);
   display: flex;
   align-items: center;
   gap: 6px;
+  user-select: none;
 }
 
 .hud-mode-btn .mode-num {
-  font-size: 0.62rem;
+  font-size: 0.64rem;
   background: rgba(255, 255, 255, 0.08);
-  padding: 1px 4px;
+  padding: 1px 5px;
   border-radius: 2px;
+}
+
+.theme-light .hud-mode-btn .mode-num {
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .hud-mode-btn:hover {
@@ -213,9 +225,16 @@ html, body {
 
 .hud-mode-btn.active {
   background: var(--amber-soft);
-  border-color: var(--amber-primary);
+  border: 1px solid var(--amber-primary);
   color: var(--amber-bright);
-  box-shadow: 0 0 10px var(--amber-glow);
+  box-shadow: 0 0 12px var(--amber-glow);
+}
+
+.theme-light .hud-mode-btn.active {
+  background: #ffffff;
+  color: #b45309;
+  border-color: #d97706;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.2);
 }
 
 .hud-node-status {
@@ -286,6 +305,7 @@ html, body {
   padding: 6px 10px;
   border-radius: var(--radius-hud);
   cursor: pointer;
+  outline: none;
   font-family: var(--font-hud-mono);
   font-size: 0.8rem;
   transition: var(--transition-fast);
@@ -310,6 +330,7 @@ html, body {
   letter-spacing: 0.12em;
   font-size: 0.72rem;
   cursor: pointer;
+  outline: none;
   transition: var(--transition-fast);
   box-shadow: 0 0 12px var(--amber-glow);
 }
@@ -339,13 +360,21 @@ html, body {
   display: none;
   height: 100%;
   min-height: 0;
+  animation: viewFadeIn 0.18s ease-out;
 }
 
 .hud-view-panel.active {
   display: block;
 }
 
-/* MAIN 3-DECK GRID */
+@keyframes viewFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   1. COCKPIT VIEW (3-DECK LAYOUT)
+   ========================================================================== */
 .hud-main-grid {
   display: grid;
   grid-template-columns: 310px 1fr 330px;
@@ -377,11 +406,15 @@ html, body {
   gap: 10px;
 }
 
+.theme-light .hud-card {
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+
 .card-title-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(245, 158, 11, 0.1);
+  border-bottom: 1px solid var(--amber-border);
   padding-bottom: 6px;
 }
 
@@ -521,6 +554,10 @@ html, body {
   transition: var(--transition-fast);
 }
 
+.theme-light .doc-trail-item {
+  background: rgba(241, 245, 249, 0.8);
+}
+
 .doc-trail-item:hover {
   border-color: var(--amber-border);
   background: var(--amber-soft);
@@ -647,10 +684,15 @@ html, body {
   letter-spacing: 0.08em;
   text-align: left;
   cursor: pointer;
+  outline: none;
   transition: var(--transition-fast);
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.theme-light .hud-skill-btn {
+  background: #ffffff;
 }
 
 .hud-skill-btn .btn-bullet {
@@ -743,6 +785,10 @@ html, body {
   border-radius: 1px;
 }
 
+.theme-light .vu-segment {
+  background: rgba(0, 0, 0, 0.06);
+}
+
 .vu-segment.active {
   background: var(--amber-primary);
   box-shadow: 0 0 6px var(--amber-primary);
@@ -785,6 +831,12 @@ html, body {
   transition: var(--transition-fast);
 }
 
+.theme-light .intel-item-box {
+  background: #ffffff;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
 .intel-item-box:hover {
   border-color: var(--amber-primary);
   background: var(--amber-soft);
@@ -794,6 +846,11 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.item-head strong {
+  font-size: 0.88rem;
+  color: var(--amber-bright);
 }
 
 .badge-accent {
@@ -834,11 +891,12 @@ html, body {
 }
 
 .tree-entry {
-  padding: 5px 8px;
+  padding: 6px 10px;
   border-radius: 3px;
   cursor: pointer;
   transition: var(--transition-fast);
   color: var(--text-main);
+  user-select: none;
 }
 
 .tree-entry:hover {
@@ -852,6 +910,11 @@ html, body {
   color: var(--amber-bright);
 }
 
+.theme-light .tree-entry.active {
+  background: rgba(217, 119, 6, 0.1);
+  color: #b45309;
+}
+
 .markdown-reader-box {
   background: #020305;
   border: 1px solid var(--amber-border);
@@ -861,12 +924,21 @@ html, body {
   overflow-y: auto;
 }
 
+.theme-light .markdown-reader-box {
+  background: #ffffff;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+}
+
 .markdown-reader-box pre {
   color: var(--text-main);
   font-family: var(--font-hud-mono);
   font-size: 0.8rem;
   line-height: 1.6;
   white-space: pre-wrap;
+}
+
+.theme-light .markdown-reader-box pre {
+  color: #0f172a;
 }
 
 /* ==========================================================================
@@ -894,6 +966,12 @@ html, body {
   gap: 16px;
 }
 
+.theme-light .skill-row {
+  background: #ffffff;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
 .s-info {
   display: flex;
   flex-direction: column;
@@ -917,6 +995,10 @@ html, body {
   padding: 4px 10px;
   border-radius: 3px;
   color: var(--text-dim);
+}
+
+.theme-light .s-cron {
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .s-btn-run {
@@ -1057,6 +1139,11 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.theme-light .modal-response-card {
+  background: #f8fafc;
+  border-color: rgba(203, 213, 225, 0.9);
 }
 
 .audio-equalizer {
