@@ -16,7 +16,7 @@
 
 1. **Fork o Clonación Local:**
    ```bash
-   git clone https://github.com/jlorenzor/TrautsLab-OS.git
+   git clone https://github.com/trautslab/TrautsLab-OS.git
    cd TrautsLab-OS
    ```
 2. **Crear una Rama de Trabajo:**

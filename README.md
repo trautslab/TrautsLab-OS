@@ -1,7 +1,7 @@
 # TrautsLab OS
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/jlorenzor/TrautsLab-OS/main/docs/assets/banner.png" alt="TrautsLab OS Banner" width="100%" onerror="this.style.display='none'"/>
+  <img src="https://raw.githubusercontent.com/trautslab/TrautsLab-OS/main/docs/assets/banner.png" alt="TrautsLab OS Banner" width="100%" onerror="this.style.display='none'"/>
   
   <h3>🧠 Centro de Comando Personal, Asistente de Voz Local y Sistema Operativo de IA</h3>
 
@@ -116,7 +116,7 @@ El directorio `frontend/` incluye un prototipo funcional del Dashboard listo par
 
 1. **Clonar el repositorio:**
    ```bash
-   git clone https://github.com/jlorenzor/TrautsLab-OS.git
+   git clone https://github.com/trautslab/TrautsLab-OS.git
    cd TrautsLab-OS
    ```
 2. **Probar el Dashboard Frontend:**
