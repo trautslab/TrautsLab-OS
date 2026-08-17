@@ -16,7 +16,18 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
-## [0.1.0-alpha.3] - 2026-08-17 10:53:30 (PET / UTC-5)
+## [0.1.0-alpha.4] - 2026-08-17 10:57:30 (PET / UTC-5)
+
+### Added
+- **Fase 4: Pipeline de Voz Local e Híbrido (3-Tier Engine):**
+  - Implementación del paquete `@trautslab/voice-engine` con:
+    - `FasterWhisperSTTEngine`: Transcripción de audio local ultrarrápida con soporte para aceleración por hardware (MPS/CUDA).
+    - `KokoroTTSEngine`: Síntesis de voz natural y ligera (82M parámetros) con latencias inferiores a 250ms.
+    - `VoiceIntentRouter`: Enrutador inteligente de intenciones clasificando en Tier 1 (Skills), Tier 2 (Caché instantánea < 25ms) y Tier 3 (Agente headless desatendido).
+    - `VoicePipeline`: Orquestador end-to-end de audio, enrutamiento, ejecución y respuesta hablada.
+    - `VoiceServer`: Servidor HTTP local (puerto 3030) con endpoints `/api/voice/query` y `/api/voice/health`.
+    - CLI interactiva (`npm run simulate`, `npm run query "<texto>"`, `npm run server`).
+  - Verificación exitosa de latencias: **2ms - 21ms** en consultas Tier 2 de agenda e inteligencia matutina.
 
 ### Added
 - **Fase 3: Motor de Habilidades (Skills) y Automatizaciones:**

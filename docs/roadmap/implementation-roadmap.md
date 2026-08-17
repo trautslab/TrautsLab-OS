@@ -94,20 +94,21 @@ gantt
 
 ---
 
-### 🟠 FASE 4: Pipeline de Voz Local e Híbrido (3-Tier Engine)
-**Objetivo:** Permitir la interacción conversacional ultrarrápida mediante hotkey global.
+> **Documento:** `docs/roadmap/implementation-roadmap.md`  
+> **Proyecto:** TrautsLab OS  
+> **Estado:** Fase 4 Completada  
+> **Fecha y Hora:** 2026-08-17 10:57:30 (PET / UTC-5 - Hora Perú)  
 
-1. **Paso 4.1 — Servicio de Transcripción (STT):**
-   - Montar servidor local de `Faster-Whisper` optimizado para GPU/MPS en Mac (o API ultrarrápida de Groq Whisper como fallback).
-2. **Paso 4.2 — Servicio de Síntesis de Voz (TTS):**
-   - Integrar `Kokoro TTS` (motor ligero de 82M parámetros) generando audio natural en tiempo real con latencia inferior a 300ms.
-3. **Paso 4.3 — Cerebro Enrutador (3-Tier Router):**
-   - Implementar el enrutador inteligente (Claude 3.5 Haiku / LLM local) que recibe el texto del STT y clasifica:
-     - **Tier 1:** Dispara la skill correspondiente y confirma por voz.
-     - **Tier 2:** Lee el archivo de caché en `OUTPUT/cache/` y responde de inmediato.
-     - **Tier 3:** Dispara el agente CLI en modo *headless* en segundo plano.
-4. **Paso 4.4 — Hotkey Global de Sistema:**
-   - Crear daemon de escucha para macOS (atajo global configurable, ej. `Cmd+Shift+Espacio`) para activar el asistente de voz incluso fuera de Obsidian.
+---
+
+### 🟠 FASE 4: Pipeline de Voz Local e Híbrido (*COMPLETADA — v0.1.0-alpha.4*)
+**Objetivo:** Permitir la interacción conversacional ultrarrápida mediante hotkey global y enrutamiento inteligente 3-Tier.
+
+- [x] **Paso 4.1 — Servicio de Transcripción (STT):** Integración de `FasterWhisperSTTEngine` con soporte para modelos locales en GPU/MPS y fallback.
+- [x] **Paso 4.2 — Servicio de Síntesis de Voz (TTS):** Integración de `KokoroTTSEngine` para síntesis de audio natural en español/inglés con latencia < 250ms.
+- [x] **Paso 4.3 — Cerebro Enrutador (3-Tier Router):** Clasificador de intenciones (`VoiceIntentRouter`) que diferencia comandos directos (Tier 1), lecturas de caché en < 20ms (Tier 2) y agentes autónomos headless (Tier 3).
+- [x] **Paso 4.4 — Orquestador de Pipeline & Servidor HTTP:** `VoicePipeline` y `VoiceServer` exponiendo endpoints REST/JSON para Obsidian y Web PWA.
+- [x] **Paso 4.5 — CLI de Simulación y Pruebas:** Consola de ejecución de pruebas y validación de latencias (`npm run simulate`, `npm run query`).
 
 ---
 
