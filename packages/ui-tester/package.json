@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "node run-chrome-tests.js"
+    "test": "node run-chrome-tests.js",
+    "test:mobile": "node run-mobile-tests.js"
   },
   "dependencies": {
     "puppeteer-core": "^25.8.0"

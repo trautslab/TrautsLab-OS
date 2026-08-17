@@ -129,14 +129,20 @@ gantt
 
 ---
 
-### 📱 FASE 6: Acceso Remoto Móvil y Asistente en la Calle
-**Objetivo:** Permitir el uso de TrautsLab OS desde el teléfono celular fuera de casa.
+> **Documento:** `docs/roadmap/implementation-roadmap.md`  
+> **Proyecto:** TrautsLab OS  
+> **Estado:** Fase 6 Completada  
+> **Fecha y Hora:** 2026-08-17 12:27:00 (PET / UTC-5 - Hora Perú)  
 
-1. **Paso 6.1 — Configuración del Túnel Seguro:**
-   - Despliegue de túnel privado con **Tailscale** o **Cloudflare Zero Trust** para conectar el smartphone con el Mac de casa de forma cifrada y sin abrir puertos.
-2. **Paso 6.2 — PWA Móvil & Bot de Telegram/WhatsApp:**
-   - Configuración del frontend como PWA instalable en iOS/Android.
-   - Creación de un bot privado de Telegram como interfaz de respaldo para notas de voz sobre la marcha.
+---
+
+### 📱 FASE 6: Acceso Remoto Móvil y Asistente en la Calle (*COMPLETADA — v0.1.0-alpha.7*)
+**Objetivo:** Permitir el uso de TrautsLab OS desde el teléfono celular fuera de casa con costo $0.
+
+- [x] **Paso 6.1 — Progressive Web App (PWA) & Service Worker:** `manifest.json` y `sw.js` con soporte offline, meta tags para iOS/Android y diseño responsivo móvil (390px).
+- [x] **Paso 6.2 — Puente de Telegram Bot (`@trautslab/telegram-bridge`):** Bot privado con recepción de notas de voz, comandos `/intel`, `/agenda`, `/run`, `/status` y clasificación 3-Tier.
+- [x] **Paso 6.3 — Túneles Seguros & Documentación:** Scripts `start-tailscale-serve.sh` y `start-cloudflare-tunnel.sh` junto a `docs/deployment/mobile-tunnel-setup.md`.
+- [x] **Paso 6.4 — Pruebas E2E Móviles en Google Chrome Real:** Suite `run-mobile-tests.js` con validación táctil y capturas reales.
 
 ---
 

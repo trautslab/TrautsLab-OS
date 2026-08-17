@@ -9,12 +9,25 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
-### Added
-- Integración de arquitectura de voz en tiempo real con soporte para hotkey global.
-- Pipeline de enrutamiento inteligente de 3 niveles (*Tiers 1, 2 y 3*).
-- Plugin base de Obsidian para el Dashboard Command Center con soporte de *Hot Reload*.
-
 ---
+
+## [0.1.0-alpha.7] - 2026-08-17 12:28:00 (PET / UTC-5)
+
+### Added
+- **Fase 6: Acceso Remoto Móvil y Asistente en la Calle:**
+  - **PWA & Service Worker:**
+    - Manifiesto `frontend/manifest.json` e iconos adaptables SVG 192px/512px.
+    - Service Worker `frontend/sw.js` con estrategia Cache-First y modo offline.
+    - Adaptabilidad responsiva móvil (`@media max-width: 900px`) optimizada para iPhone 14 y Pixel 7 (390px).
+  - **Telegram Bot Assistant Bridge (`@trautslab/telegram-bridge`):**
+    - `TelegramBotBridge`: Controlador con soporte para comandos (`/start`, `/intel`, `/agenda`, `/run`, `/status`), notas de voz con Faster-Whisper y respuestas de voz Kokoro TTS.
+    - CLI interactiva y simulación de mensajes (`npm run simulate`).
+    - Suite de pruebas unitarias (`tests/bot.test.ts`).
+  - **Túneles Seguros & Despliegue:**
+    - Scripts de lanzamiento `start-tailscale-serve.sh` y `start-cloudflare-tunnel.sh` con costo $0/mes.
+    - Guía de configuración completa en `docs/deployment/mobile-tunnel-setup.md`.
+  - **Pruebas Automatizadas en Google Chrome Móvil:**
+    - Suite `run-mobile-tests.js` emulando viewport móvil táctil en Chrome con 6/6 pruebas aprobadas y capturas reales.
 
 ## [0.1.0-alpha.5] - 2026-08-17 11:05:00 (PET / UTC-5)
 
