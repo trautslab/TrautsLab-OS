@@ -7,7 +7,7 @@ export class VoiceIntentRouter {
   async classify(text: string): Promise<VoiceClassification> {
     const normalized = text.toLowerCase().trim();
 
-    // 1. Check for TIER 1: Direct Skill Commands
+    // 1. Check for TIER 1: Direct Skill Commands & Action Directives
     if (
       normalized.includes('ejecuta el escaneo') ||
       normalized.includes('corre el escaneo') ||
@@ -20,6 +20,30 @@ export class VoiceIntentRouter {
         confidence: 0.95,
         target: 'morning-intel-scan',
         rationale: 'Coincide con la orden directa de ejecutar el escaneo de inteligencia matutino.'
+      };
+    }
+
+    // Action: Schedule / Add event (Writing to calendar)
+    if (
+      normalized.includes('agendando') ||
+      normalized.includes('agenda la') ||
+      normalized.includes('agenda el') ||
+      normalized.includes('agenda una') ||
+      normalized.includes('agenda un') ||
+      normalized.includes('agendar') ||
+      normalized.includes('añade a la agenda') ||
+      normalized.includes('añade un evento') ||
+      normalized.includes('agrega a mi agenda') ||
+      normalized.includes('agrega una reunión') ||
+      normalized.includes('programar cita') ||
+      normalized.includes('programa la cena') ||
+      normalized.includes('agenda cena')
+    ) {
+      return {
+        tier: 'TIER_1_SKILL',
+        confidence: 0.96,
+        target: 'calendar-add-event',
+        rationale: 'Coincide con la intención de crear o agendar un nuevo evento en el cronograma.'
       };
     }
 
@@ -49,20 +73,25 @@ export class VoiceIntentRouter {
       };
     }
 
-    // 2. Check for TIER 2: Fast Cache Report Queries (Zero-LLM synthesis latency)
+    // 2. Check for TIER 2: Fast Cache Report Queries (Read-Only)
     if (
-      normalized.includes('agenda') ||
-      normalized.includes('calendario') ||
-      normalized.includes('compromiso') ||
-      normalized.includes('reunion') ||
+      normalized.includes('que tengo en mi agenda') ||
+      normalized.includes('que hay en mi agenda') ||
+      normalized.includes('mis compromisos') ||
+      normalized.includes('mi horario') ||
+      normalized.includes('consultar agenda') ||
+      normalized.includes('agenda de hoy') ||
+      normalized.includes('compromisos de hoy') ||
+      normalized.includes('reuniones de hoy') ||
       normalized.includes('que tengo hoy') ||
-      normalized.includes('horario')
+      (normalized.includes('agenda') && !normalized.includes('agend')) ||
+      normalized.includes('calendario')
     ) {
       return {
         tier: 'TIER_2_CACHE',
         confidence: 0.98,
         target: 'today-agenda',
-        rationale: 'Consulta sobre agenda y compromisos del día. Se atiende leyendo OUTPUT/cache/today-agenda.json.'
+        rationale: 'Consulta de lectura sobre agenda y compromisos del día. Se atiende leyendo OUTPUT/cache/today-agenda.json.'
       };
     }
 

@@ -1,4 +1,4 @@
-import { SkillRegistry, SkillContext, MorningIntelScanSkill, CalendarDailyBriefSkill, VaultSyncIndexerSkill } from '@trautslab/skills-engine';
+import { SkillRegistry, SkillContext, MorningIntelScanSkill, CalendarDailyBriefSkill, CalendarAddEventSkill, VaultSyncIndexerSkill } from '@trautslab/skills-engine';
 import { Tier2CacheManager } from '@trautslab/vault-engine';
 import { FasterWhisperSTTEngine } from './stt-engine.js';
 import { KokoroTTSEngine } from './tts-engine.js';
@@ -30,6 +30,7 @@ export class VoicePipeline {
     this.skillRegistry = new SkillRegistry();
     this.skillRegistry.register(new MorningIntelScanSkill());
     this.skillRegistry.register(new CalendarDailyBriefSkill());
+    this.skillRegistry.register(new CalendarAddEventSkill());
     this.skillRegistry.register(new VaultSyncIndexerSkill());
   }
 
@@ -58,14 +59,18 @@ export class VoicePipeline {
         console.log(`[VoicePipeline] ⚡ Ejecutando Skill Tier 1: ${skillId}`);
         const ctx: SkillContext = {
           vaultRoot: this.vaultRoot,
-          timestamp: new Date()
+          timestamp: new Date(),
+          args: {
+            query: transcription,
+            eventText: transcription
+          }
         };
         const result = await this.skillRegistry.execute(skillId, ctx);
         actionMs = Date.now() - actionStart;
 
         if (result.success) {
-          responsePlainText = `Skill ${skillId} ejecutada exitosamente en ${result.executionTimeMs}ms.`;
-          responsePhoneticTts = `He ejecutado el escaneo matutino con éxito. Los reportes ya están guardados en tu Vault.`;
+          responsePlainText = result.message || `Skill ${skillId} ejecutada exitosamente en ${result.executionTimeMs}ms.`;
+          responsePhoneticTts = result.message || `Operación completada con éxito.`;
         } else {
           responsePlainText = `Error ejecutando skill ${skillId}: ${result.error}`;
           responsePhoneticTts = `Hubo un inconveniente al ejecutar la habilidad. Por favor revisa los logs.`;

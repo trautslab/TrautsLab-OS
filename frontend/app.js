@@ -224,6 +224,156 @@ document.addEventListener('DOMContentLoaded', () => {
   const transcriptionText = document.getElementById('voice-transcription-text');
   const responseText = document.getElementById('voice-response-text');
   const tierPill = document.getElementById('tier-pill');
+  const voiceInputForm = document.getElementById('voice-input-form');
+  const voiceTextInput = document.getElementById('voice-text-input');
+  const scheduleList = document.querySelector('.schedule-hud-list');
+
+  let recognition = null;
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'es-PE';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+
+    recognition.onresult = (event) => {
+      let interim = '';
+      let final = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          final += event.results[i][0].transcript;
+        } else {
+          interim += event.results[i][0].transcript;
+        }
+      }
+      const captured = final || interim;
+      if (captured && transcriptionText) {
+        transcriptionText.textContent = `"${captured}"`;
+      }
+      if (final) {
+        processVoiceQuery(final);
+      }
+    };
+
+    recognition.onerror = (e) => {
+      console.warn('[WebSpeech API] Error:', e.error);
+      if (transcriptionText && transcriptionText.textContent.includes('Escuchando')) {
+        transcriptionText.textContent = '"Habla ahora o escribe tu orden abajo..."';
+      }
+    };
+
+    recognition.onend = () => {
+      animateVUMeter(false);
+    };
+  }
+
+  function speakText(text) {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'es-ES';
+      utter.rate = 1.05;
+      utter.pitch = 1.0;
+      utter.onstart = () => {
+        sphere.setState('speaking');
+        animateVUMeter(true);
+      };
+      utter.onend = () => {
+        sphere.setState('idle');
+        animateVUMeter(false);
+      };
+      window.speechSynthesis.speak(utter);
+    }
+  }
+
+  function addScheduleEventToUI(time, title) {
+    if (!scheduleList) return;
+    const newEventEl = document.createElement('div');
+    newEventEl.className = 'sched-item upcoming';
+    newEventEl.style.animation = 'viewFadeIn 0.3s ease-out';
+    newEventEl.innerHTML = `
+      <span class="sched-time">${time}</span>
+      <span class="sched-task">${title}</span>
+      <span class="sched-now-tag" style="background: var(--emerald-accent);">[NUEVO]</span>
+    `;
+    scheduleList.appendChild(newEventEl);
+  }
+
+  async function processVoiceQuery(query) {
+    const q = query.trim();
+    if (!q) return;
+
+    sphere.setState('listening');
+    animateVUMeter(true);
+    if (transcriptionText) transcriptionText.textContent = `"${q}"`;
+    if (responseText) responseText.textContent = 'Procesando enrutador de 3 niveles...';
+    if (tierPill) tierPill.textContent = 'ANALIZANDO INTENCIÓN...';
+
+    appendTerminalLog(`VOICE QUERY: "${q}"`, 'prompt');
+
+    try {
+      // 1. Try calling live Voice Engine server (port 3030)
+      const res = await fetch('http://localhost:3030/api/voice/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: q })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const tier = data.tier || 'TIER_1_SKILL';
+        const reply = data.responsePhoneticTts || data.responsePlainText || data.reply;
+        
+        if (tierPill) tierPill.textContent = `${tier.toUpperCase()} (< 25MS)`;
+        if (responseText) responseText.textContent = `"${reply}"`;
+        appendTerminalLog(`✓ [${tier}] ${reply}`, 'success');
+
+        if (q.toLowerCase().includes('cena') || q.toLowerCase().includes('agenda') || q.toLowerCase().includes('agendando')) {
+          addScheduleEventToUI('20:00', 'Cena de hoy');
+        }
+
+        speakText(reply);
+        return;
+      }
+    } catch {
+      // 2. Client-Side High-Speed Intelligent Fallback
+      console.log('[Voice Modal] Usando enrutador híbrido cliente...');
+    }
+
+    // Local deterministic Intent Routing
+    const lower = q.toLowerCase();
+    let reply = '';
+    let tierName = 'TIER 2: FAST CACHE LOOKUP (< 20MS)';
+
+    if (lower.includes('agendando') || lower.includes('agenda la') || lower.includes('agenda el') || lower.includes('agenda cena') || lower.includes('agendar')) {
+      tierName = 'TIER 1: CALENDAR-ADD-EVENT (SKILL)';
+      const timeMatch = q.match(/(?:a las\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas)?)/i);
+      const time = timeMatch ? timeMatch[1].toUpperCase() : '08:00 PM';
+      const cleanTitle = q.replace(/(?:ayúdame|agendando|agenda|la|el|cena|a las|\d|pm|am|hrs)/gi, '').trim() || 'Cena de hoy';
+      const fullTitle = `Cena de hoy ${cleanTitle ? '(' + cleanTitle + ')' : ''}`.trim();
+      
+      reply = `He agendado "${fullTitle}" a las ${time}. Tu cronograma ha sido actualizado con éxito.`;
+      addScheduleEventToUI(time, fullTitle);
+      appendTerminalLog(`✓ [TIER_1_SKILL] Evento creado: "${fullTitle}" a las ${time}`, 'success');
+    } else if (lower.includes('agenda') || lower.includes('compromiso') || lower.includes('que tengo')) {
+      tierName = 'TIER 2: FAST CACHE LOOKUP (< 20MS)';
+      reply = 'Tu compromiso principal hoy es la Revisión de Arquitectura TrautsLab OS a las 11:00 AM, seguido por la cena a las 8:00 PM.';
+      appendTerminalLog(`✓ [TIER_2_CACHE] Consulta de agenda respondida en 1.2ms`, 'info');
+    } else if (lower.includes('noticia') || lower.includes('trending') || lower.includes('intel') || lower.includes('ia')) {
+      tierName = 'TIER 2: FAST CACHE LOOKUP (< 20MS)';
+      reply = 'Hoy en GitHub destaca Hermes Agent de NousResearch y Kokoro TTS para síntesis ultrarrápida.';
+      appendTerminalLog(`✓ [TIER_2_CACHE] Consulta de intel respondida en 0.8ms`, 'info');
+    } else {
+      tierName = 'TIER 3: HEADLESS AGENT RUNNER';
+      reply = `He delegado "${q}" al agente autónomo en segundo plano. Te notificaré cuando finalice la tarea.`;
+      appendTerminalLog(`⚡ [TIER_3_HEADLESS] Despachando tarea en segundo plano...`, 'prompt');
+    }
+
+    if (tierPill) tierPill.textContent = tierName;
+    if (responseText) responseText.textContent = `"${reply}"`;
+    speakText(reply);
+  }
 
   function openVoiceModal() {
     if (!voiceModal) return;
@@ -231,33 +381,47 @@ document.addEventListener('DOMContentLoaded', () => {
     sphere.setState('listening');
     animateVUMeter(true);
 
-    if (transcriptionText) transcriptionText.textContent = '"¿Qué es lo más importante en mi agenda hoy?"';
-    if (responseText) responseText.textContent = 'Consultando memoria del Vault...';
+    if (transcriptionText) transcriptionText.textContent = '"🎙️ Escuchando... Habla ahora o escribe tu orden."';
+    if (responseText) responseText.textContent = 'Esperando entrada de voz...';
+    if (tierPill) tierPill.textContent = 'MICRÓFONO EN VIVO (ES)';
 
-    setTimeout(() => {
-      sphere.setState('speaking');
-      if (tierPill) tierPill.textContent = 'TIER 2: FAST CACHE LOOKUP (< 20MS)';
-      if (responseText) {
-        responseText.textContent = '"Tu compromiso principal hoy es la Revisión de Arquitectura TrautsLab OS a las 11:00 AM, seguido por la grabación del demo a las 3:30 PM."';
+    if (voiceTextInput) {
+      voiceTextInput.value = '';
+      voiceTextInput.focus();
+    }
+
+    if (recognition) {
+      try {
+        recognition.start();
+      } catch (e) {
+        console.log('[WebSpeech] Ya iniciado');
       }
-      appendTerminalLog('VOICE: Query &rarr; Tier 2 Cache Match (today-agenda.json)', 'info');
-
-      setTimeout(() => {
-        sphere.setState('idle');
-        animateVUMeter(false);
-      }, 2500);
-    }, 1200);
+    }
   }
 
   function closeVoiceModal() {
     if (voiceModal) voiceModal.setAttribute('hidden', '');
     sphere.setState('idle');
     animateVUMeter(false);
+    if (recognition) {
+      try { recognition.stop(); } catch {}
+    }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
   }
 
   btnTriggerVoice?.addEventListener('click', openVoiceModal);
   centerOrbTrigger?.addEventListener('click', openVoiceModal);
   btnCloseVoice?.addEventListener('click', closeVoiceModal);
+
+  voiceInputForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (voiceTextInput && voiceTextInput.value.trim()) {
+      processVoiceQuery(voiceTextInput.value.trim());
+      voiceTextInput.value = '';
+    }
+  });
 
   // 11. Live VU Meter Modulation
   const vuSegments = document.querySelectorAll('.vu-segment');

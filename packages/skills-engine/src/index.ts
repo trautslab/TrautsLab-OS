@@ -5,4 +5,5 @@ export * from './launchd-generator.js';
 export * from './evaluator.js';
 export * from './skills/morning-intel-scan.js';
 export * from './skills/calendar-daily-brief.js';
+export * from './skills/calendar-add-event.js';
 export * from './skills/vault-sync-indexer.js';

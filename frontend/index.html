@@ -445,12 +445,18 @@ Antes de buscar en todos los archivos, lee siempre el `index.md` del nivel en el
             <span></span><span></span><span></span><span></span><span></span><span></span>
           </div>
           <p class="voice-response-text" id="voice-response-text">
-            "Tu compromiso principal hoy es la Revisión de Arquitectura TrautsLab OS a las 11:00 AM, seguido por la grabación del demo a las 3:30 PM."
+            "Esperando tu orden por voz o texto..."
           </p>
         </div>
 
+        <!-- Real Interactive Input Form -->
+        <form id="voice-input-form" class="voice-form-inline">
+          <input type="text" id="voice-text-input" class="voice-text-field" placeholder="Habla o escribe aquí (ej. 'agenda la cena de hoy a las 8pm')..." autocomplete="off" />
+          <button type="submit" id="btn-submit-voice-form" class="voice-send-btn">Enviar</button>
+        </form>
+
         <div class="modal-footer-tip">
-          Presiona <kbd>Escape</kbd> para cerrar o <kbd>Espacio</kbd> para hablar de nuevo
+          🎙️ Micrófono en vivo • Presiona <kbd>Escape</kbd> para cerrar
         </div>
       </div>
     </div>

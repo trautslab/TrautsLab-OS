@@ -94,12 +94,14 @@ async function main() {
   }, '06_command_deck_skill_execution.png');
 
   // 7. Modal de Asistente de Voz 3-Tier
-  await assertStep('7. Apertura de Voice Link 3-Tier y modulación de audio', async () => {
+  await assertStep('7. Apertura de Voice Link 3-Tier y agendado de cena', async () => {
     await page.click('#btn-trigger-voice-header');
     await page.waitForSelector('#voice-modal:not([hidden])');
-    await new Promise(r => setTimeout(r, 1400));
-    const transcription = await page.$eval('#voice-transcription-text', el => el.textContent);
-    if (!transcription.includes('agenda')) throw new Error('Transcripción de voz incorrecta');
+    await page.type('#voice-text-input', 'ayúdame agendando la cena de hoy a las 8pm');
+    await page.click('#btn-submit-voice-form');
+    await new Promise(r => setTimeout(r, 600));
+    const response = await page.$eval('#voice-response-text', el => el.textContent);
+    if (!response.toLowerCase().includes('cena')) throw new Error('Respuesta de voz no procesó la cena');
   }, '07_voice_assistant_hud_active.png');
 
   // Cerrar modal de voz
