@@ -29,7 +29,35 @@ document.addEventListener('DOMContentLoaded', () => {
   updateClock();
   setInterval(updateClock, 1000);
 
-  // 3. Theme Toggle (Amber Void vs Pure Light HUD)
+  // 3. HUD Mode Switcher (1. Cockpit, 2. Daily Intel, 3. Vault Memory, 4. Skills & Cron)
+  const modeButtons = document.querySelectorAll('.hud-mode-btn');
+  const viewPanels = document.querySelectorAll('.hud-view-panel');
+
+  function switchMode(modeId) {
+    modeButtons.forEach(btn => {
+      const isActive = btn.getAttribute('data-mode') === modeId;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    viewPanels.forEach(panel => {
+      const isTarget = panel.id === `view-${modeId}`;
+      panel.classList.toggle('active', isTarget);
+    });
+
+    if (modeId === 'cockpit' && sphere) {
+      sphere.resize();
+    }
+  }
+
+  modeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const modeId = btn.getAttribute('data-mode');
+      switchMode(modeId);
+    });
+  });
+
+  // 4. Theme Toggle (Amber Void vs Pure Light HUD)
   const btnToggleTheme = document.getElementById('btn-toggle-theme');
   const themeIcon = document.getElementById('theme-icon');
 
@@ -50,13 +78,13 @@ document.addEventListener('DOMContentLoaded', () => {
     applyTheme(isDark ? 'light' : 'dark');
   });
 
-  // 4. High Contrast Accessibility Toggle
+  // 5. High Contrast Accessibility Toggle
   const btnHighContrast = document.getElementById('btn-high-contrast');
   btnHighContrast?.addEventListener('click', () => {
     document.body.classList.toggle('high-contrast');
   });
 
-  // 5. Terminal Drawer Toggle & Shell Command Runner
+  // 6. Terminal Drawer Toggle & Shell Command Runner
   const btnToggleTerminal = document.getElementById('btn-toggle-terminal');
   const btnCloseTerminal = document.getElementById('btn-close-terminal');
   const terminalDrawer = document.getElementById('terminal-drawer');
@@ -84,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     terminalOutput.scrollTop = terminalOutput.scrollHeight;
   }
 
-  // 6. Directives Interactive State & Persistence
+  // 7. Directives Interactive State & Persistence
   const directivesList = document.getElementById('directives-list');
   const directiveCheckboxes = directivesList?.querySelectorAll('input[type="checkbox"]');
 
@@ -102,19 +130,47 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 7. Documents Inbox Trail Interaction (Live preview)
+  // 8. Documents Inbox Trail & Vault Tree Interactive Reader
+  const docVaultMap = {
+    'AGENTS.md': `# AGENTS.md: Vault Navigation Map\n\nEste archivo indica a cualquier agente cómo navegar este repositorio:\n1. **RAW/**: Datos crudos descargados de internet.\n2. **WIKI/**: Artículos sintetizados con index.md.\n3. **OUTPUT/**: Entregables y caché Tier 2.\n\n## Regla de Oro\nConsulta siempre el index.md más cercano para no saturar tu ventana de contexto.`,
+    'WIKI/index.md': `# WIKI Master Table of Contents\n\n- [[ai-systems]]: Arquitecturas de Agentes y Modelos de Voz\n- [[productivity]]: Codificación de Habilidades y Automatizaciones\n- [[development]]: Convenciones Semánticas y Git Flow\n- [[operations]]: Mantenimiento y Monitor de Salud`,
+    'WIKI/ai-systems/2026-08-17-morning-intel.md': `# Resumen de Inteligencia Matutino (2026-08-17)\n\n## Tendencias GitHub\n- **NousResearch/hermes-agent**: Liderando herramientas de agentes autónomos.\n- **hexgrad/kokoro**: Motor TTS de 82M parámetros para síntesis local.\n\n## Hacker News\n- **Apple App Tracking Transparency**: Debates antitrust y métricas publicitarias.`,
+    'WIKI/productivity/skills-codification.md': `# Codificación de Habilidades (Skills)\n\nGuía para convertir rutinas repetitivas en código TypeScript determinista con registro en SkillRegistry.`,
+    'OUTPUT/cache/today-agenda.json': `{\n  "date": "2026-08-17",\n  "events_count": 3,\n  "quick_summary_tts": "Tu compromiso principal hoy es la Revisión de Arquitectura TrautsLab OS a las 11:00 AM."\n}`
+  };
+
+  const docTitleEl = document.getElementById('vault-doc-title');
+  const readerContentEl = document.getElementById('markdown-reader-content');
+
+  function openDocumentPreview(docPath) {
+    switchMode('vault');
+    if (docTitleEl) docTitleEl.textContent = `${docPath.toUpperCase()} — VISTA PREVIA`;
+    if (readerContentEl) {
+      const content = docVaultMap[docPath] || `# ${docPath}\n\nDocumento cargado desde el Vault.`;
+      readerContentEl.innerHTML = `<pre><code>${content}</code></pre>`;
+    }
+    appendTerminalLog(`Lector de Vault: Visualizando <strong>${docPath}</strong>`, 'info');
+  }
+
   const docItems = document.querySelectorAll('.doc-trail-item');
   docItems.forEach(item => {
     item.addEventListener('click', () => {
       const docPath = item.getAttribute('data-path');
-      appendTerminalLog(`Accediendo a documento del Vault: <strong>${docPath}</strong>...`, 'info');
-      // Briefly highlight item
-      item.style.borderColor = 'var(--amber-bright)';
-      setTimeout(() => item.style.borderColor = '', 1000);
+      openDocumentPreview(docPath);
     });
   });
 
-  // 8. Command Deck Skills Matrix (Real execution connection)
+  const treeEntries = document.querySelectorAll('.tree-entry.file');
+  treeEntries.forEach(entry => {
+    entry.addEventListener('click', () => {
+      treeEntries.forEach(e => e.classList.remove('active'));
+      entry.classList.add('active');
+      const docPath = entry.getAttribute('data-file');
+      if (docPath) openDocumentPreview(docPath);
+    });
+  });
+
+  // 9. Command Deck Skills Matrix & Skills Full View (Real execution connection)
   const skillButtons = document.querySelectorAll('.hud-skill-btn');
 
   async function executeSkill(skillId, btnElement) {
@@ -123,7 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
     appendTerminalLog(`⚡ Disparando Skill: <strong>${skillId}</strong>...`, 'prompt');
 
     try {
-      // Attempt connection to local Voice/Skills server
       const res = await fetch('http://localhost:3030/api/voice/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -134,10 +189,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await res.json();
         appendTerminalLog(`✓ Skill <strong>${skillId}</strong> completada en ${data.latencies.totalMs}ms.`, 'success');
       } else {
-        throw new Error('Fallback local runner');
+        throw new Error('Fallback');
       }
     } catch {
-      // Local fallback simulation with realistic timing
       await new Promise(r => setTimeout(r, 600));
       appendTerminalLog(`✓ Skill <strong>${skillId}</strong> completada exitosamente. Entregables en vault/OUTPUT/.`, 'success');
     } finally {
@@ -153,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 9. Voice Assistant 3-Tier Modal & Interactive Audio Reaction
+  // 10. Voice Assistant 3-Tier Modal & Interactive Audio Reaction
   const btnTriggerVoice = document.getElementById('btn-trigger-voice-header');
   const centerOrbTrigger = document.getElementById('voice-orb-interactive');
   const voiceModal = document.getElementById('voice-modal');
@@ -171,7 +225,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (transcriptionText) transcriptionText.textContent = '"¿Qué es lo más importante en mi agenda hoy?"';
     if (responseText) responseText.textContent = 'Consultando memoria del Vault...';
 
-    // Simulate 3-Tier processing & Kokoro synthesis
     setTimeout(() => {
       sphere.setState('speaking');
       if (tierPill) tierPill.textContent = 'TIER 2: FAST CACHE LOOKUP (< 20MS)';
@@ -197,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
   centerOrbTrigger?.addEventListener('click', openVoiceModal);
   btnCloseVoice?.addEventListener('click', closeVoiceModal);
 
-  // 10. Live VU Meter Modulation
+  // 11. Live VU Meter Modulation
   const vuSegments = document.querySelectorAll('.vu-segment');
   let vuInterval = null;
 
@@ -214,15 +267,21 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       if (vuInterval) clearInterval(vuInterval);
       vuSegments.forEach((seg, i) => {
-        seg.classList.toggle('active', i < 3); // Idle level
+        seg.classList.toggle('active', i < 3);
       });
       sphere.setAudioPulse(0);
     }
   }
 
-  // 11. Global Keyboard Shortcuts
+  // 12. Global Keyboard Shortcuts (1-4 for modes, L for theme, T for terminal, V/Space for voice)
   document.addEventListener('keydown', (e) => {
     if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+    // Keys 1 to 4 -> Switch HUD View Modes
+    if (e.key === '1') switchMode('cockpit');
+    if (e.key === '2') switchMode('intel');
+    if (e.key === '3') switchMode('vault');
+    if (e.key === '4') switchMode('skills');
 
     // 'L' -> Theme Toggle
     if (e.key.toLowerCase() === 'l') {
@@ -243,15 +302,6 @@ document.addEventListener('DOMContentLoaded', () => {
       openVoiceModal();
     }
 
-    // Numbers 1-6 -> Execute corresponding skills
-    if (['1', '2', '3', '4', '5', '6'].includes(e.key)) {
-      const idx = parseInt(e.key, 10) - 1;
-      if (skillButtons[idx]) {
-        const skillId = skillButtons[idx].getAttribute('data-skill');
-        executeSkill(skillId, skillButtons[idx]);
-      }
-    }
-
     // 'Escape' -> Close any modal / drawer
     if (e.key === 'Escape') {
       closeVoiceModal();
@@ -261,5 +311,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  console.log("✓ [TrautsLab OS] HUD Command Center completamente conectado y funcional.");
+  console.log("✓ [TrautsLab OS] HUD Command Center con 4 modos conectado y funcional.");
 });

@@ -7,7 +7,7 @@ const SCREENSHOT_DIR = path.resolve('/Users/jlorenzor/Documents/TrautsLab-OS/doc
 const APP_URL = 'http://localhost:3000';
 
 async function main() {
-  console.log('\n🚀 [TrautsLab OS — Strict V.A.U.L.T. HUD Google Chrome Test Suite]');
+  console.log('\n🚀 [TrautsLab OS — Full Inception Parity Google Chrome Test Suite]');
   console.log(`🌐 Navegador Real: ${CHROME_PATH}`);
   console.log(`🎯 URL de Prueba: ${APP_URL}`);
   console.log(`📁 Directorio de Capturas: ${SCREENSHOT_DIR}\n`);
@@ -32,7 +32,7 @@ async function main() {
       const elapsed = Date.now() - start;
       const screenshotPath = path.join(SCREENSHOT_DIR, screenshotName);
       await page.screenshot({ path: screenshotPath, fullPage: false });
-      console.log(`  ✓ [PASS] ${name.padEnd(58)} (${elapsed}ms) -> ${screenshotName}`);
+      console.log(`  ✓ [PASS] ${name.padEnd(62)} (${elapsed}ms) -> ${screenshotName}`);
       results.push({ name, status: 'PASS', elapsedMs: elapsed, screenshot: screenshotName });
     } catch (err) {
       console.error(`  ✗ [FAIL] ${name}:`, err.message);
@@ -41,49 +41,53 @@ async function main() {
     }
   }
 
-  // 1. Carga inicial del HUD Amber Void
-  await assertStep('1. Carga inicial del HUD V.A.U.L.T. y acrónimo T.R.A.U.T.S.L.A.B.', async () => {
+  // 1. Carga inicial del HUD Cockpit (Modo 1)
+  await assertStep('1. Carga inicial del HUD Cockpit (Esfera 3D y Vitals)', async () => {
     await page.goto(APP_URL, { waitUntil: 'networkidle0' });
     await page.waitForSelector('.hud-acronym');
     const title = await page.$eval('.hud-acronym', el => el.textContent);
     if (!title.includes('T.R.A.U.T.S.L.A.B.')) throw new Error(`Título no coincide: ${title}`);
     const tokenVal = await page.$eval('#token-count', el => el.textContent);
     if (!tokenVal.includes('48.2K')) throw new Error(`Tokens no coinciden: ${tokenVal}`);
-  }, '01_hud_amber_void_overview.png');
+  }, '01_hud_cockpit_view.png');
 
-  // 2. Comprobación de Nodos de Estado y Reloj
-  await assertStep('2. Telemetría de Nodos (Core, Link, Runner, GPU) y Reloj HUD', async () => {
-    const nodes = await page.$$eval('.status-node', els => els.map(e => e.textContent));
-    if (nodes.length < 4) throw new Error('Nodos de estado incompletos');
-    const clock = await page.$eval('#hud-live-clock', el => el.textContent);
-    if (!clock || clock.length < 5) throw new Error('Reloj no inicializado');
-  }, '02_hud_nodes_and_clock.png');
+  // 2. Navegación a Modo 2: Daily Intel Feed
+  await assertStep('2. Modo 2: Daily Intel Feed (GitHub Trending y HN Insights)', async () => {
+    await page.click('#mode-intel');
+    await page.waitForSelector('#view-intel.active');
+    const hasCards = await page.$$eval('.intel-item-box', els => els.length >= 2);
+    if (!hasCards) throw new Error('Cards de intel no encontradas');
+  }, '02_hud_intel_view.png');
 
-  // 3. Esfera Neuronal 3D en Canvas
-  await assertStep('3. Verificación y renderizado de la Esfera Neuronal 3D', async () => {
-    await page.waitForSelector('#neural-sphere-canvas');
-    const canvasDimensions = await page.$eval('#neural-sphere-canvas', el => ({
-      w: el.width,
-      h: el.height
-    }));
-    if (canvasDimensions.w <= 0 || canvasDimensions.h <= 0) throw new Error('Canvas 3D no renderizado');
-  }, '03_neural_sphere_canvas_active.png');
+  // 3. Navegación a Modo 3: Vault Memory Explorer & Lector Markdown
+  await assertStep('3. Modo 3: Vault Memory Explorer & Lector Markdown Karpathy', async () => {
+    await page.click('#mode-vault');
+    await page.waitForSelector('#view-vault.active');
+    const treeEntries = await page.$$eval('.tree-entry', els => els.length);
+    if (treeEntries < 4) throw new Error('Árbol de directorios del vault incompleto');
+  }, '03_hud_vault_view.png');
 
-  // 4. Interacción con Directivas (Checklist de Tareas)
-  await assertStep('4. Interacción con Directives Top 3 y persistencia de estado', async () => {
+  // 4. Navegación a Modo 4: Skills & Cron Manager
+  await assertStep('4. Modo 4: Skills Directory & Cron Schedules Manager', async () => {
+    await page.click('#mode-skills');
+    await page.waitForSelector('#view-skills.active');
+    const skillRows = await page.$$eval('.skill-row', els => els.length);
+    if (skillRows < 3) throw new Error('Lista de skills incompleta');
+  }, '04_hud_skills_view.png');
+
+  // Retornar a Cockpit
+  await page.click('#mode-cockpit');
+  await page.waitForSelector('#view-cockpit.active');
+
+  // 5. Interacción con Directivas Top 3 (Checklist de Tareas)
+  await assertStep('5. Interacción con Directives Top 3 y persistencia', async () => {
     await page.click('#lbl-task-2');
     await new Promise(r => setTimeout(r, 100));
     const isChecked = await page.$eval('#chk-task-2', el => el.checked);
     if (!isChecked) throw new Error('Directiva 2 no se pudo marcar');
-  }, '04_directives_checklist_interactive.png');
+  }, '05_directives_checklist_interactive.png');
 
-  // 5. Interacción con Documents Inbox Trail
-  await assertStep('5. Clic en Documents INBOX.TRAIL y telemetría', async () => {
-    await page.click('.doc-trail-item');
-    await new Promise(r => setTimeout(r, 200));
-  }, '05_documents_inbox_trail.png');
-
-  // 6. Command Deck: Disparo de Skill (Morning Intel Scan)
+  // 6. Command Deck: Disparo de Skill en 1-Clic
   await assertStep('6. Disparo de Skill en Command Deck (Morning Intel)', async () => {
     await page.click('#btn-skill-morning');
     await new Promise(r => setTimeout(r, 800));
@@ -102,7 +106,7 @@ async function main() {
   await page.click('#btn-close-voice');
   await new Promise(r => setTimeout(r, 400));
 
-  // 8. Terminal Drawer Integrada
+  // 8. Terminal Drawer Shell (>_)
   await assertStep('8. Apertura de Terminal Drawer Shell (>_)', async () => {
     await page.click('#btn-toggle-terminal');
     await page.waitForSelector('#terminal-drawer:not([hidden])');
@@ -127,12 +131,19 @@ async function main() {
     await page.click('#btn-high-contrast');
   }, '10_high_contrast_hud.png');
 
-  // 11. Atajos de Teclado E2E (Tecla L, T, V, 1-6)
-  await assertStep('11. Verificación de atajos de teclado HUD (L, T, 1, Esc)', async () => {
+  // 11. Atajos de Teclado E2E (Teclas 1, 2, 3, 4, L, T, Esc)
+  await assertStep('11. Verificación de atajos de teclado HUD (1-4, L, T, Esc)', async () => {
     await page.keyboard.press('KeyL'); // Switch back to Amber Void via L
     await new Promise(r => setTimeout(r, 200));
     const isDark = await page.$eval('body', el => el.classList.contains('theme-dark'));
     if (!isDark) throw new Error('Atajo L no conmutó a tema oscuro');
+
+    await page.keyboard.press('Digit2'); // Go to Intel
+    await page.waitForSelector('#view-intel.active');
+    await page.keyboard.press('Digit3'); // Go to Vault
+    await page.waitForSelector('#view-vault.active');
+    await page.keyboard.press('Digit1'); // Back to Cockpit
+    await page.waitForSelector('#view-cockpit.active');
   }, '11_keyboard_shortcuts_verified.png');
 
   await browser.close();

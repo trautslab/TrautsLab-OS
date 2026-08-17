@@ -27,11 +27,26 @@
         <span class="hud-subtitle">VOICE-ACTIVATED UNIFIED LOGIC TERMINAL</span>
       </div>
 
+      <!-- HUD Mode Navigation Switcher -->
+      <nav class="hud-mode-selector" role="tablist" aria-label="Selector de Vistas HUD">
+        <button class="hud-mode-btn active" id="mode-cockpit" data-mode="cockpit" role="tab" aria-selected="true" title="Cockpit 3D (Tecla 1)">
+          <span class="mode-num">1</span> COCKPIT
+        </button>
+        <button class="hud-mode-btn" id="mode-intel" data-mode="intel" role="tab" aria-selected="false" title="Daily Intel (Tecla 2)">
+          <span class="mode-num">2</span> DAILY INTEL
+        </button>
+        <button class="hud-mode-btn" id="mode-vault" data-mode="vault" role="tab" aria-selected="false" title="Vault Memory (Tecla 3)">
+          <span class="mode-num">3</span> VAULT MEMORY
+        </button>
+        <button class="hud-mode-btn" id="mode-skills" data-mode="skills" role="tab" aria-selected="false" title="Skills & Crons (Tecla 4)">
+          <span class="mode-num">4</span> SKILLS & CRON
+        </button>
+      </nav>
+
       <!-- Node Status Indicators -->
       <div class="hud-node-status" role="region" aria-label="Estado de Nodos">
         <span class="status-node" id="node-core"><span class="node-dot"></span> CORE • IDLE</span>
         <span class="status-node" id="node-link"><span class="node-dot"></span> LINK • ONLINE</span>
-        <span class="status-node" id="node-runner"><span class="node-dot"></span> RUNNER • ALIVE</span>
         <span class="status-node" id="node-gpu"><span class="node-dot"></span> GPU • MPS ACTIVE</span>
       </div>
 
@@ -60,233 +75,333 @@
       </div>
     </header>
 
-    <!-- MAIN HUD WORKSPACE (3-DECK LAYOUT) -->
-    <main class="hud-main-grid" role="main">
-      <!-- LEFT DECK: SYSTEM VITALS & DIRECTIVES -->
-      <aside class="hud-deck hud-deck-left">
-        <!-- SYSTEM VITALS -->
-        <section class="hud-card vitals-card">
-          <div class="card-title-bar">
-            <span class="card-tag">SYSTEM VITALS</span>
-            <span class="card-subtag">TELEMETRY.LINK</span>
-          </div>
-          <div class="vitals-metric-list">
-            <!-- Metric 1: Tokens -->
-            <div class="vital-item">
-              <div class="vital-meta">
-                <span class="vital-label">• TOKENS BURNED HOY</span>
-                <span class="vital-trend positive">▲ 48.2K / 1M</span>
+    <!-- MAIN HUD WORKSPACE -->
+    <main class="hud-viewport" role="main">
+      <!-- 1. VIEW: HUD 3-DECK COCKPIT (HERO) -->
+      <section id="view-cockpit" class="hud-view-panel active" role="tabpanel" aria-labelledby="mode-cockpit">
+        <div class="hud-main-grid">
+          <!-- LEFT DECK: SYSTEM VITALS & DIRECTIVES -->
+          <aside class="hud-deck hud-deck-left">
+            <section class="hud-card vitals-card">
+              <div class="card-title-bar">
+                <span class="card-tag">SYSTEM VITALS</span>
+                <span class="card-subtag">TELEMETRY.LINK</span>
               </div>
-              <div class="vital-value-row">
-                <span class="vital-big-val" id="token-count">48.2K</span>
-                <!-- Vector Sparkline SVG -->
-                <svg class="sparkline" viewBox="0 0 100 24" preserveAspectRatio="none">
-                  <path d="M0 18 L15 16 L30 20 L45 12 L60 15 L75 8 L90 10 L100 4" fill="none" stroke="currentColor" stroke-width="2"/>
-                </svg>
+              <div class="vitals-metric-list">
+                <div class="vital-item">
+                  <div class="vital-meta">
+                    <span class="vital-label">• TOKENS BURNED HOY</span>
+                    <span class="vital-trend positive">▲ 48.2K / 1M</span>
+                  </div>
+                  <div class="vital-value-row">
+                    <span class="vital-big-val" id="token-count">48.2K</span>
+                    <svg class="sparkline" viewBox="0 0 100 24" preserveAspectRatio="none"><path d="M0 18 L15 16 L30 20 L45 12 L60 15 L75 8 L90 10 L100 4" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                  </div>
+                </div>
+                <div class="vital-item">
+                  <div class="vital-meta">
+                    <span class="vital-label">• TIER 2 CACHE READ</span>
+                    <span class="vital-trend">≈ 12ms / req</span>
+                  </div>
+                  <div class="vital-value-row">
+                    <span class="vital-big-val">12<span class="unit">ms</span></span>
+                    <svg class="sparkline" viewBox="0 0 100 24" preserveAspectRatio="none"><path d="M0 12 L20 12 L40 6 L60 8 L80 4 L100 2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                  </div>
+                </div>
+                <div class="vital-item">
+                  <div class="vital-meta">
+                    <span class="vital-label">• VAULT HEALTH (LINTER)</span>
+                    <span class="vital-trend positive">100% OK</span>
+                  </div>
+                  <div class="vital-value-row">
+                    <span class="vital-big-val">100<span class="unit">%</span></span>
+                    <svg class="sparkline" viewBox="0 0 100 24" preserveAspectRatio="none"><path d="M0 14 L25 14 L50 14 L75 14 L100 14" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                  </div>
+                </div>
+                <div class="vital-item">
+                  <div class="vital-meta">
+                    <span class="vital-label">• CLAUDE 5H WINDOW</span>
+                    <span class="vital-trend">52K of 1.39M</span>
+                  </div>
+                  <div class="vital-value-row">
+                    <span class="vital-big-val">4<span class="unit">%</span></span>
+                    <svg class="sparkline" viewBox="0 0 100 24" preserveAspectRatio="none"><path d="M0 20 L20 18 L40 16 L60 14 L80 10 L100 8" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- DIRECTIVES TOP 3 -->
+            <section class="hud-card directives-card">
+              <div class="card-title-bar">
+                <span class="card-tag">DIRECTIVES</span>
+                <span class="card-subtag">TOP.3</span>
+              </div>
+              <div class="directives-list" id="directives-list">
+                <label class="directive-item completed" id="lbl-task-1">
+                  <input type="checkbox" checked disabled>
+                  <span class="directive-box"></span>
+                  <span class="directive-text">Morning Intel Scan & GitHub Trends (08:00 AM)</span>
+                </label>
+                <label class="directive-item active" id="lbl-task-2">
+                  <input type="checkbox" id="chk-task-2">
+                  <span class="directive-box"></span>
+                  <span class="directive-text">Revisión de Arquitectura TrautsLab OS (11:00 AM)</span>
+                </label>
+                <label class="directive-item" id="lbl-task-3">
+                  <input type="checkbox" id="chk-task-3">
+                  <span class="directive-box"></span>
+                  <span class="directive-text">Grabación de Demo: Asistente de Voz 3-Tier (03:30 PM)</span>
+                </label>
+              </div>
+            </section>
+
+            <!-- DOCUMENTS INBOX TRAIL -->
+            <section class="hud-card documents-card">
+              <div class="card-title-bar">
+                <span class="card-tag">DOCUMENTS</span>
+                <span class="card-subtag">INBOX.TRAIL</span>
+              </div>
+              <div class="doc-trail-list">
+                <div class="doc-trail-item" data-path="OUTPUT/cache/today-agenda.json">
+                  <span class="doc-icon">📑</span>
+                  <span class="doc-name">today-agenda.json</span>
+                  <span class="doc-time">2m ago</span>
+                </div>
+                <div class="doc-trail-item" data-path="WIKI/ai-systems/2026-08-17-morning-intel.md">
+                  <span class="doc-icon">📰</span>
+                  <span class="doc-name">morning-intel.md</span>
+                  <span class="doc-time">1h ago</span>
+                </div>
+                <div class="doc-trail-item" data-path="WIKI/index.md">
+                  <span class="doc-icon">🗂️</span>
+                  <span class="doc-name">WIKI/index.md (Master TOC)</span>
+                  <span class="doc-time">3h ago</span>
+                </div>
+              </div>
+            </section>
+          </aside>
+
+          <!-- CENTER DECK: 3D NEURAL SPHERE -->
+          <section class="hud-deck hud-deck-center">
+            <div class="sphere-canvas-wrap">
+              <canvas id="neural-sphere-canvas"></canvas>
+              <div class="center-orb-trigger" id="voice-orb-interactive" role="button" tabindex="0" aria-label="Presiona para activar asistente de voz">
+                <div class="center-glow-core"></div>
               </div>
             </div>
-
-            <!-- Metric 2: Cache Latency -->
-            <div class="vital-item">
-              <div class="vital-meta">
-                <span class="vital-label">• TIER 2 CACHE READ</span>
-                <span class="vital-trend">≈ 12ms / req</span>
-              </div>
-              <div class="vital-value-row">
-                <span class="vital-big-val">12<span class="unit">ms</span></span>
-                <svg class="sparkline" viewBox="0 0 100 24" preserveAspectRatio="none">
-                  <path d="M0 12 L20 12 L40 6 L60 8 L80 4 L100 2" fill="none" stroke="currentColor" stroke-width="2"/>
-                </svg>
+            <div class="primary-directive-hud">
+              <span class="directive-prelabel">PRIMARY DIRECTIVE • MEMORY VAULT</span>
+              <div class="directive-counter" id="articles-indexed-count">5,629</div>
+              <span class="directive-postlabel">ARTICLES INDEXED & VERIFIED</span>
+              <div class="directive-telemetry-strip">
+                <span>VELOCITY: <strong>3,602/DAY</strong></span>
+                <span>UPTIME: <strong>48H</strong></span>
+                <span>GPU DEVICE: <strong>MPS:0</strong></span>
               </div>
             </div>
+          </section>
 
-            <!-- Metric 3: Vault Health -->
-            <div class="vital-item">
-              <div class="vital-meta">
-                <span class="vital-label">• VAULT HEALTH (LINTER)</span>
-                <span class="vital-trend positive">100% OK</span>
+          <!-- RIGHT DECK: COMMAND DECK & SCHEDULE -->
+          <aside class="hud-deck hud-deck-right">
+            <section class="hud-card command-deck-card">
+              <div class="card-title-bar">
+                <span class="card-tag">COMMAND DECK</span>
+                <span class="card-subtag">IDLE • 0/3 ACTIVE</span>
               </div>
-              <div class="vital-value-row">
-                <span class="vital-big-val">100<span class="unit">%</span></span>
-                <svg class="sparkline" viewBox="0 0 100 24" preserveAspectRatio="none">
-                  <path d="M0 14 L25 14 L50 14 L75 14 L100 14" fill="none" stroke="currentColor" stroke-width="2"/>
-                </svg>
+              <div class="skills-grid-2col">
+                <button class="hud-skill-btn" id="btn-skill-morning" data-skill="morning-intel-scan">
+                  <span class="btn-bullet">•</span> MORNING INTEL
+                </button>
+                <button class="hud-skill-btn" id="btn-skill-calendar" data-skill="calendar-daily-brief">
+                  <span class="btn-bullet">•</span> INBOX BRIEF
+                </button>
+                <button class="hud-skill-btn" id="btn-skill-trends" data-skill="gh-trends">
+                  <span class="btn-bullet">•</span> GH TRENDING
+                </button>
+                <button class="hud-skill-btn" id="btn-skill-indexer" data-skill="vault-sync-indexer">
+                  <span class="btn-bullet">•</span> VAULT SYNC
+                </button>
+                <button class="hud-skill-btn" id="btn-skill-health" data-skill="health-audit">
+                  <span class="btn-bullet">•</span> HEALTH AUDIT
+                </button>
+                <button class="hud-skill-btn" id="btn-skill-plan" data-skill="plan-today">
+                  <span class="btn-bullet">•</span> PLAN TODAY
+                </button>
               </div>
-            </div>
+              <p class="command-deck-footer">INTENTS WRITE TO SYSTEM/QUEUE — RUNNER EXECUTES</p>
+            </section>
 
-            <!-- Metric 4: Claude Context Window -->
-            <div class="vital-item">
-              <div class="vital-meta">
-                <span class="vital-label">• CLAUDE 5H WINDOW</span>
-                <span class="vital-trend">52K of 1.39M peak</span>
+            <section class="hud-card schedule-card">
+              <div class="card-title-bar">
+                <span class="card-tag">SCHEDULE</span>
+                <span class="card-subtag">> TODAY</span>
               </div>
-              <div class="vital-value-row">
-                <span class="vital-big-val">4<span class="unit">%</span></span>
-                <svg class="sparkline" viewBox="0 0 100 24" preserveAspectRatio="none">
-                  <path d="M0 20 L20 18 L40 16 L60 14 L80 10 L100 8" fill="none" stroke="currentColor" stroke-width="2"/>
-                </svg>
+              <div class="schedule-hud-list">
+                <div class="sched-item past">
+                  <span class="sched-time">08:00</span>
+                  <span class="sched-task">Morning Intel Cron Auto-Fired</span>
+                  <span class="sched-tag">[DONE]</span>
+                </div>
+                <div class="sched-item current">
+                  <span class="sched-time">11:00</span>
+                  <span class="sched-task">Revisión de Arquitectura TrautsLab OS</span>
+                  <span class="sched-now-tag">[NOW]</span>
+                </div>
+                <div class="sched-item upcoming">
+                  <span class="sched-time">15:30</span>
+                  <span class="sched-task">Record: Voice-Orb Demo Beats</span>
+                </div>
+                <div class="sched-item upcoming">
+                  <span class="sched-time">18:00</span>
+                  <span class="sched-task">Vault Memory Auto-Index Sync</span>
+                </div>
               </div>
-            </div>
-          </div>
-        </section>
+            </section>
 
-        <!-- DIRECTIVES TOP 3 -->
-        <section class="hud-card directives-card">
-          <div class="card-title-bar">
-            <span class="card-tag">DIRECTIVES</span>
-            <span class="card-subtag">TOP.3</span>
-          </div>
-          <div class="directives-list" id="directives-list">
-            <label class="directive-item completed" id="lbl-task-1">
-              <input type="checkbox" checked disabled>
-              <span class="directive-box"></span>
-              <span class="directive-text">Morning Intel Scan & GitHub Trends (08:00 AM)</span>
-            </label>
-            <label class="directive-item active" id="lbl-task-2">
-              <input type="checkbox" id="chk-task-2">
-              <span class="directive-box"></span>
-              <span class="directive-text">Revisión de Arquitectura TrautsLab OS (11:00 AM)</span>
-            </label>
-            <label class="directive-item" id="lbl-task-3">
-              <input type="checkbox" id="chk-task-3">
-              <span class="directive-box"></span>
-              <span class="directive-text">Grabación de Demo: Asistente de Voz 3-Tier (03:30 PM)</span>
-            </label>
-          </div>
-        </section>
-
-        <!-- DOCUMENTS INBOX TRAIL -->
-        <section class="hud-card documents-card">
-          <div class="card-title-bar">
-            <span class="card-tag">DOCUMENTS</span>
-            <span class="card-subtag">INBOX.TRAIL</span>
-          </div>
-          <div class="doc-trail-list">
-            <div class="doc-trail-item" data-path="OUTPUT/cache/today-agenda.json">
-              <span class="doc-icon">📑</span>
-              <span class="doc-name">today-agenda.json</span>
-              <span class="doc-time">2m ago</span>
-            </div>
-            <div class="doc-trail-item" data-path="WIKI/ai-systems/2026-08-17-morning-intel.md">
-              <span class="doc-icon">📰</span>
-              <span class="doc-name">morning-intel.md</span>
-              <span class="doc-time">1h ago</span>
-            </div>
-            <div class="doc-trail-item" data-path="WIKI/index.md">
-              <span class="doc-icon">🗂️</span>
-              <span class="doc-name">WIKI/index.md (Master TOC)</span>
-              <span class="doc-time">3h ago</span>
-            </div>
-          </div>
-        </section>
-      </aside>
-
-      <!-- CENTER DECK: 3D NEURAL SPHERE & PRIMARY DIRECTIVE -->
-      <section class="hud-deck hud-deck-center">
-        <div class="sphere-canvas-wrap">
-          <!-- 3D HTML5 Canvas Neural Constellation Sphere -->
-          <canvas id="neural-sphere-canvas"></canvas>
-
-          <!-- Interactive Center Click Orb Trigger -->
-          <div class="center-orb-trigger" id="voice-orb-interactive" role="button" tabindex="0" aria-label="Presiona para activar asistente de voz">
-            <div class="center-glow-core"></div>
-          </div>
+            <section class="hud-card audio-io-card">
+              <div class="card-title-bar">
+                <span class="card-tag">AUDIO I/O</span>
+                <span class="card-subtag">VOICE LINK STANDBY</span>
+              </div>
+              <div class="vu-meter-bar" id="vu-meter">
+                <div class="vu-segment active"></div><div class="vu-segment active"></div><div class="vu-segment active"></div>
+                <div class="vu-segment active"></div><div class="vu-segment"></div><div class="vu-segment"></div>
+                <div class="vu-segment"></div><div class="vu-segment"></div>
+              </div>
+              <div class="audio-engine-meta">
+                <span>STT: <strong>Faster-Whisper</strong></span>
+                <span>TTS: <strong>Kokoro (82M)</strong></span>
+              </div>
+            </section>
+          </aside>
         </div>
+      </section>
 
-        <!-- Primary Directive Metric Display -->
-        <div class="primary-directive-hud">
-          <span class="directive-prelabel">PRIMARY DIRECTIVE • MEMORY VAULT</span>
-          <div class="directive-counter" id="articles-indexed-count">5,629</div>
-          <span class="directive-postlabel">ARTICLES INDEXED & VERIFIED</span>
-          <div class="directive-telemetry-strip">
-            <span>VELOCITY: <strong>3,602/DAY</strong></span>
-            <span>UPTIME: <strong>48H</strong></span>
-            <span>GPU DEVICE: <strong>MPS:0</strong></span>
+      <!-- 2. VIEW: FULL DAILY INTEL (RESEARCH PIPELINE) -->
+      <section id="view-intel" class="hud-view-panel" role="tabpanel" aria-labelledby="mode-intel">
+        <div class="intel-full-deck">
+          <div class="hud-card intel-column">
+            <div class="card-title-bar">
+              <span class="card-tag">⭐ GITHUB TRENDING REPOSITORIES (AI & AGENTS)</span>
+              <span class="card-subtag">7D SCAN</span>
+            </div>
+            <div class="intel-cards-grid">
+              <div class="intel-item-box">
+                <div class="item-head"><strong>deepseek-ai/DeepSeek-V3</strong> <span class="badge-accent">114k ⭐</span></div>
+                <p>Modelo MoE 671B de código abierto con inferencia local ultra-eficiente en hardware de consumo.</p>
+                <div class="item-meta">Lenguaje: Python • Actualizado: Hoy</div>
+              </div>
+              <div class="intel-item-box">
+                <div class="item-head"><strong>hexgrad/kokoro</strong> <span class="badge-accent">9.1k ⭐</span></div>
+                <p>Motor Text-to-Speech ultra ligero (82M parámetros) con síntesis de voz natural en español e inglés.</p>
+                <div class="item-meta">Lenguaje: Python / ONNX • Latencia: < 250ms</div>
+              </div>
+              <div class="intel-item-box">
+                <div class="item-head"><strong>NousResearch/hermes-agent</strong> <span class="badge-accent">4.8k ⭐</span></div>
+                <p>Framework para orquestación de agentes autónomos y llamadas a herramientas deterministas.</p>
+                <div class="item-meta">Lenguaje: TypeScript / Python</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hud-card intel-column">
+            <div class="card-title-bar">
+              <span class="card-tag">📰 HACKER NEWS AI INSIGHTS</span>
+              <span class="card-subtag">TOP 30 STORIES</span>
+            </div>
+            <div class="intel-cards-grid">
+              <div class="intel-item-box">
+                <div class="item-head"><strong>Apple's App Tracking Transparency and antitrust debates</strong> <span class="badge-accent">456 pts</span></div>
+                <p>Análisis de impacto en privacidad y rendimiento publicitario con más de 180 comentarios.</p>
+              </div>
+              <div class="intel-item-box">
+                <div class="item-head"><strong>LLMs on edge devices: The 2026 state of local inference</strong> <span class="badge-accent">892 pts</span></div>
+                <p>Comparativas de rendimiento entre Apple Silicon Neural Engine y aceleradores CUDA.</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- RIGHT DECK: COMMAND DECK & SCHEDULE & AUDIO I/O -->
-      <aside class="hud-deck hud-deck-right">
-        <!-- COMMAND DECK (SKILLS MATRIX) -->
-        <section class="hud-card command-deck-card">
-          <div class="card-title-bar">
-            <span class="card-tag">COMMAND DECK</span>
-            <span class="card-subtag">IDLE • 0/3 ACTIVE</span>
+      <!-- 3. VIEW: VAULT MEMORY EXPLORER (KARPATHY PATTERN) -->
+      <section id="view-vault" class="hud-view-panel" role="tabpanel" aria-labelledby="mode-vault">
+        <div class="vault-full-deck">
+          <div class="hud-card vault-tree-panel">
+            <div class="card-title-bar">
+              <span class="card-tag">VAULT HIERARCHY TREE</span>
+              <span class="card-subtag">KARPATHY PATTERN</span>
+            </div>
+            <div class="tree-list" id="vault-tree-list">
+              <div class="tree-entry folder expanded">📂 TrautsLab-Vault/</div>
+              <div class="tree-entry file active" data-file="AGENTS.md">├── 📄 AGENTS.md (Mapa maestro de navegación)</div>
+              <div class="tree-entry folder">├── 📁 RAW/ (14 fuentes crudas)</div>
+              <div class="tree-entry folder expanded">├── 📂 WIKI/ (Artículos sintetizados)</div>
+              <div class="tree-entry file" data-file="WIKI/index.md">│   ├── 📑 index.md (Tabla de contenidos maestra)</div>
+              <div class="tree-entry file" data-file="WIKI/ai-systems/2026-08-17-morning-intel.md">│   ├── 📄 ai-systems/2026-08-17-morning-intel.md</div>
+              <div class="tree-entry file" data-file="WIKI/productivity/skills-codification.md">│   ├── 📄 productivity/skills-codification.md</div>
+              <div class="tree-entry folder">└── 📁 OUTPUT/ (Entregables & Caché Tier 2)</div>
+            </div>
           </div>
-          <div class="skills-grid-2col">
-            <button class="hud-skill-btn" id="btn-skill-morning" data-skill="morning-intel-scan">
-              <span class="btn-bullet">•</span> MORNING INTEL
-            </button>
-            <button class="hud-skill-btn" id="btn-skill-calendar" data-skill="calendar-daily-brief">
-              <span class="btn-bullet">•</span> INBOX BRIEF
-            </button>
-            <button class="hud-skill-btn" id="btn-skill-trends" data-skill="gh-trends">
-              <span class="btn-bullet">•</span> GH TRENDING
-            </button>
-            <button class="hud-skill-btn" id="btn-skill-indexer" data-skill="vault-sync-indexer">
-              <span class="btn-bullet">•</span> VAULT SYNC
-            </button>
-            <button class="hud-skill-btn" id="btn-skill-health" data-skill="health-audit">
-              <span class="btn-bullet">•</span> HEALTH AUDIT
-            </button>
-            <button class="hud-skill-btn" id="btn-skill-plan" data-skill="plan-today">
-              <span class="btn-bullet">•</span> PLAN TODAY
-            </button>
-          </div>
-          <p class="command-deck-footer">INTENTS WRITE TO SYSTEM/QUEUE — RUNNER EXECUTES</p>
-        </section>
 
-        <!-- SCHEDULE > TODAY -->
-        <section class="hud-card schedule-card">
-          <div class="card-title-bar">
-            <span class="card-tag">SCHEDULE</span>
-            <span class="card-subtag">> TODAY</span>
-          </div>
-          <div class="schedule-hud-list">
-            <div class="sched-item past">
-              <span class="sched-time">08:00</span>
-              <span class="sched-task">Morning Intel Cron Auto-Fired</span>
-              <span class="sched-tag">[DONE]</span>
+          <div class="hud-card vault-preview-panel">
+            <div class="card-title-bar">
+              <span class="card-tag" id="vault-doc-title">AGENTS.md — VISTA PREVIA</span>
+              <span class="card-subtag">MARKDOWN RENDER</span>
             </div>
-            <div class="sched-item current">
-              <span class="sched-time">11:00</span>
-              <span class="sched-task">Revisión de Arquitectura TrautsLab OS</span>
-              <span class="sched-now-tag">[NOW]</span>
-            </div>
-            <div class="sched-item upcoming">
-              <span class="sched-time">15:30</span>
-              <span class="sched-task">Record: Voice-Orb Demo Beats</span>
-            </div>
-            <div class="sched-item upcoming">
-              <span class="sched-time">18:00</span>
-              <span class="sched-task">Vault Memory Auto-Index Sync</span>
-            </div>
-          </div>
-        </section>
+            <div class="markdown-reader-box" id="markdown-reader-content">
+              <pre><code># AGENTS.md: Vault Navigation Map
 
-        <!-- AUDIO I/O & VU METERS -->
-        <section class="hud-card audio-io-card">
-          <div class="card-title-bar">
-            <span class="card-tag">AUDIO I/O</span>
-            <span class="card-subtag">VOICE LINK STANDBY</span>
+Este archivo indica a cualquier agente (Claude Code / Local LLM) cómo navegar este repositorio:
+
+1. **RAW/**: Contiene datos brutos descargados de internet o transcripciones. NO editar a mano.
+2. **WIKI/**: Artículos sintetizados estilo enciclopedia. Cada carpeta contiene su propio `index.md`.
+3. **OUTPUT/**: Entregables terminados para consumo del usuario y caché Tier 2.
+
+## Regla de Oro
+Antes de buscar en todos los archivos, lee siempre el `index.md` del nivel en el que te encuentres para no saturar tu ventana de contexto ni gastar tokens innecesarios.</code></pre>
+            </div>
           </div>
-          <div class="vu-meter-bar" id="vu-meter">
-            <div class="vu-segment active"></div>
-            <div class="vu-segment active"></div>
-            <div class="vu-segment active"></div>
-            <div class="vu-segment active"></div>
-            <div class="vu-segment"></div>
-            <div class="vu-segment"></div>
-            <div class="vu-segment"></div>
-            <div class="vu-segment"></div>
+        </div>
+      </section>
+
+      <!-- 4. VIEW: SKILLS & CRON MANAGER -->
+      <section id="view-skills" class="hud-view-panel" role="tabpanel" aria-labelledby="mode-skills">
+        <div class="skills-full-deck">
+          <div class="hud-card skills-table-panel">
+            <div class="card-title-bar">
+              <span class="card-tag">REGISTERED SKILLS & CRON SCHEDULES</span>
+              <span class="card-subtag">DETERMINISTIC RUNNERS</span>
+            </div>
+            <div class="skills-table-list">
+              <div class="skill-row">
+                <div class="s-info">
+                  <strong>morning-intel-scan</strong>
+                  <span>Escaneo de GitHub Trending y Hacker News con síntesis en WIKI/</span>
+                </div>
+                <div class="s-cron">CRON: 0 8 * * * (08:00 AM)</div>
+                <button class="s-btn-run hud-skill-btn" data-skill="morning-intel-scan">Ejecutar Ahora</button>
+              </div>
+              <div class="skill-row">
+                <div class="s-info">
+                  <strong>calendar-daily-brief</strong>
+                  <span>Briefing diario de Google Calendar y resumen fonético en today-agenda.json</span>
+                </div>
+                <div class="s-cron">CRON: 30 7 * * * (07:30 AM)</div>
+                <button class="s-btn-run hud-skill-btn" data-skill="calendar-daily-brief">Ejecutar Ahora</button>
+              </div>
+              <div class="skill-row">
+                <div class="s-info">
+                  <strong>vault-sync-indexer</strong>
+                  <span>Reconstrucción jerárquica de tablas de contenidos en WIKI/index.md</span>
+                </div>
+                <div class="s-cron">CRON: 0 */4 * * * (Cada 4h)</div>
+                <button class="s-btn-run hud-skill-btn" data-skill="vault-sync-indexer">Ejecutar Ahora</button>
+              </div>
+            </div>
           </div>
-          <div class="audio-engine-meta">
-            <span>STT: <strong>Faster-Whisper</strong></span>
-            <span>TTS: <strong>Kokoro (82M)</strong></span>
-          </div>
-        </section>
-      </aside>
+        </div>
+      </section>
     </main>
 
     <!-- BOTTOM TELEMETRY BAR (AI WIRE TICKER) -->
@@ -314,12 +429,10 @@
         <h3 id="voice-modal-title" class="modal-title">AUDIO LINK ACTIVE</h3>
         <p class="modal-transcription" id="voice-transcription-text">"¿Qué es lo más importante en mi agenda hoy?"</p>
         
-        <!-- Live Tier Routing Feedback -->
         <div class="tier-routing-pill tier-2" id="tier-pill">
           <span>TIER 2: FAST CACHE LOOKUP (< 20MS)</span>
         </div>
 
-        <!-- Assistant Voice Response -->
         <div class="modal-response-card" id="voice-response-card">
           <div class="audio-equalizer">
             <span></span><span></span><span></span><span></span><span></span><span></span>
