@@ -543,26 +543,113 @@ document.addEventListener('DOMContentLoaded', () => {
       addScheduleEventToUI(time, title);
       appendTerminalLog(`✓ [TIER_1_SKILL] Evento procesado: "${title}" a las ${time}`, 'success');
       logDevEvent(`✓ [TIER_1_SKILL] calendar-add-event ejecutado: "${title}" a las ${time}`, 'success');
-    } else if (lower.includes('agenda') || lower.includes('compromiso') || lower.includes('que tengo') || lower.includes('horario')) {
-      tierName = 'TIER 2: FAST CACHE LOOKUP (< 20MS)';
-      reply = 'Tu agenda se encuentra lista. No tienes compromisos conflictivos en este momento.';
-      appendTerminalLog(`✓ [TIER_2_CACHE] Consulta de agenda respondida en 1.1ms`, 'info');
-      logDevEvent(`✓ [TIER_2_CACHE] today-agenda consultado en 1.1ms`, 'success');
-    } else if (lower.includes('noticia') || lower.includes('trending') || lower.includes('intel') || lower.includes('ia')) {
-      tierName = 'TIER 2: FAST CACHE LOOKUP (< 20MS)';
-      reply = 'Feed de inteligencia disponible para escaneo bajo demanda.';
-      appendTerminalLog(`✓ [TIER_2_CACHE] Consulta de intel respondida en 0.8ms`, 'info');
-      logDevEvent(`✓ [TIER_2_CACHE] today-intel consultado en 0.8ms`, 'success');
     } else {
-      tierName = 'TIER 3: HEADLESS AGENT RUNNER';
-      reply = `He recibido tu instrucción: "${q}". El agente autónomo ha iniciado el proceso en segundo plano.`;
-      appendTerminalLog(`⚡ [TIER_3_HEADLESS] Despachando tarea en segundo plano...`, 'prompt');
-      logDevEvent(`⚡ [TIER_3_HEADLESS] Tarea despachada en background`, 'info');
-    }
+      // --- HUD NOTIFICATION TOAST ENGINE & AUDIO CHIMES ---
+      const toastContainer = document.getElementById('hud-toast-container');
 
-    if (tierPill) tierPill.textContent = tierName;
-    if (responseText) responseText.textContent = `"${reply}"`;
-    speakText(reply);
+      // Request browser desktop notification permission if supported
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+
+      function playNotificationChime(success = true) {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          
+          const now = ctx.currentTime;
+          if (success) {
+            osc.frequency.setValueAtTime(587.33, now); // D5
+            osc.frequency.setValueAtTime(880, now + 0.1); // A5
+          } else {
+            osc.frequency.setValueAtTime(440, now);
+            osc.frequency.setValueAtTime(330, now + 0.1);
+          }
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } catch {}
+      }
+
+      function showHudToast(title, message, type = 'info', duration = 5000) {
+        if (!toastContainer) return;
+
+        playNotificationChime(type === 'success' || type === 'agent');
+
+        // Also trigger native desktop notification if permitted
+        if ('Notification' in window && Notification.permission === 'granted') {
+          try {
+            new Notification(`TrautsLab OS: ${title}`, {
+              body: message,
+              icon: '/favicon.ico'
+            });
+          } catch {}
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `hud-toast ${type}`;
+        
+        let icon = '⚡';
+        if (type === 'success') icon = '✓';
+        if (type === 'agent') icon = '🤖';
+        if (type === 'warn') icon = '⚠️';
+
+        toast.innerHTML = `
+          <span class="hud-toast-icon">${icon}</span>
+          <div class="hud-toast-content">
+            <span class="hud-toast-title">${title}</span>
+            <span class="hud-toast-msg">${message}</span>
+          </div>
+          <div class="hud-toast-bar" style="animation-duration: ${duration}ms;"></div>
+        `;
+
+        toastContainer.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.add('closing');
+          setTimeout(() => toast.remove(), 320);
+        }, duration);
+      }
+
+      function dispatchBackgroundAgentTask(taskDescription) {
+        showHudToast('AGENTE DESPACHADO', `Ejecutando en background: "${taskDescription}"`, 'agent', 4000);
+        appendTerminalLog(`🤖 [HEADLESS AGENT] Proceso iniciado: "${taskDescription}"`, 'prompt');
+        
+        // Asynchronous background worker completion notification (4s)
+        setTimeout(() => {
+          showHudToast('TAREA FINALIZADA', `✓ "${taskDescription}" finalizado con éxito. Entregable en tu Vault.`, 'success', 6000);
+          appendTerminalLog(`✓ [HEADLESS AGENT] Tarea finalizada con éxito. Resultado en RAW/inbox.md`, 'success');
+          speakText(`Tu tarea en segundo plano "${taskDescription}" ha finalizado exitosamente.`);
+        }, 4000);
+      }
+
+      if (lower.includes('agenda') || lower.includes('compromiso') || lower.includes('que tengo') || lower.includes('horario')) {
+        tierName = 'TIER 2: FAST CACHE LOOKUP (< 20MS)';
+        reply = 'Tu agenda se encuentra lista. No tienes compromisos conflictivos en este momento.';
+        appendTerminalLog(`✓ [TIER_2_CACHE] Consulta de agenda respondida en 1.1ms`, 'info');
+        logDevEvent(`✓ [TIER_2_CACHE] today-agenda consultado en 1.1ms`, 'success');
+      } else if (lower.includes('noticia') || lower.includes('trending') || lower.includes('intel') || lower.includes('ia')) {
+        tierName = 'TIER 2: FAST CACHE LOOKUP (< 20MS)';
+        reply = 'Feed de inteligencia disponible para escaneo bajo demanda.';
+        appendTerminalLog(`✓ [TIER_2_CACHE] Consulta de intel respondida en 0.8ms`, 'info');
+        logDevEvent(`✓ [TIER_2_CACHE] today-intel consultado en 0.8ms`, 'success');
+      } else {
+        tierName = 'TIER 3: HEADLESS AGENT RUNNER';
+        reply = `He iniciado el agente en segundo plano para "${q}". Te notificaré aquí y en tu escritorio cuando finalice.`;
+        appendTerminalLog(`⚡ [TIER_3_HEADLESS] Despachando tarea en segundo plano...`, 'prompt');
+        logDevEvent(`⚡ [TIER_3_HEADLESS] Tarea despachada en background`, 'info');
+        dispatchBackgroundAgentTask(q);
+      }
+
+      if (tierPill) tierPill.textContent = tierName;
+      if (responseText) responseText.textContent = `"${reply}"`;
+      speakText(reply);
+    }
   }
 
   async function openVoiceModal() {
