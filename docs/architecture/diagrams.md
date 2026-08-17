@@ -104,10 +104,13 @@ graph LR
         External_APIs["Google Calendar / GitHub / HN Fetchers"]
     end
 
-    subgraph Knowledge_Components ["Módulo de Memoria (Vault)"]
-        Vault_Watcher["Vault File Watcher"]
-        Vault_Indexer["Hierarchical index.md Generator"]
-        Agent_Interface["CLI Agent Bridge (Claude Code / Local LLM)"]
+    subgraph Knowledge_Components ["Módulo de Memoria (Vault Engine)"]
+        Vault_Watcher["👁️ Vault Watcher Daemon (Chokidar Auto-Index)"]
+        Vault_Parser["📝 Frontmatter Parser & Linter"]
+        Vault_Indexer["📑 Hierarchical index.md Generator"]
+        Vault_Health["🩺 Vault Health Check & Orphan Detector"]
+        Cache_Manager["⚡ Tier 2 Fast Cache Store (<10ms)"]
+        Agent_Interface["🤖 CLI Agent Bridge (Claude Code / Local LLM)"]
     end
 
     UI_Core --> UI_View & UI_VoiceOrb & UI_Terminal
@@ -116,13 +119,14 @@ graph LR
     Audio_STT --> Audio_Router
     Audio_Router --> Audio_TTS
     Audio_Router --> Skill_Registry
-    Audio_Router --> Knowledge_Components
+    Audio_Router --> Cache_Manager
     Audio_Router --> Agent_Interface
 
     Cron_Scheduler --> Skill_Registry
     Skill_Registry --> External_APIs
     Skill_Registry --> Knowledge_Components
-    Knowledge_Components --> Vault_Indexer
+    Skill_Registry --> Cache_Manager
+    Vault_Watcher --> Vault_Parser --> Vault_Indexer --> Vault_Health
 ```
 
 ---
@@ -197,6 +201,29 @@ sequenceDiagram
     Agent->>Vault: Escribe OUTPUT/research-local-voice-arch.md
     Agent->>TTS: Emite evento de finalización
     TTS-->>Usuario: "El reporte de investigación ya está listo en tu carpeta OUTPUT."
+```
+
+### 3.4. Observación en Tiempo Real e Indexación Incremental del Vault
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Usuario_o_Agente as Usuario / Agente CLI
+    participant Vault as Sistema de Archivos Vault
+    participant Watcher as Vault Watcher Daemon (Chokidar)
+    participant Parser as Frontmatter Parser & Linter
+    participant Indexer as Hierarchical Indexer
+    participant Cache as Tier 2 Cache Store
+
+    Usuario_o_Agente->>Vault: Crea o modifica archivo (ej. WIKI/ai/rag.md)
+    Vault-->>Watcher: Emite evento FS (add/change/unlink)
+    Note over Watcher: Aplica debounce (500ms) para evitar re-indexados excesivos
+    Watcher->>Parser: Extrae frontmatter YAML (título, resumen, tags)
+    Parser-->>Indexer: Metadatos normalizados
+    Indexer->>Vault: Actualiza sub-índice WIKI/ai/index.md
+    Indexer->>Vault: Actualiza índice maestro WIKI/index.md
+    Indexer->>Cache: Actualiza snapshot de navegación
+    Watcher-->>Usuario_o_Agente: Emite log "✓ Vault re-indexed successfully"
 ```
 
 ---

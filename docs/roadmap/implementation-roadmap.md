@@ -65,24 +65,14 @@ gantt
 
 ---
 
-### 🔵 FASE 2: Cimientos de Memoria y Navegación en el Vault (*Próximo Paso*)
+### 🔵 FASE 2: Cimientos de Memoria y Navegación en el Vault (*COMPLETADA — v0.1.0-alpha.2*)
 **Objetivo:** Crear el sistema de archivos que actuará como base de datos y memoria contextual de TrautsLab OS.
 
-1. **Paso 2.1 — Estructura Física del Vault:**
-   - Crear directorios estándar:
-     ```text
-     vault/
-     ├── RAW/          # Ingesta cruda (artículos, transcripciones, JSONs externos)
-     ├── WIKI/         # Conocimiento sintetizado organizado por dominios
-     │   └── index.md  # Tabla de contenidos maestra
-     ├── OUTPUT/       # Entregables finales (reportes diarios, agendas)
-     │   └── cache/    # Caché rápida para respuestas inmediatas de voz
-     └── AGENTS.md     # Mapa del sistema y reglas de navegación para LLMs
-     ```
-2. **Paso 2.2 — Script de Indexación Jerárquica (`vault-indexer`):**
-   - Desarrollar script ligero en TypeScript/Python que recorra el Vault y mantenga actualizados los archivos `index.md` con enlaces markdown relativos.
-3. **Paso 2.3 — Esquema de Caché para Tier 2:**
-   - Definir el formato estándar de almacenamiento para los reportes diarios (`today-intel.json`, `today-agenda.json`) para que el enrutador de voz los lea con latencia mínima (< 150ms).
+- [x] **Paso 2.1 — Estructura Física del Vault:** Creación de directorios estándar (`vault/RAW/`, `vault/WIKI/`, `vault/OUTPUT/cache/`) y notas iniciales con frontmatter.
+- [x] **Paso 2.2 — Script de Indexación Jerárquica (`vault-indexer`):** Motor de indexado recursivo (`@trautslab/vault-engine`) que genera tablas de contenidos maestras y sub-índices por dominio temático.
+- [x] **Paso 2.3 — Demonio Observador de Archivos (`vault-watcher`):** Observador en tiempo real con debounce de 500ms para reindexación incremental desatendida.
+- [x] **Paso 2.4 — Esquema de Caché para Tier 2 y Lector Rápido:** Formato snapshot JSON (`today-intel.json`, `today-agenda.json`) y lector de resúmenes fonéticos para Kokoro TTS (<10ms).
+- [x] **Paso 2.5 — Auditor de Salud (`vault-health`):** Verificador de integridad de notas y conformidad de YAML frontmatter.
 
 ---
 

@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "category": "daily_intel",
+  "generated_at": "2026-08-17T08:00:00Z",
+  "expires_at": "2026-08-18T08:00:00Z",
+  "quick_summary_tts": "La noticia principal de IA hoy es que Claude implementó marcas de agua invisibles globales, y DeepSeek superó ciento diez mil estrellas en GitHub.",
+  "headlines": [
+    {
+      "source": "GitHub Trending",
+      "title": "DeepSeek-V3 & Open-R1 superan 110k estrellas",
+      "url": "https://github.com/deepseek-ai/DeepSeek-V3",
+      "stars_gained": "+14.2k esta semana"
+    },
+    {
+      "source": "Hacker News",
+      "title": "Marcas de agua a nivel de modelo en Claude conformes con EU AI Act",
+      "url": "https://news.ycombinator.com/item?id=41209384",
+      "points": 482
+    }
+  ]
+}

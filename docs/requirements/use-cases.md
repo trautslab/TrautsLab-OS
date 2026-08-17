@@ -95,6 +95,23 @@ graph LR
 
 ---
 
+### CASO DE USO: UC-06 — Observación en Tiempo Real e Indexación Incremental del Vault
+
+| CASO DE USO: Observación en Tiempo Real e Indexación Incremental del Vault | | | |
+| :--- | :--- | :--- | :--- |
+| **Versión** | 1.0 | **Fecha** | 2026-08-17 |
+| **Autor/a** | jlorenzor | | |
+| **Descripción** | Describe cómo el demonio observador de archivos (*Vault Watcher*) detecta de forma desatendida cualquier adición, edición o eliminación de notas markdown en el Vault y ejecuta una re-indexación jerárquica con debounce para mantener el mapa de navegación siempre sincronizado. |
+| **Actores** | Sistema / File Watcher Daemon, Usuario, Agente CLI |
+| **Precondición** | El proceso demonio `vault-watcher` debe estar en ejecución en background. |
+| **Flujo principal** | 1. El usuario o un agente crea o modifica un archivo markdown en `RAW/`, `WIKI/` o `OUTPUT/`.<br>2. El demonio `vault-watcher` captura el evento del sistema de archivos (*FS event*).<br>3. El sistema aplica una ventana de retardo (*debounce* de 500ms) para agrupar modificaciones continuas.<br>4. El analizador de frontmatter extrae metadatos (título, descripción, tags, fecha).<br>5. El generador de índices actualiza el `index.md` del directorio afectado y el `index.md` raíz.<br>6. El almacén de caché de Tier 2 actualiza sus referencias instantáneas.<br>7. Se emite un registro de confirmación en la consola de eventos. |
+| **Subflujos** | - |
+| **Flujos alternativos** | - **Archivo con sintaxis frontmatter corrupta:** El sistema registra una advertencia en el linter, utiliza el nombre de archivo como título de respaldo y continúa la indexación sin detener el proceso. |
+| **Postcondición** | El mapa de navegación (`AGENTS.md` e `index.md`) queda 100% fiel al estado real de los archivos sin intervención manual. |
+| **Diagrama** | ```mermaid<br>graph LR<br>  Watcher((👁️ Vault Watcher)) --> Event["Detectar Cambio FS"]<br>  Event --> Debounce["Debounce 500ms"]<br>  Debounce --> Parse["Extraer YAML Frontmatter"]<br>  Parse --> Update["Regenerar index.md"]<br>  Update --> Cache["Actualizar Tier 2 Cache"]<br>``` |
+
+---
+
 ## 3. Especificación de Requisitos Funcionales (Matriz RF)
 
 ### RF-01: Control de Acceso y Gestión de Sesión
@@ -170,3 +187,42 @@ graph LR
 | **Importancia** | Alta. |
 | **Urgencia** | Media. |
 | **Comentarios** | Reduce el consumo de tokens en agentes CLI en más del 70%. |
+
+---
+
+### RF-05: Observador de Archivos en Tiempo Real (Vault File Watcher)
+
+| RF-05 | Demonio Observador de Archivos e Indexación Automática Incremental |
+| :--- | :--- |
+| **Versión** | Versión 1.0 |
+| **Autores** | jlorenzor |
+| **Objetivos Asociados** | OBJ-05: Sincronización Continua y Cero Intervención Manual en Memoria |
+| **Requisitos asociados** | RI-05: Librería de Watcher de Sistema de Archivos (Chokidar / Node.js) |
+| **Descripción** | El sistema dispondrá de un demonio residente en memoria que vigila los cambios en el Vault y ejecuta una reindexación automática con ventana de debounce (500ms). |
+| **Precondición** | Servicio `vault-watcher` activo y permisos de lectura/escritura en el directorio `vault/`. |
+| **Secuencia normal** | **Paso** \| **Acción**<br>1 \| El demonio inicia su escucha recursiva en `vault/RAW`, `vault/WIKI` y `vault/OUTPUT`.<br>2 \| Al detectarse un evento `add`, `change` o `unlink`, se inicia el temporizador de debounce.<br>3 \| Transcurridos 500ms sin nuevos eventos, se dispara la indexación incremental.<br>4 \| Se reescriben únicamente los `index.md` afectados.<br>5 \| Se emite notificación de estado en el log de eventos. |
+| **Excepciones** | **Paso** \| **Acción**<br>2 \| Si se detectan cambios en archivos ignorados (ej. `.obsidian/workspace.json`, `.DS_Store`), el demonio descarta el evento de inmediato. |
+| **Postcondición** | El Vault refleja los cambios en sus tablas de contenidos en menos de 1 segundo tras la modificación. |
+| **Importancia** | Alta. |
+| **Urgencia** | Alta. |
+| **Comentarios** | Fundamental para que los agentes CLI no lean tablas de contenidos obsoletas. |
+
+---
+
+### RF-06: Almacén de Caché Ultrarrápido de Tier 2
+
+| RF-06 | Gestor de Caché Estructurado para Consultas de Voz Inmediatas |
+| :--- | :--- |
+| **Versión** | Versión 1.0 |
+| **Autores** | jlorenzor |
+| **Objetivos Asociados** | OBJ-06: Latencia de Consulta por Voz Inferior a 150ms en Tier 2 |
+| **Requisitos asociados** | RI-06: Esquema JSON de Caché en `vault/OUTPUT/cache/` |
+| **Descripción** | El sistema mantendrá archivos JSON estructurados con resúmenes fonéticos listos para ser leídos por el TTS en cuanto el enrutador de voz solicite información de agenda o noticias. |
+| **Precondición** | Existencia del directorio `vault/OUTPUT/cache/`. |
+| **Secuencia normal** | **Paso** \| **Acción**<br>1 \| Las skills o automatizaciones escriben sus resultados tanto en Markdown como en formato snapshot JSON en `vault/OUTPUT/cache/`.<br>2 \| El archivo incluye campos `quick_summary_tts` (resumen < 30 palabras) y `full_data`.<br>3 \| El Enrutador de Voz solicita la clave de caché (ej. `today-agenda`).<br>4 \| El lector de caché entrega el texto en < 10ms directamente al sintetizador Kokoro TTS. |
+| **Excepciones** | **Paso** \| **Acción**<br>3 \| Si la clave solicitada no existe o está expirada (>24h), el sistema recurre al escaneo del WIKI como fallback. |
+| **Postcondición** | Respuesta auditiva inmediata generada sin requerir parsing complejo de Markdown en tiempo de ejecución. |
+| **Importancia** | Vital. |
+| **Urgencia** | Inmediatamente. |
+| **Comentarios** | Elimina por completo la necesidad de que el LLM sintetice texto desde cero para datos conocidos. |
+

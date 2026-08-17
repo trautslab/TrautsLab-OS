@@ -1,0 +1,33 @@
+{
+  "name": "@trautslab/vault-engine",
+  "version": "0.1.0-alpha.1",
+  "description": "Hierarchical memory indexing, file watcher, and Tier 2 fast cache manager for TrautsLab OS",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "index": "tsx src/cli.ts index",
+    "watch": "tsx src/cli.ts watch",
+    "health": "tsx src/cli.ts health",
+    "cache:get": "tsx src/cli.ts cache:get"
+  },
+  "keywords": [
+    "trautslab",
+    "obsidian",
+    "vault",
+    "indexer",
+    "memory",
+    "karpathy-pattern"
+  ],
+  "author": "Jorge Lorenzo (jlorenzor)",
+  "license": "MIT",
+  "dependencies": {
+    "chokidar": "^4.0.3",
+    "fast-glob": "^3.3.3",
+    "gray-matter": "^4.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  }
+}

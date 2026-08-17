@@ -16,7 +16,22 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
-## [0.1.0-alpha.1] - 2026-08-17
+## [0.1.0-alpha.2] - 2026-08-17
+
+### Added
+- **Fase 2: Motor de Memoria y Vault (Patrón Karpathy):**
+  - Creación de la estructura física del Vault (`vault/RAW/`, `vault/WIKI/`, `vault/OUTPUT/cache/`).
+  - Creación del mapa maestro de navegación para agentes `vault/AGENTS.md`.
+  - Implementación del paquete `@trautslab/vault-engine` en TypeScript con:
+    - `VaultIndexer`: Escaneo recursivo y generación automática de tablas de contenido (`index.md` maestros y temáticos).
+    - `VaultWatcher`: Demonio observador de archivos en tiempo real con debounce de 500ms para reindexación automática.
+    - `Tier2CacheManager`: Lector y escritor ultrarrápido (<10ms) de snapshots JSON y resúmenes fonéticos para Kokoro TTS.
+    - `VaultHealthChecker`: Auditor de integridad, tags y YAML frontmatters.
+    - CLI unificada (`npm run index`, `npm run watch`, `npm run health`, `npm run cache:get`).
+- **Actualizaciones de Ingeniería y Especificación:**
+  - Inclusión del Caso de Uso `UC-06` (Observación en Tiempo Real e Indexación Incremental del Vault) en `docs/requirements/use-cases.md`.
+  - Inclusión de los requisitos funcionales `RF-05` (Vault File Watcher) y `RF-06` (Gestor de Caché Tier 2).
+  - Actualización del diagrama de componentes y nuevo diagrama de secuencia para el Vault Watcher en `docs/architecture/diagrams.md`.
 
 ### Added
 - **Incepción del Proyecto:** Creación del documento fundacional `docs/inception/0-main-idea.md` con la visión de TrautsLab OS y sus 4 pilares fundamentales.
