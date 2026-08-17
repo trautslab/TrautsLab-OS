@@ -730,33 +730,114 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-height: 80px;
+}
+
+.hud-mini-btn {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171;
+  font-family: var(--font-hud-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hud-mini-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #ef4444;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.theme-light .hud-mini-btn {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+.sched-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 8px;
+  gap: 6px;
+  text-align: center;
+  color: var(--text-dim);
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.theme-light .sched-empty-state {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.sched-empty-icon {
+  font-size: 1.2rem;
+}
+
+.sched-empty-text {
+  font-family: var(--font-hud-mono);
+  font-size: 0.68rem;
+  line-height: 1.35;
 }
 
 .sched-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.72rem;
-  padding: 4px 6px;
-  border-radius: 3px;
+  gap: 10px;
+  font-size: 0.74rem;
+  padding: 6px 8px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.sched-item.current {
-  background: var(--amber-soft);
-  border-left: 2px solid var(--amber-primary);
-  color: var(--amber-bright);
+.theme-light .sched-item {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #1e293b;
+}
+
+.sched-time-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 60px;
 }
 
 .sched-time {
+  font-family: var(--font-hud-mono);
   font-weight: 700;
-  color: var(--text-muted);
-  width: 44px;
+  color: var(--amber-bright);
+  font-size: 0.72rem;
 }
 
-.sched-item.current .sched-time { color: var(--amber-primary); }
+.theme-light .sched-time {
+  color: #b45309;
+}
+
+.sched-date-tag {
+  font-family: var(--font-hud-mono);
+  font-size: 0.56rem;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 1px 4px;
+  border-radius: 3px;
+  width: fit-content;
+}
 
 .sched-task {
   flex: 1;
+  font-family: var(--font-hud-main);
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

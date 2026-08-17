@@ -499,19 +499,82 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function addScheduleEventToUI(time, title) {
-    if (!scheduleList) return;
-    const newEventEl = document.createElement('div');
-    newEventEl.className = 'sched-item upcoming';
-    newEventEl.style.animation = 'viewFadeIn 0.3s ease-out';
-    newEventEl.innerHTML = `
-      <span class="sched-time">${time}</span>
-      <span class="sched-task">${title}</span>
-      <span class="sched-now-tag" style="background: var(--emerald-accent);">[ACTUALIZADO]</span>
-    `;
-    scheduleList.appendChild(newEventEl);
-    logDevEvent(`✓ Evento visual insertado en Schedule: [${time}] ${title}`, 'success');
+  // --- LIVE SCHEDULE & CALENDAR SYNC ENGINE (Direct Obsidian Vault) ---
+  const scheduleHudList = document.getElementById('schedule-hud-list') || document.querySelector('.schedule-hud-list');
+  const scheduleCountBadge = document.getElementById('schedule-count-badge');
+  const btnClearSchedule = document.getElementById('btn-clear-schedule');
+
+  async function loadScheduleFromVault() {
+    if (!scheduleHudList) return;
+
+    try {
+      const res = await fetch('http://localhost:3030/api/vault/agenda');
+      if (res.ok) {
+        const data = await res.json();
+        const events = data.events || [];
+        
+        if (scheduleCountBadge) {
+          scheduleCountBadge.textContent = `> ${events.length} COMPROMISOS`;
+        }
+
+        scheduleHudList.innerHTML = '';
+
+        if (events.length === 0) {
+          scheduleHudList.innerHTML = `
+            <div class="sched-empty-state">
+              <span class="sched-empty-icon">✨</span>
+              <span class="sched-empty-text">Sin compromisos agendados. Habla o escribe para programar.</span>
+            </div>
+          `;
+          return;
+        }
+
+        events.forEach(evt => {
+          const itemEl = document.createElement('div');
+          itemEl.className = 'sched-item upcoming';
+          itemEl.style.animation = 'viewFadeIn 0.3s ease-out';
+          
+          const isToday = evt.date === new Date().toISOString().split('T')[0];
+          const dateBadge = isToday ? '<span class="sched-date-tag" style="color: var(--amber-bright);">HOY</span>' : `<span class="sched-date-tag">${evt.date.slice(5)}</span>`;
+
+          itemEl.innerHTML = `
+            <div class="sched-time-col">
+              <span class="sched-time">${evt.time}</span>
+              ${dateBadge}
+            </div>
+            <span class="sched-task">${evt.title}</span>
+            <span class="sched-tag" style="color: var(--emerald-accent); border-color: rgba(52, 211, 153, 0.3);">[AGENDADO]</span>
+          `;
+          scheduleHudList.appendChild(itemEl);
+        });
+
+        return;
+      }
+    } catch (e) {
+      console.warn('[Schedule] No se pudo conectar con el servidor 3030:', e.message);
+    }
   }
+
+  async function clearAllScheduleActivities() {
+    try {
+      const res = await fetch('http://localhost:3030/api/vault/agenda/clean', { method: 'POST' });
+      if (res.ok) {
+        showHudToast('AGENDA REINICIADA', 'Todas las actividades fueron borradas de tu Obsidian Vault.', 'success', 5000);
+        appendTerminalLog('✓ [SCHEDULE] Agenda y compromisos limpiados desde cero.', 'success');
+        speakText('Todas tus actividades han sido limpiadas. Tu agenda está en blanco.');
+        await loadScheduleFromVault();
+      }
+    } catch (e) {
+      console.error('Error al limpiar agenda:', e);
+    }
+  }
+
+  if (btnClearSchedule) {
+    btnClearSchedule.addEventListener('click', clearAllScheduleActivities);
+  }
+
+  // Load schedule from Obsidian Vault on initial boot
+  loadScheduleFromVault();
 
   async function processVoiceQuery(query) {
     const q = query.trim();
@@ -544,14 +607,8 @@ document.addEventListener('DOMContentLoaded', () => {
         appendTerminalLog(`✓ [${tier}] ${reply}`, 'success');
         logDevEvent(`✓ Respuesta del servidor (${tier}) recibida en ${data.latencies?.totalMs || 20}ms`, 'success');
 
-        // Extract time and update UI schedule card
-        const timeMatch = q.match(/(?:(?:a las|cambies a las|cambia a las|pactada a las)\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana)?)/i);
-        const time = timeMatch && timeMatch[1] ? timeMatch[1].toUpperCase() : '06:09 PM';
-        const title = q.toLowerCase().includes('cena') ? 'Cena' : (q.toLowerCase().includes('reunion') || q.toLowerCase().includes('reunión')) ? 'Reunión' : 'Compromiso';
-        
-        if (tier === 'TIER_1_SKILL' || q.toLowerCase().includes('cena') || q.toLowerCase().includes('agenda')) {
-          addScheduleEventToUI(time, title);
-        }
+        // Refresh live schedule from Obsidian Vault
+        await loadScheduleFromVault();
 
         speakText(reply);
         return;

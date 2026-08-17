@@ -261,7 +261,7 @@ summary: "Agenda diaria para Jhonny Lorenzo (${parsed.targetDate})."
 
     // 3. Extract Dynamic Event Title (Non-Overfitting)
     let cleanTitle = text
-      .replace(/(?:agéndame|agendame|agenda|programa|prográmame|programame|quiero que me agendes|quiero que|me avises sobre|avísame sobre|avisame sobre|recuérdame|recuerdame|pon|agrega|añade|cambia|cambiar|reprograma|mueve)\s*(?:una|un|el|la)?/gi, '')
+      .replace(/(?:quiero que me agendes|quiero que me avises sobre|quiero que me recuerdes|quiero que|me avises sobre|avísame sobre|avisame sobre|recuérdame sobre|recuerdame sobre|agéndame|agendame|agendarme|agendar|agendes|agende|agenda|programa|programar|programando|prográmame|programame|programes|programe|anota|anótame|anotame|anotes|pon|poner|ponme|crea|crear|añade|añadir|añádeme|agrega|agregar|agrégame|cambia|cambiar|cambies|cambiame|mueve|mover|reprograma|reprogramar|reprogrames|pasa|pasar|posterga|postergar|modifica|modificar|modifiques|recuérdame|recuerdame|recuerdes|recuerde|recordar|recordarme|avísame|avisame|avises|avise|avisar|avisarme)\s*(?:una|un|el|la)?/gi, '')
       .replace(/(?:para\s*)?(?:hoy|mañana|manana|pasado mañana|pasado manana|lunes|martes|miércoles|miercoles|jueves|viernes|sábado|sabado|domingo)/gi, '')
       .replace(/(?:el\s*)?\d{1,2}\s*(?:de|\/)\s*(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre|\d{1,2})/gi, '')
       .replace(/(?:a las|para las|cambies a las|cambia a las|pactada a las)?\s*\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana|a\s*m|p\s*m)?/gi, '')

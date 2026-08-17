@@ -244,28 +244,14 @@
 
             <section class="hud-card schedule-card">
               <div class="card-title-bar">
-                <span class="card-tag">SCHEDULE</span>
-                <span class="card-subtag">> TODAY</span>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span class="card-tag">SCHEDULE</span>
+                  <span class="card-subtag" id="schedule-count-badge">> 0 COMPROMISOS</span>
+                </div>
+                <button id="btn-clear-schedule" class="hud-mini-btn" title="Limpiar todas las actividades" aria-label="Limpiar todas las actividades">LIMPIAR 🗑️</button>
               </div>
-              <div class="schedule-hud-list">
-                <div class="sched-item past">
-                  <span class="sched-time">08:00</span>
-                  <span class="sched-task">Morning Intel Cron Auto-Fired</span>
-                  <span class="sched-tag">[DONE]</span>
-                </div>
-                <div class="sched-item current">
-                  <span class="sched-time">11:00</span>
-                  <span class="sched-task">Revisión de Arquitectura TrautsLab OS</span>
-                  <span class="sched-now-tag">[NOW]</span>
-                </div>
-                <div class="sched-item upcoming">
-                  <span class="sched-time">15:30</span>
-                  <span class="sched-task">Record: Voice-Orb Demo Beats</span>
-                </div>
-                <div class="sched-item upcoming">
-                  <span class="sched-time">18:00</span>
-                  <span class="sched-task">Vault Memory Auto-Index Sync</span>
-                </div>
+              <div class="schedule-hud-list" id="schedule-hud-list">
+                <!-- Se hidrata dinámicamente desde tu Obsidian Vault -->
               </div>
             </section>
 

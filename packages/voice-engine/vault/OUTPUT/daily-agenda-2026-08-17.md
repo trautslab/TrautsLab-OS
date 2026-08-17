@@ -7,3 +7,5 @@
 | `11:30 AM` | **Reunión** | N/A | `HIGH` | 🟡 Programado |
 
 | `8PM:00 PM` | **Ayúdame ndo la cena** | N/A | `HIGH` | 🟡 Programado |
+
+| `06:11 PM` | **R cena** | N/A | `HIGH` | 🟡 Programado |

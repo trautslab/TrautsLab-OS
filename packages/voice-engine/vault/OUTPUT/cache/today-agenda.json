@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0",
   "category": "daily_agenda",
-  "generated_at": "2026-08-17T19:45:42.664Z",
+  "generated_at": "2026-08-17T19:51:24.415Z",
   "expires_at": "2026-08-17T23:59:59Z",
-  "quick_summary_tts": "He agendado 'Ayúdame ndo la cena' para hoy a las 8PM:00 PM. Tienes 4 compromisos programados.",
+  "quick_summary_tts": "He actualizado 'Ayúdame ndo la cena' para hoy a las 8PM:00 PM.",
   "data": {
-    "eventsCount": 4,
+    "eventsCount": 5,
     "events": [
       {
         "time": "06:11 PM",
@@ -13,7 +13,7 @@
         "status": "scheduled"
       },
       {
-        "time": "06:19 PM",
+        "time": "06:11 PM",
         "title": "Cena",
         "status": "scheduled"
       },
@@ -26,6 +26,12 @@
       {
         "time": "8PM:00 PM",
         "title": "Ayúdame ndo la cena",
+        "priority": "high",
+        "status": "scheduled"
+      },
+      {
+        "time": "06:11 PM",
+        "title": "R cena",
         "priority": "high",
         "status": "scheduled"
       }
