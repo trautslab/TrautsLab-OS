@@ -1,18 +1,11 @@
 {
   "schema_version": "1.0",
   "category": "daily_agenda",
-  "generated_at": "2026-08-17T20:00:11.330Z",
+  "generated_at": "2026-08-17T20:07:42.760Z",
   "expires_at": "2026-08-17T23:59:59Z",
-  "quick_summary_tts": "He actualizado 'Ayúdame ndo la cena' para hoy a las 8PM:00 PM.",
+  "quick_summary_tts": "Todas las actividades han sido archivadas con éxito.",
   "data": {
-    "eventsCount": 1,
-    "events": [
-      {
-        "time": "8PM:00 PM",
-        "title": "Ayúdame ndo la cena",
-        "priority": "high",
-        "status": "scheduled"
-      }
-    ]
+    "eventsCount": 0,
+    "events": []
   }
 }

@@ -97,12 +97,17 @@ async function main() {
   await assertStep('7. Apertura de Voice Link 3-Tier y agendado de cena', async () => {
     await page.click('#btn-trigger-voice-header');
     await page.waitForSelector('#voice-modal:not([hidden])');
-    await page.type('#voice-text-input', 'ayúdame agendando la cena de hoy a las 8pm');
+    await page.type('#voice-text-input', 'agendar cena para hoy a las 8:00 pm');
     await page.click('#btn-submit-voice-form');
     await new Promise(r => setTimeout(r, 1400));
     const response = await page.$eval('#voice-response-text', el => el.textContent);
     console.log('    [Step 7 Debug Voice Response]:', response);
     if (!response || response.length < 5) throw new Error('Respuesta vacía');
+
+    // Limpieza de prueba para mantener Obsidian Vault limpio
+    try {
+      await fetch('http://localhost:3030/api/vault/agenda/clean', { method: 'POST' });
+    } catch {}
   }, '07_voice_assistant_hud_active.png');
 
   // Cerrar modal de voz

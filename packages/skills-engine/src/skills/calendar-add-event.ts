@@ -223,49 +223,55 @@ summary: "Agenda diaria para Jhonny Lorenzo (${parsed.targetDate})."
     const targetDate = targetDateObj.toISOString().split('T')[0];
 
     // 2. Extract Time
-    const timeRegex = /(?:(?:a las|cambies a las|cambia a las|pactada a las|para las)\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana|a\s*m|p\s*m)?)/gi;
+    const timeRegex = /(?:(?:a las|cambies a las|cambia a las|pactada a las|para las|de las)\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana|a\s*m|p\s*m)?)/gi;
     const matches = Array.from(text.matchAll(timeRegex)).filter(m => m[1] && /\d/.test(m[1]));
 
     let targetTimeStr = '09:00 AM';
 
     if (matches.length > 0) {
       const lastMatch = matches[matches.length - 1];
-      let rawTime = lastMatch[1].toUpperCase().trim()
+      const rawTime = lastMatch[1].toUpperCase().trim()
         .replace(/\s+/g, ' ')
         .replace(/A\s*M/g, 'AM')
         .replace(/P\s*M/g, 'PM');
 
-      if (rawTime.includes('DE LA TARDE') || rawTime.includes('DE LA NOCHE')) {
-        rawTime = rawTime.replace(/DE LA TARDE|DE LA NOCHE/gi, '').trim() + ' PM';
-      } else if (rawTime.includes('DE LA MAÑANA') || rawTime.includes('DE LA MANANA')) {
-        rawTime = rawTime.replace(/DE LA MAÑANA|DE LA MANANA/gi, '').trim() + ' AM';
-      }
+      const match = rawTime.match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM|HRS|HORAS)?/i);
+      if (match) {
+        let hour = parseInt(match[1], 10);
+        const min = match[2] ? match[2].padStart(2, '0') : '00';
+        let ampm = match[3] ? match[3].toUpperCase() : '';
 
-      if (!rawTime.includes('AM') && !rawTime.includes('PM')) {
-        const hour = parseInt(rawTime.split(':')[0], 10);
-        if (hour >= 1 && hour <= 7) {
-          rawTime += ' PM';
-        } else if (hour >= 8 && hour <= 11) {
-          rawTime += ' AM';
-        } else if (hour >= 12 && hour <= 23) {
-          rawTime += ' PM';
+        if (ampm === 'HRS' || ampm === 'HORAS') ampm = '';
+
+        if (!ampm) {
+          if (rawTime.includes('TARDE') || rawTime.includes('NOCHE') || rawTime.includes('PM')) {
+            ampm = 'PM';
+          } else if (rawTime.includes('MAÑANA') || rawTime.includes('MANANA') || rawTime.includes('AM')) {
+            ampm = 'AM';
+          } else if (hour >= 1 && hour <= 7) {
+            ampm = 'PM';
+          } else if (hour >= 8 && hour <= 11) {
+            ampm = 'AM';
+          } else if (hour >= 12 && hour <= 23) {
+            ampm = 'PM';
+          } else {
+            ampm = 'AM';
+          }
         }
-      }
 
-      const parts = rawTime.split(' ');
-      const clock = parts[0];
-      const ampm = parts[1] || 'PM';
-      const [h, m] = clock.split(':');
-      targetTimeStr = `${h.padStart(2, '0')}:${m ? m.padStart(2, '0') : '00'} ${ampm}`;
+        if (ampm === 'PM' && hour > 12) hour -= 12;
+        targetTimeStr = `${String(hour).padStart(2, '0')}:${min} ${ampm}`;
+      }
     }
 
     // 3. Extract Dynamic Event Title (Non-Overfitting)
     let cleanTitle = text
-      .replace(/(?:quiero que me agendes|quiero que me avises sobre|quiero que me recuerdes|quiero que|me avises sobre|avísame sobre|avisame sobre|recuérdame sobre|recuerdame sobre|agéndame|agendame|agendarme|agendar|agendes|agende|agenda|programa|programar|programando|prográmame|programame|programes|programe|anota|anótame|anotame|anotes|pon|poner|ponme|crea|crear|añade|añadir|añádeme|agrega|agregar|agrégame|cambia|cambiar|cambies|cambiame|mueve|mover|reprograma|reprogramar|reprogrames|pasa|pasar|posterga|postergar|modifica|modificar|modifiques|recuérdame|recuerdame|recuerdes|recuerde|recordar|recordarme|avísame|avisame|avises|avise|avisar|avisarme)\s*(?:una|un|el|la)?/gi, '')
-      .replace(/(?:para\s*)?(?:hoy|mañana|manana|pasado mañana|pasado manana|lunes|martes|miércoles|miercoles|jueves|viernes|sábado|sabado|domingo)/gi, '')
-      .replace(/(?:el\s*)?\d{1,2}\s*(?:de|\/)\s*(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre|\d{1,2})/gi, '')
-      .replace(/(?:a las|para las|cambies a las|cambia a las|pactada a las)?\s*\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana|a\s*m|p\s*m)?/gi, '')
-      .replace(/(?:sobre|de|que se trata sobre)\s*/gi, '')
+      .replace(/\b(?:ayúdame|ayudame|por favor|quiero que|necesito que|puedes|podrías|podrias)\b/gi, '')
+      .replace(/\b(?:agendar|agendando|agéndame|agendame|agendes|agende|agendarme|agenda|programa|programar|programando|prográmame|programame|programes|programe|anota|anótame|anotame|anotes|pon|poner|ponme|crea|crear|añade|añadir|añádeme|agrega|agregar|agrégame|cambia|cambiar|cambies|cambiame|mueve|mover|reprograma|reprogramar|reprogrames|pasa|pasar|posterga|postergar|modifica|modificar|modifiques|recuérdame|recuerdame|recuerdes|recuerde|recordar|recordarme|avísame|avisame|avises|avise|avisar|avisarme)\b\s*(?:una|un|el|la|los|las)?/gi, '')
+      .replace(/\b(?:para\s*)?(?:hoy|mañana|manana|pasado mañana|pasado manana|lunes|martes|miércoles|miercoles|jueves|viernes|sábado|sabado|domingo)\b/gi, '')
+      .replace(/(?:el\s*)?\b\d{1,2}\s*(?:de|\/)\s*(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre|\d{1,2})\b/gi, '')
+      .replace(/(?:a las|para las|cambies a las|cambia a las|pactada a las|de las)?\s*\b\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana|a\s*m|p\s*m)?/gi, '')
+      .replace(/\b(?:sobre|de|que se trata sobre|para)\b\s*/gi, '')
       .replace(/[.,:;]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();

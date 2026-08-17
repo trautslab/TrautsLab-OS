@@ -9,7 +9,8 @@ export class VoiceIntentRouter {
 
     // 1. Check for TIER 2: Read-Only Fast Cache Queries first for questions
     const isCalendarRead = 
-      /\b(qué tengo|que tengo|qué hay|que hay|cuál es mi agenda|cual es mi agenda|lo más importante|lo mas importante|mis compromisos|mi horario|consultar agenda|ver agenda|revisar agenda|tengo algo hoy)\b/i.test(normalized);
+      /\b(qué tengo|que tengo|qué hay|que hay|cuál es mi agenda|cual es mi agenda|lo más importante|lo mas importante|mis compromisos|compromisos programados|qué eventos|que eventos|mis eventos|mi horario|consultar agenda|ver agenda|revisar agenda|tengo algo hoy|tengo programado|tengo agendado|qué tengo que hacer|que tengo que hacer|mis tareas|qué tareas|que tareas)\b/i.test(normalized) ||
+      (/\b(compromisos|eventos|agenda|actividades|tareas|reuniones)\b/i.test(normalized) && /\b(tengo|hay|hoy|programados|agendados|pendientes|día|dia)\b/i.test(normalized) && !/\b(agendar|agendando|agéndame|agendame|agregar|añadir|crear|archivar|archiva)\b/i.test(normalized));
 
     if (isCalendarRead) {
       return {
