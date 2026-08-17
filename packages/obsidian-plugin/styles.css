@@ -1,0 +1,326 @@
+/* ==========================================================================
+   TrautsLab OS — Obsidian Plugin Custom Stylesheet
+   ========================================================================== */
+
+.trautslab-obsidian-root {
+  padding: 0 !important;
+  background-color: var(--background-primary);
+  color: var(--text-normal);
+  font-family: var(--font-text);
+  height: 100%;
+  overflow-y: auto;
+}
+
+.trautslab-dashboard-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 16px;
+  gap: 14px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* TOPBAR */
+.trautslab-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(18, 24, 38, 0.65);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px 18px;
+}
+
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-mark {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #6366f1, #06b6d4);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.brand-titles h2 {
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.accent-text {
+  color: #06b6d4;
+}
+
+.system-status-tag {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-family: var(--font-monospace);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot-online {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+}
+
+.header-metrics {
+  display: flex;
+  gap: 10px;
+}
+
+.metric-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
+.m-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.m-lbl { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; }
+.m-val { font-size: 0.8rem; font-weight: 700; font-family: var(--font-monospace); color: var(--text-normal); }
+
+.btn-voice-launch {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(6, 182, 212, 0.25));
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  color: #fff;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-voice-launch:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+/* TABS & PANELS */
+.trautslab-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 8px;
+}
+
+.trautslab-tabs .nav-tab {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trautslab-tabs .nav-tab.active {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #fff;
+}
+
+.panel-section {
+  display: none;
+}
+
+.panel-section.active {
+  display: block;
+}
+
+/* CARDS */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.col-1 { grid-column: span 1; }
+.col-2 { grid-column: span 2; }
+.col-3 { grid-column: span 3; }
+
+.obsidian-glass-card {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-head h3 {
+  font-size: 0.95rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.badge-status {
+  font-size: 0.65rem;
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.timeline-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.t-item {
+  font-size: 0.85rem;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.t-item.current {
+  border-left: 3px solid #6366f1;
+}
+
+.t-time {
+  font-family: var(--font-monospace);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  margin-right: 6px;
+}
+
+.skills-launcher {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skill-btn-action {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-normal);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.skill-btn-action:hover {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.obsidian-exec-log {
+  background: #05070c;
+  border-radius: 8px;
+  padding: 10px;
+  height: 180px;
+  overflow-y: auto;
+  font-family: var(--font-monospace);
+  font-size: 0.78rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.log-item.info { color: #94a3b8; }
+.log-item.ready { color: #10b981; }
+
+/* VOICE MODAL */
+.obsidian-voice-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 7, 14, 0.85);
+  backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.obsidian-voice-modal[hidden] {
+  display: none;
+}
+
+.voice-modal-inner {
+  background: #0f172a;
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  border-radius: 16px;
+  padding: 28px;
+  width: 90%;
+  max-width: 480px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+}
+
+.btn-close-modal {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.modal-orb {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+}
+
+.modal-transcription {
+  font-size: 1rem;
+  font-style: italic;
+  color: #f8fafc;
+  margin: 10px 0;
+}
+
+.modal-tier-badge {
+  display: inline-block;
+  background: rgba(6, 182, 212, 0.2);
+  color: #38bdf8;
+  font-family: var(--font-monospace);
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.modal-response {
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.88rem;
+  color: #e2e8f0;
+}
