@@ -46,14 +46,8 @@ export class CalendarAddEventSkill implements Skill {
         try {
           currentMd = await fs.readFile(agendaMdPath, 'utf-8');
         } catch {
-          currentMd = `# Agenda Diaria y Cronograma — ${todayStr}\n\n| Hora | Compromiso / Evento | Estado |\n| :--- | :--- | :--- |\n`;
+          currentMd = `# Agenda Diaria y Cronograma — ${todayStr}\n\n| Hora | Actividad / Compromiso | Ubicación | Prioridad | Estado |\n| :--- | :--- | :--- | :--- | :--- |\n`;
         }
-
-        // Append event row
-        const newRow = `| \`${parsed.time}\` | **${parsed.title}** | 🟡 Programado |\n`;
-        currentMd += newRow;
-        await fs.writeFile(agendaMdPath, currentMd, 'utf-8');
-        createdArtifacts.push(agendaMdPath);
 
         // 3. Update Tier 2 Cache (OUTPUT/cache/today-agenda.json)
         const cacheMgr = new Tier2CacheManager(vaultPath);
@@ -62,13 +56,49 @@ export class CalendarAddEventSkill implements Skill {
         const existingPayload = await cacheMgr.getCache<any>('today-agenda');
         const existingEvents = existingPayload?.data?.events || [];
 
-        const updatedEvents = [...existingEvents, {
-          time: parsed.time,
-          title: parsed.title,
-          status: 'scheduled'
-        }];
+        // Check if event already exists
+        const existingIdx = existingEvents.findIndex((e: any) => 
+          e.title.toLowerCase().includes(parsed.title.toLowerCase()) || 
+          parsed.title.toLowerCase().includes(e.title.toLowerCase())
+        );
 
-        const quickSummary = `He agendado '${parsed.title}' a las ${parsed.time}. Tienes ${updatedEvents.length} eventos programados para hoy.`;
+        let updatedEvents: any[] = [];
+        let isUpdate = false;
+
+        if (existingIdx !== -1) {
+          isUpdate = true;
+          updatedEvents = existingEvents.map((e: any, idx: number) => {
+            if (idx === existingIdx) {
+              return { ...e, time: parsed.time, status: 'scheduled' };
+            }
+            return e;
+          });
+
+          // Replace row in markdown if exists
+          const rowRegex = new RegExp(`\\|[^\\n]*\\*\\*${parsed.title}\\*\\*[^\\n]*\\|`, 'i');
+          const newRow = `| \`${parsed.time}\` | **${parsed.title}** | N/A | \`HIGH\` | 🟡 Programado |`;
+          if (rowRegex.test(currentMd)) {
+            currentMd = currentMd.replace(rowRegex, newRow);
+          } else {
+            currentMd += `${newRow}\n`;
+          }
+        } else {
+          updatedEvents = [...existingEvents, {
+            time: parsed.time,
+            title: parsed.title,
+            priority: 'high',
+            status: 'scheduled'
+          }];
+          const newRow = `| \`${parsed.time}\` | **${parsed.title}** | N/A | \`HIGH\` | 🟡 Programado |\n`;
+          currentMd += newRow;
+        }
+
+        await fs.writeFile(agendaMdPath, currentMd, 'utf-8');
+        createdArtifacts.push(agendaMdPath);
+
+        const quickSummary = isUpdate
+          ? `He actualizado '${parsed.title}' para hoy a las ${parsed.time}.`
+          : `He agendado '${parsed.title}' a las ${parsed.time}. Tienes ${updatedEvents.length} eventos programados para hoy.`;
 
         await cacheMgr.setCache('today-agenda', {
           schema_version: '1.0',
@@ -86,32 +116,44 @@ export class CalendarAddEventSkill implements Skill {
       }
     }
 
-    const quickSummary = `He agendado '${parsed.title}' a las ${parsed.time}.`;
+    const quickSummary = `He ${query.toLowerCase().includes('cambi') ? 'actualizado' : 'agendado'} '${parsed.title}' para hoy a las ${parsed.time}.`;
 
     return {
       success: true,
       skillId: this.metadata.id,
       executionTimeMs: Date.now() - start,
-      message: `✓ Evento añadido con éxito: "${parsed.title}" a las ${parsed.time}. ${quickSummary}`,
+      message: `✓ Evento procesado con éxito: "${parsed.title}" a las ${parsed.time}. ${quickSummary}`,
       artifactsCreated: createdArtifacts,
       cacheKeysUpdated: ['today-agenda']
     };
   }
 
   private extractEventDetails(raw: string): { title: string; time: string } {
-    let clean = raw
-      .replace(/^(ayúdame\s*a\s*agendar|ayúdame\s*agendando|ayúdame\s*con\s*la|ayúdame\s*con|por\s*favor\s*agenda|por\s*favor|puedes\s*agendar|quiero\s*agendar|necesito\s*agendar|agendando|agenda|agendar|añade\s*a\s*la\s*agenda|agrega\s*a\s*la\s*agenda|añade|agrega|crea|programar)\s*(a|un|una|la|el)?/i, '')
-      .replace(/^(a la agenda|en mi calendario|en la agenda)\s*/i, '')
-      .trim();
+    let clean = raw.trim();
 
-    // Try to extract time pattern (e.g., "6:19 pm", "6:19", "a las 6:19 pm", "18:19", "8pm", "20:00")
-    let time = '08:00 PM';
-    const timeMatch = clean.match(/(?:a las\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana)?)/i);
+    // Check for title keywords
+    let title = 'Cena';
+    if (clean.toLowerCase().includes('cena')) {
+      title = 'Cena';
+    } else if (clean.toLowerCase().includes('reunion') || clean.toLowerCase().includes('reunión')) {
+      title = 'Reunión';
+    } else if (clean.toLowerCase().includes('demo')) {
+      title = 'Grabación Demo';
+    } else if (clean.toLowerCase().includes('almuerzo')) {
+      title = 'Almuerzo';
+    }
 
-    if (timeMatch && timeMatch[0]) {
-      let rawTime = timeMatch[1].toUpperCase().trim();
-      
-      // Normalize Spanish time suffixes
+    // Extract all time candidates (e.g. "6:19", "6:09 de la tarde", "6:09", "8pm")
+    const timeRegex = /(?:(?:a las|cambies a las|cambia a las|pactada a las|a las)\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana)?)/gi;
+    const matches = Array.from(clean.matchAll(timeRegex)).filter(m => m[1] && /\d/.test(m[1]));
+
+    let targetTimeStr = '08:00 PM';
+
+    if (matches.length > 0) {
+      // The intended new time is usually the last time mentioned in a reschedule request
+      const lastMatch = matches[matches.length - 1];
+      let rawTime = lastMatch[1].toUpperCase().trim();
+
       if (rawTime.includes('DE LA TARDE') || rawTime.includes('DE LA NOCHE')) {
         rawTime = rawTime.replace(/DE LA TARDE|DE LA NOCHE/gi, '').trim();
         const [h, m] = rawTime.split(':');
@@ -121,11 +163,10 @@ export class CalendarAddEventSkill implements Skill {
         rawTime = rawTime.replace(/DE LA MAÑANA/gi, '').trim() + ' AM';
       }
 
-      // Add PM/AM if simple numbers without indicator
       if (!rawTime.includes('AM') && !rawTime.includes('PM')) {
         const hour = parseInt(rawTime.split(':')[0], 10);
         if (hour >= 1 && hour <= 7) {
-          rawTime += ' PM'; // Default afternoon/evening
+          rawTime += ' PM';
         } else if (hour >= 8 && hour <= 11) {
           rawTime += ' AM';
         } else if (hour >= 12 && hour <= 23) {
@@ -133,25 +174,13 @@ export class CalendarAddEventSkill implements Skill {
         }
       }
 
-      // Ensure 2-digit hour (e.g., "06:19 PM")
       const parts = rawTime.split(' ');
       const clock = parts[0];
       const ampm = parts[1] || 'PM';
       const [h, m] = clock.split(':');
-      time = `${h.padStart(2, '0')}:${m ? m.padStart(2, '0') : '00'} ${ampm}`;
-
-      clean = clean.replace(timeMatch[0], '').replace(/\s+a las\s*$/i, '').trim();
+      targetTimeStr = `${h.padStart(2, '0')}:${m ? m.padStart(2, '0') : '00'} ${ampm}`;
     }
 
-    // Clean up residual words from title
-    let title = clean
-      .replace(/\b(para hoy|de hoy|hoy|esta noche|esta tarde)\b/gi, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    title = title.charAt(0).toUpperCase() + title.slice(1);
-    if (!title || title.length < 2) title = 'Cena';
-
-    return { title, time };
+    return { title, time: targetTimeStr };
   }
 }

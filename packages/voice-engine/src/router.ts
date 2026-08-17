@@ -23,7 +23,7 @@ export class VoiceIntentRouter {
       };
     }
 
-    // Action: Schedule / Add event (Writing to calendar)
+    // Action: Schedule / Add / Update event (Writing to calendar)
     if (
       normalized.includes('agendando') ||
       normalized.includes('agenda la') ||
@@ -37,13 +37,24 @@ export class VoiceIntentRouter {
       normalized.includes('agrega una reunión') ||
       normalized.includes('programar cita') ||
       normalized.includes('programa la cena') ||
-      normalized.includes('agenda cena')
+      normalized.includes('agenda cena') ||
+      normalized.includes('cambies a las') ||
+      normalized.includes('cambia la cena') ||
+      normalized.includes('cambia la') ||
+      normalized.includes('cambiar la') ||
+      normalized.includes('cambiar el') ||
+      normalized.includes('mueve la') ||
+      normalized.includes('mover la') ||
+      normalized.includes('reprograma') ||
+      normalized.includes('posterga') ||
+      normalized.includes('modifica la cena') ||
+      normalized.includes('cambiar horario')
     ) {
       return {
         tier: 'TIER_1_SKILL',
-        confidence: 0.96,
+        confidence: 0.97,
         target: 'calendar-add-event',
-        rationale: 'Coincide con la intención de crear o agendar un nuevo evento en el cronograma.'
+        rationale: 'Coincide con la intención de crear, modificar o reprogramar un evento en el cronograma.'
       };
     }
 

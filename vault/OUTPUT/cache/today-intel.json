@@ -1,22 +1,12 @@
 {
   "schema_version": "1.0",
   "category": "daily_intel",
-  "generated_at": "2026-08-17T17:49:44.456Z",
-  "expires_at": "2026-08-18T17:49:44.456Z",
-  "quick_summary_tts": "La noticia principal hoy es que NousResearch/hermes-agent lidera las tendencias en GitHub, y en Hacker News destaca A Preview of DuckDB v2.0.",
+  "generated_at": "2026-08-17T19:00:00.000Z",
+  "expires_at": "2026-08-17T23:59:59Z",
+  "quick_summary_tts": "Feed de inteligencia listo para escaneo bajo demanda.",
   "data": {
-    "topRepo": {
-      "name": "NousResearch/hermes-agent",
-      "url": "https://github.com/NousResearch/hermes-agent",
-      "description": "The agent that grows with you",
-      "stars": "⭐ 231.9k stars"
-    },
-    "topHn": {
-      "title": "A Preview of DuckDB v2.0",
-      "url": "https://duckdb.org/2026/08/17/duckdb-20-highlights",
-      "score": 290
-    },
-    "totalRepos": 4,
-    "totalStories": 3
+    "topicsCount": 0,
+    "github_trending": [],
+    "hacker_news": []
   }
 }

@@ -1,38 +1,16 @@
 {
   "schema_version": "1.0",
   "category": "daily_agenda",
-  "generated_at": "2026-08-17T16:23:38.962Z",
+  "generated_at": "2026-08-17T19:04:10.442Z",
   "expires_at": "2026-08-17T23:59:59Z",
-  "quick_summary_tts": "Tu compromiso principal hoy es Revisión de Arquitectura TrautsLab OS a las 11:00 AM, seguido por la grabación del demo a las tres y media de la tarde.",
+  "quick_summary_tts": "He agendado 'Cena de hoy' a las 8PM. Tienes 1 eventos programados para hoy.",
   "data": {
-    "eventsCount": 3,
-    "mainCommitment": {
-      "time": "11:00 AM",
-      "title": "Revisión de Arquitectura TrautsLab OS",
-      "location": "Sala de Reuniones",
-      "priority": "high",
-      "status": "pending"
-    },
+    "eventsCount": 1,
     "events": [
       {
-        "time": "09:00 AM",
-        "title": "Morning Intel Scan & Sync",
-        "priority": "normal",
-        "status": "completed"
-      },
-      {
-        "time": "11:00 AM",
-        "title": "Revisión de Arquitectura TrautsLab OS",
-        "location": "Sala de Reuniones",
-        "priority": "high",
-        "status": "pending"
-      },
-      {
-        "time": "03:30 PM",
-        "title": "Grabación Demo: Asistente de Voz y Skills",
-        "location": "Estudio Local",
-        "priority": "high",
-        "status": "pending"
+        "time": "8PM",
+        "title": "Cena de hoy",
+        "status": "scheduled"
       }
     ]
   }
