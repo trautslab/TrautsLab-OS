@@ -3,9 +3,19 @@
 | Hora | Compromiso / Evento | Estado |
 | :--- | :--- | :--- |
 | `8PM` | **Cena de hoy** | 🟡 Programado |
-| `06:11 PM` | **Cena** | N/A | `HIGH` | 🟡 Programado |
+| `08:00 PM` | **Cena** | N/A | `HIGH` | 🟡 Programado |
 | `11:30 AM` | **Reunión** | N/A | `HIGH` | 🟡 Programado |
 
 | `8PM:00 PM` | **Ayúdame ndo la cena** | N/A | `HIGH` | 🟡 Programado |
 
 | `06:11 PM` | **R cena** | N/A | `HIGH` | 🟡 Programado |
+
+| `11:30 AM` | **Reunión arquitectura** | N/A | `HIGH` | 🟡 Programado |
+
+
+
+
+
+
+
+

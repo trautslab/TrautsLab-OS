@@ -499,10 +499,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // --- LIVE SCHEDULE & CALENDAR SYNC ENGINE (Direct Obsidian Vault) ---
+  // --- LIVE SCHEDULE & CALENDAR ARCHIVING ENGINE (Direct Obsidian Vault Sync) ---
   const scheduleHudList = document.getElementById('schedule-hud-list') || document.querySelector('.schedule-hud-list');
   const scheduleCountBadge = document.getElementById('schedule-count-badge');
-  const btnClearSchedule = document.getElementById('btn-clear-schedule');
+  const btnArchiveAllSchedule = document.getElementById('btn-archive-all-schedule');
 
   async function loadScheduleFromVault() {
     if (!scheduleHudList) return;
@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
           scheduleHudList.innerHTML = `
             <div class="sched-empty-state">
               <span class="sched-empty-icon">✨</span>
-              <span class="sched-empty-text">Sin compromisos agendados. Habla o escribe para programar.</span>
+              <span class="sched-empty-text">Sin compromisos activos. Habla o escribe para programar.</span>
             </div>
           `;
           return;
@@ -542,10 +542,20 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="sched-time">${evt.time}</span>
               ${dateBadge}
             </div>
-            <span class="sched-task">${evt.title}</span>
-            <span class="sched-tag" style="color: var(--emerald-accent); border-color: rgba(52, 211, 153, 0.3);">[AGENDADO]</span>
+            <span class="sched-task" title="${evt.title}">${evt.title}</span>
+            <button class="sched-archive-item-btn" data-title="${evt.title}" data-date="${evt.date}" title="Archivar este compromiso individual en Obsidian">📦</button>
           `;
           scheduleHudList.appendChild(itemEl);
+        });
+
+        // Add event listeners for per-item archive buttons
+        scheduleHudList.querySelectorAll('.sched-archive-item-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const title = btn.getAttribute('data-title');
+            const date = btn.getAttribute('data-date');
+            await archiveScheduleItem(title, date);
+          });
         });
 
         return;
@@ -555,22 +565,44 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  async function clearAllScheduleActivities() {
+  async function archiveScheduleItem(title, date) {
     try {
-      const res = await fetch('http://localhost:3030/api/vault/agenda/clean', { method: 'POST' });
+      const res = await fetch('http://localhost:3030/api/vault/agenda/archive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, date })
+      });
       if (res.ok) {
-        showHudToast('AGENDA REINICIADA', 'Todas las actividades fueron borradas de tu Obsidian Vault.', 'success', 5000);
-        appendTerminalLog('✓ [SCHEDULE] Agenda y compromisos limpiados desde cero.', 'success');
-        speakText('Todas tus actividades han sido limpiadas. Tu agenda está en blanco.');
+        showHudToast('COMPROMISO ARCHIVADO', `'${title}' archivado en tu historial de Obsidian Vault.`, 'success', 4000);
+        appendTerminalLog(`✓ [ARCHIVE] '${title}' archivado en daily-agenda-${date}.md`, 'success');
+        speakText(`He archivado '${title}' en tu historial de Obsidian.`);
         await loadScheduleFromVault();
       }
     } catch (e) {
-      console.error('Error al limpiar agenda:', e);
+      console.error('Error al archivar item:', e);
     }
   }
 
-  if (btnClearSchedule) {
-    btnClearSchedule.addEventListener('click', clearAllScheduleActivities);
+  async function archiveAllScheduleActivities() {
+    try {
+      const res = await fetch('http://localhost:3030/api/vault/agenda/archive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archiveAll: true })
+      });
+      if (res.ok) {
+        showHudToast('DÍA ARCHIVADO', 'Todos los compromisos del día fueron archivados en tu historial de Obsidian.', 'success', 5000);
+        appendTerminalLog('✓ [ARCHIVE] Todos los compromisos del día archivados en Obsidian Vault.', 'success');
+        speakText('He archivado todos los compromisos de hoy en tu historial de Obsidian.');
+        await loadScheduleFromVault();
+      }
+    } catch (e) {
+      console.error('Error al archivar día:', e);
+    }
+  }
+
+  if (btnArchiveAllSchedule) {
+    btnArchiveAllSchedule.addEventListener('click', archiveAllScheduleActivities);
   }
 
   // Load schedule from Obsidian Vault on initial boot

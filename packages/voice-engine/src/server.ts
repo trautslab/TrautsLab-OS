@@ -87,14 +87,27 @@ export class VoiceServer {
               const filePath = path.join(outputDir, file);
               const content = await fsPromises.readFile(filePath, 'utf-8');
 
+              let inActiveCronograma = false;
               const lines = content.split('\n');
               for (const line of lines) {
                 const trimmed = line.trim();
-                if (trimmed.startsWith('|') && !trimmed.includes('Actividad') && !trimmed.includes(':---') && !trimmed.includes('Hora')) {
+                if (trimmed.includes('## 🕒 Cronograma del Día') || trimmed.includes('| Hora | Actividad')) {
+                  inActiveCronograma = true;
+                  continue;
+                }
+                if (inActiveCronograma && (trimmed.startsWith('## ') || trimmed.startsWith('---') && !trimmed.startsWith('| ---'))) {
+                  if (trimmed.includes('## 📦') || trimmed.includes('## 🎯') || trimmed.startsWith('---')) {
+                    inActiveCronograma = false;
+                  }
+                }
+
+                if (inActiveCronograma && trimmed.startsWith('|') && !trimmed.includes('Actividad') && !trimmed.includes(':---') && !trimmed.includes('Hora')) {
+                  if (trimmed.includes('ARCHIVADO') || trimmed.includes('~~')) continue;
+
                   const cols = trimmed.split('|').map(c => c.trim()).filter(Boolean);
                   if (cols.length >= 2) {
                     const rawTime = cols[0].replace(/[`*]/g, '').trim();
-                    const rawTitle = cols[1].replace(/[`*]/g, '').trim();
+                    const rawTitle = cols[1].replace(/[`*~]/g, '').trim();
                     const rawPri = cols[3] ? cols[3].replace(/[`*]/g, '').trim() : 'NORMAL';
                     const rawStatus = cols[4] ? cols[4].replace(/[`*]/g, '').trim() : '🟡 Programado';
                     if (rawTime && rawTitle) {
@@ -121,6 +134,34 @@ export class VoiceServer {
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: err.message }));
           }
+          return;
+        }
+
+        if (url.pathname === '/api/vault/agenda/archive' && req.method === 'POST') {
+          let body = '';
+          req.on('data', chunk => { body += chunk; });
+          req.on('end', async () => {
+            try {
+              const payload = JSON.parse(body || '{}');
+              const { CalendarArchiveEventSkill } = await import('@trautslab/skills-engine');
+              const archiveSkill = new CalendarArchiveEventSkill();
+              const result = await archiveSkill.execute({
+                vaultRoot: this.vaultRoot,
+                timestamp: new Date(),
+                args: {
+                  title: payload.title,
+                  date: payload.date,
+                  archiveAll: payload.archiveAll === true
+                }
+              });
+
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify(result));
+            } catch (err: any) {
+              res.writeHead(500, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: err.message }));
+            }
+          });
           return;
         }
 

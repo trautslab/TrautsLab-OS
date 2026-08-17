@@ -1,4 +1,4 @@
-import { SkillRegistry, SkillContext, MorningIntelScanSkill, CalendarDailyBriefSkill, CalendarAddEventSkill, VaultSyncIndexerSkill } from '@trautslab/skills-engine';
+import { SkillRegistry, SkillContext, MorningIntelScanSkill, CalendarDailyBriefSkill, CalendarAddEventSkill, CalendarArchiveEventSkill, VaultSyncIndexerSkill } from '@trautslab/skills-engine';
 import { Tier2CacheManager } from '@trautslab/vault-engine';
 import { FasterWhisperSTTEngine } from './stt-engine.js';
 import { KokoroTTSEngine } from './tts-engine.js';
@@ -40,6 +40,7 @@ export class VoicePipeline {
     this.skillRegistry.register(new MorningIntelScanSkill());
     this.skillRegistry.register(new CalendarDailyBriefSkill());
     this.skillRegistry.register(new CalendarAddEventSkill());
+    this.skillRegistry.register(new CalendarArchiveEventSkill());
     this.skillRegistry.register(new VaultSyncIndexerSkill());
   }
 

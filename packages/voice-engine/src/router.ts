@@ -20,7 +20,20 @@ export class VoiceIntentRouter {
       };
     }
 
-    // 2. Check for TIER 1: Calendar Scheduling, Modification & Action Directives
+    // 2. Check for TIER 1: Calendar Archiving & Task Completion
+    const isArchiveIntent = 
+      /\b(archivar|archiva|archíva|archívame|archivame|archívalo|archivalo|archívala|archivala|completar|completa|marcar como completada|marca como completada|marcar como hecha|marca como hecha|dar por concluida|limpiar día|limpiar dia|archivar todo|archivar día|archivar dia)\b/i.test(normalized);
+
+    if (isArchiveIntent) {
+      return {
+        tier: 'TIER_1_SKILL',
+        confidence: 0.99,
+        target: 'calendar-archive-event',
+        rationale: 'Coincide con la orden de archivar una actividad o todos los compromisos del día en Obsidian.'
+      };
+    }
+
+    // 3. Check for TIER 1: Calendar Scheduling, Modification & Action Directives
     const isCalendarAction = 
       /\b(agendar|agendando|agéndame|agendame|agendes|agende|agendarme|agenda|programa|programar|programando|prográmame|programame|programes|programe|anota|anótame|anotame|anotes|pon|poner|ponme|crea|crear|añade|añadir|añádeme|agrega|agregar|agrégame|cambia|cambiar|cambies|cambiame|mueve|mover|reprograma|reprogramar|reprogrames|pasa|pasar|posterga|postergar|modifica|modificar|modifiques|recuérdame|recuerdame|recuerdes|recuerde|recordar|recordarme|avísame|avisame|avises|avise|avisar|avisarme)\b/i.test(normalized) ||
       (/\b(cena|almuerzo|desayuno|reunion|reunión|meet|call|cita|evento|compromiso|recordatorio|estudiar|certificación|certificacion|clase|entrenamiento|doctor|médico|dentista)\b/i.test(normalized) && /\b(\d{1,2}(?::\d{2})?|\d{1,2}\s*(?:am|pm|hrs|horas|p\s*m|a\s*m)|a las|tarde|noche|mañana|pasado mañana)\b/i.test(normalized)) ||

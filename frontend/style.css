@@ -753,6 +753,54 @@ html, body {
   transform: translateY(-1px);
 }
 
+.archive-btn {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: var(--amber-bright);
+}
+
+.archive-btn:hover {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: var(--amber-primary);
+  color: #ffffff;
+}
+
+.theme-light .archive-btn {
+  background: #fef3c7;
+  border-color: #fcd34d;
+  color: #b45309;
+}
+
+.sched-archive-item-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.sched-archive-item-btn:hover {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: var(--amber-primary);
+  color: var(--amber-bright);
+  transform: scale(1.1);
+}
+
+.theme-light .sched-archive-item-btn {
+  border-color: #cbd5e1;
+  color: #64748b;
+}
+
+.theme-light .sched-archive-item-btn:hover {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #b45309;
+}
+
 .theme-light .hud-mini-btn {
   background: #fee2e2;
   border-color: #fca5a5;
