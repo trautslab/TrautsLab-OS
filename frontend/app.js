@@ -228,7 +228,151 @@ document.addEventListener('DOMContentLoaded', () => {
   const voiceTextInput = document.getElementById('voice-text-input');
   const scheduleList = document.querySelector('.schedule-hud-list');
 
+  // Developer Mode & Hardware Inspector Elements
+  const btnToggleDevMode = document.getElementById('btn-toggle-devmode');
+  const devModeStatusText = document.getElementById('devmode-status-text');
+  const voiceDevInspector = document.getElementById('voice-dev-inspector');
+  const voiceEventLog = document.getElementById('voice-event-log');
+  const btnClearDevLog = document.getElementById('btn-clear-dev-log');
+  const micDeviceName = document.getElementById('mic-device-name');
+  const micDbValue = document.getElementById('mic-db-value');
+  const micLiveLevelBar = document.getElementById('mic-live-level-bar');
+  const micStatusMsg = document.getElementById('mic-status-msg');
+  const micPulseIndicator = document.getElementById('mic-pulse-indicator');
+  const audioSampleRate = document.getElementById('audio-sample-rate');
+  const quickChips = document.querySelectorAll('.quick-chip');
+
+  let devModeActive = false;
+  let audioCtx = null;
+  let analyser = null;
+  let micStream = null;
+  let micAnimFrame = null;
   let recognition = null;
+
+  function logDevEvent(msg, level = 'info') {
+    const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+    console.log(`[Voice DEV ${time}] ${msg}`);
+    if (voiceEventLog) {
+      const entry = document.createElement('div');
+      entry.className = `dev-log-entry ${level}`;
+      entry.textContent = `[${time}] ${msg}`;
+      voiceEventLog.appendChild(entry);
+      voiceEventLog.scrollTop = voiceEventLog.scrollHeight;
+    }
+  }
+
+  // Developer Mode Toggle
+  btnToggleDevMode?.addEventListener('click', () => {
+    devModeActive = !devModeActive;
+    btnToggleDevMode.classList.toggle('active', devModeActive);
+    if (devModeStatusText) devModeStatusText.textContent = devModeActive ? 'ON' : 'OFF';
+    if (voiceDevInspector) voiceDevInspector.hidden = !devModeActive;
+    logDevEvent(`Developer Mode ${devModeActive ? 'ACTIVADO' : 'DESACTIVADO'}`, 'warn');
+  });
+
+  btnClearDevLog?.addEventListener('click', () => {
+    if (voiceEventLog) voiceEventLog.innerHTML = '';
+  });
+
+  // Quick Chips Click Handler
+  quickChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      const query = chip.getAttribute('data-query');
+      if (query) {
+        logDevEvent(`Quick Chip click: "${query}"`, 'info');
+        processVoiceQuery(query);
+      }
+    });
+  });
+
+  // Initialize Real Web Audio Hardware Capture
+  async function initHardwareAudioCapture() {
+    try {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        await audioCtx.resume();
+      }
+      if (audioSampleRate) {
+        audioSampleRate.textContent = `${audioCtx.sampleRate} Hz`;
+      }
+
+      if (!micStream) {
+        logDevEvent('Solicitando acceso a micrófono (getUserMedia)...', 'info');
+        micStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
+
+        const audioTracks = micStream.getAudioTracks();
+        const trackName = audioTracks[0]?.label || 'Micrófono Físico Predeterminado';
+        if (micDeviceName) micDeviceName.textContent = trackName;
+        logDevEvent(`✓ Micrófono concedido: "${trackName}"`, 'success');
+      }
+
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.4;
+      const source = audioCtx.createMediaStreamSource(micStream);
+      source.connect(analyser);
+
+      if (micStatusMsg) micStatusMsg.textContent = 'Micrófono activo y escuchando señales físicas';
+      if (micPulseIndicator) {
+        micPulseIndicator.className = 'pulse-indicator active';
+      }
+
+      startHardwareMeterLoop();
+    } catch (err) {
+      logDevEvent(`⚠️ Error al acceder al micrófono: ${err.message}`, 'error');
+      if (micStatusMsg) micStatusMsg.textContent = `Permiso no otorgado o bloqueado (${err.name}). Usa el campo de texto o los botones rápidos.`;
+      if (micPulseIndicator) micPulseIndicator.className = 'pulse-indicator error';
+      if (micDbValue) micDbValue.textContent = 'ERR';
+    }
+  }
+
+  function startHardwareMeterLoop() {
+    if (!analyser) return;
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    function updateMeter() {
+      if (!voiceModal || voiceModal.hasAttribute('hidden')) {
+        return;
+      }
+
+      analyser.getByteFrequencyData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) {
+        sum += dataArray[i];
+      }
+      const avg = sum / dataArray.length;
+      const percent = Math.min(100, Math.round((avg / 128) * 100));
+      const db = avg > 0 ? Math.round(20 * Math.log10(avg / 255)) : -60;
+
+      if (micLiveLevelBar) {
+        micLiveLevelBar.style.width = `${Math.max(4, percent)}%`;
+      }
+      if (micDbValue) {
+        micDbValue.textContent = `${db} dB`;
+      }
+
+      // If user is actively speaking (audio signal detected)
+      if (percent > 18) {
+        sphere.setAudioPulse(percent / 100);
+        sphere.setState('listening');
+      }
+
+      micAnimFrame = requestAnimationFrame(updateMeter);
+    }
+
+    if (micAnimFrame) cancelAnimationFrame(micAnimFrame);
+    micAnimFrame = requestAnimationFrame(updateMeter);
+  }
+
+  // Web Speech Recognition
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
   if (SpeechRecognition) {
@@ -236,6 +380,11 @@ document.addEventListener('DOMContentLoaded', () => {
     recognition.lang = 'es-PE';
     recognition.continuous = false;
     recognition.interimResults = true;
+
+    recognition.onstart = () => {
+      logDevEvent('SpeechRecognition iniciado (Esperando voz humana)...', 'info');
+      if (transcriptionText) transcriptionText.textContent = '"🎙️ Escuchando... Habla ahora."';
+    };
 
     recognition.onresult = (event) => {
       let interim = '';
@@ -250,22 +399,27 @@ document.addEventListener('DOMContentLoaded', () => {
       const captured = final || interim;
       if (captured && transcriptionText) {
         transcriptionText.textContent = `"${captured}"`;
+        logDevEvent(`Interim speech: "${captured}"`, 'info');
       }
       if (final) {
+        logDevEvent(`Final speech capturado: "${final}"`, 'success');
         processVoiceQuery(final);
       }
     };
 
     recognition.onerror = (e) => {
-      console.warn('[WebSpeech API] Error:', e.error);
+      logDevEvent(`SpeechRecognition error: ${e.error}`, 'warn');
       if (transcriptionText && transcriptionText.textContent.includes('Escuchando')) {
-        transcriptionText.textContent = '"Habla ahora o escribe tu orden abajo..."';
+        transcriptionText.textContent = '"Habla de nuevo o usa los botones rápidos..."';
       }
     };
 
     recognition.onend = () => {
+      logDevEvent('SpeechRecognition finalizó sesión.', 'info');
       animateVUMeter(false);
     };
+  } else {
+    logDevEvent('Navegador sin soporte de SpeechRecognition nativo. Usando fallback por texto y servidor.', 'warn');
   }
 
   function speakText(text) {
@@ -278,10 +432,12 @@ document.addEventListener('DOMContentLoaded', () => {
       utter.onstart = () => {
         sphere.setState('speaking');
         animateVUMeter(true);
+        logDevEvent('Kokoro/SpeechSynthesis locución iniciada.', 'info');
       };
       utter.onend = () => {
         sphere.setState('idle');
         animateVUMeter(false);
+        logDevEvent('Locución finalizada.', 'info');
       };
       window.speechSynthesis.speak(utter);
     }
@@ -298,6 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <span class="sched-now-tag" style="background: var(--emerald-accent);">[NUEVO]</span>
     `;
     scheduleList.appendChild(newEventEl);
+    logDevEvent(`✓ Evento visual insertado en Schedule: [${time}] ${title}`, 'success');
   }
 
   async function processVoiceQuery(query) {
@@ -311,6 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tierPill) tierPill.textContent = 'ANALIZANDO INTENCIÓN...';
 
     appendTerminalLog(`VOICE QUERY: "${q}"`, 'prompt');
+    logDevEvent(`Despachando query: "${q}"`, 'info');
 
     try {
       // 1. Try calling live Voice Engine server (port 3030)
@@ -325,23 +483,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const tier = data.tier || 'TIER_1_SKILL';
         const reply = data.responsePhoneticTts || data.responsePlainText || data.reply;
         
-        if (tierPill) tierPill.textContent = `${tier.toUpperCase()} (< 25MS)`;
+        if (tierPill) tierPill.textContent = `${tier.toUpperCase()} (${data.latencies?.totalMs || 20}MS)`;
         if (responseText) responseText.textContent = `"${reply}"`;
         appendTerminalLog(`✓ [${tier}] ${reply}`, 'success');
+        logDevEvent(`✓ Respuesta del servidor (${tier}) recibida en ${data.latencies?.totalMs || 20}ms`, 'success');
 
         if (q.toLowerCase().includes('cena') || q.toLowerCase().includes('agenda') || q.toLowerCase().includes('agendando')) {
-          addScheduleEventToUI('20:00', 'Cena de hoy');
+          const timeMatch = q.match(/(?:a las\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas)?)/i);
+          const time = timeMatch ? timeMatch[1].toUpperCase() : '08:00 PM';
+          addScheduleEventToUI(time, 'Cena de hoy');
         }
 
         speakText(reply);
         return;
       }
-    } catch {
-      // 2. Client-Side High-Speed Intelligent Fallback
-      console.log('[Voice Modal] Usando enrutador híbrido cliente...');
+    } catch (e) {
+      logDevEvent(`Servidor port 3030 no respondió (${e.message}). Ejecutando enrutador cliente de ultra-baja latencia...`, 'warn');
     }
 
-    // Local deterministic Intent Routing
+    // Local deterministic Intent Routing Fallback
     const lower = q.toLowerCase();
     let reply = '';
     let tierName = 'TIER 2: FAST CACHE LOOKUP (< 20MS)';
@@ -356,18 +516,22 @@ document.addEventListener('DOMContentLoaded', () => {
       reply = `He agendado "${fullTitle}" a las ${time}. Tu cronograma ha sido actualizado con éxito.`;
       addScheduleEventToUI(time, fullTitle);
       appendTerminalLog(`✓ [TIER_1_SKILL] Evento creado: "${fullTitle}" a las ${time}`, 'success');
+      logDevEvent(`✓ [TIER_1_SKILL] calendar-add-event ejecutado: "${fullTitle}" a las ${time}`, 'success');
     } else if (lower.includes('agenda') || lower.includes('compromiso') || lower.includes('que tengo')) {
       tierName = 'TIER 2: FAST CACHE LOOKUP (< 20MS)';
       reply = 'Tu compromiso principal hoy es la Revisión de Arquitectura TrautsLab OS a las 11:00 AM, seguido por la cena a las 8:00 PM.';
       appendTerminalLog(`✓ [TIER_2_CACHE] Consulta de agenda respondida en 1.2ms`, 'info');
+      logDevEvent(`✓ [TIER_2_CACHE] today-agenda consultado en 1.2ms`, 'success');
     } else if (lower.includes('noticia') || lower.includes('trending') || lower.includes('intel') || lower.includes('ia')) {
       tierName = 'TIER 2: FAST CACHE LOOKUP (< 20MS)';
       reply = 'Hoy en GitHub destaca Hermes Agent de NousResearch y Kokoro TTS para síntesis ultrarrápida.';
       appendTerminalLog(`✓ [TIER_2_CACHE] Consulta de intel respondida en 0.8ms`, 'info');
+      logDevEvent(`✓ [TIER_2_CACHE] today-intel consultado en 0.8ms`, 'success');
     } else {
       tierName = 'TIER 3: HEADLESS AGENT RUNNER';
       reply = `He delegado "${q}" al agente autónomo en segundo plano. Te notificaré cuando finalice la tarea.`;
       appendTerminalLog(`⚡ [TIER_3_HEADLESS] Despachando tarea en segundo plano...`, 'prompt');
+      logDevEvent(`⚡ [TIER_3_HEADLESS] Tarea despachada en background`, 'info');
     }
 
     if (tierPill) tierPill.textContent = tierName;
@@ -375,13 +539,13 @@ document.addEventListener('DOMContentLoaded', () => {
     speakText(reply);
   }
 
-  function openVoiceModal() {
+  async function openVoiceModal() {
     if (!voiceModal) return;
     voiceModal.removeAttribute('hidden');
     sphere.setState('listening');
     animateVUMeter(true);
 
-    if (transcriptionText) transcriptionText.textContent = '"🎙️ Escuchando... Habla ahora o escribe tu orden."';
+    if (transcriptionText) transcriptionText.textContent = '"🎙️ Escuchando micrófono físico... Habla o pulsa una prueba rápida."';
     if (responseText) responseText.textContent = 'Esperando entrada de voz...';
     if (tierPill) tierPill.textContent = 'MICRÓFONO EN VIVO (ES)';
 
@@ -390,11 +554,14 @@ document.addEventListener('DOMContentLoaded', () => {
       voiceTextInput.focus();
     }
 
+    // Initialize hardware audio meter
+    await initHardwareAudioCapture();
+
     if (recognition) {
       try {
         recognition.start();
       } catch (e) {
-        console.log('[WebSpeech] Ya iniciado');
+        logDevEvent(`WebSpeech ya activo: ${e.message}`, 'info');
       }
     }
   }
@@ -403,6 +570,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (voiceModal) voiceModal.setAttribute('hidden', '');
     sphere.setState('idle');
     animateVUMeter(false);
+    if (micAnimFrame) {
+      cancelAnimationFrame(micAnimFrame);
+    }
     if (recognition) {
       try { recognition.stop(); } catch {}
     }

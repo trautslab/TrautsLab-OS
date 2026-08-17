@@ -425,19 +425,46 @@ Antes de buscar en todos los archivos, lee siempre el `index.md` del nivel en el
       <div class="wire-status-time" id="wire-status-time">SYNC 100%</div>
     </footer>
 
-    <!-- VOICE MODAL DIALOG / OVERLAY -->
+    <!-- VOICE MODAL DIALOG / OVERLAY CON DEVELOPER MODE & LIVE AUDIO INSPECTOR -->
     <div id="voice-modal" class="hud-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="voice-modal-title" hidden>
       <div class="hud-voice-modal-box">
         <button id="btn-close-voice" class="modal-close-btn" aria-label="Cerrar modal">&times;</button>
+        
+        <!-- Dev Mode Header Switch -->
+        <div class="modal-dev-bar">
+          <button type="button" id="btn-toggle-devmode" class="devmode-toggle-btn" title="Alternar modo desarrollador y telemetría de audio">
+            <span class="dev-badge">DEV MODE</span>
+            <span id="devmode-status-text">OFF</span>
+          </button>
+          <span class="audio-sample-rate" id="audio-sample-rate">48000 Hz</span>
+        </div>
+
         <div class="modal-pulse-sphere" id="modal-voice-orb">
           <div class="pulse-ring"></div>
           <span class="modal-mic-icon">🎙️</span>
         </div>
+
         <h3 id="voice-modal-title" class="modal-title">AUDIO LINK ACTIVE</h3>
-        <p class="modal-transcription" id="voice-transcription-text">"¿Qué es lo más importante en mi agenda hoy?"</p>
+        <p class="modal-transcription" id="voice-transcription-text">"🎙️ Escuchando... Habla ahora o usa los botones de prueba."</p>
         
+        <!-- Live Real-Time Hardware Mic Level Meter -->
+        <div class="mic-hardware-inspector">
+          <div class="mic-stat-row">
+            <span class="mic-stat-label">🎤 Entrada Física:</span>
+            <span id="mic-device-name" class="mic-stat-val">Buscando micrófono...</span>
+            <span id="mic-db-value" class="mic-db-badge">-inf dB</span>
+          </div>
+          <div class="mic-level-track">
+            <div id="mic-live-level-bar" class="mic-level-fill"></div>
+          </div>
+          <div id="mic-diag-status" class="mic-diag-status">
+            <span class="pulse-indicator idle" id="mic-pulse-indicator"></span>
+            <span id="mic-status-msg">Iniciando captura de audio del navegador...</span>
+          </div>
+        </div>
+
         <div class="tier-routing-pill tier-2" id="tier-pill">
-          <span>TIER 2: FAST CACHE LOOKUP (< 20MS)</span>
+          <span>TIER 1: ACTION / TIER 2: FAST CACHE / TIER 3: AGENT</span>
         </div>
 
         <div class="modal-response-card" id="voice-response-card">
@@ -449,11 +476,30 @@ Antes de buscar en todos los archivos, lee siempre el `index.md` del nivel en el
           </p>
         </div>
 
+        <!-- Quick Test Chips -->
+        <div class="quick-chips-bar">
+          <span class="chips-title">Pruebas Rápidas:</span>
+          <button type="button" class="quick-chip" data-query="ayúdame agendando la cena de hoy a las 8pm">🍽️ "Agenda cena hoy 8pm"</button>
+          <button type="button" class="quick-chip" data-query="¿qué es lo más importante en mi agenda hoy?">📅 "¿Qué hay hoy?"</button>
+          <button type="button" class="quick-chip" data-query="ejecuta el escaneo de inteligencia matutino">⚡ "Morning Intel"</button>
+        </div>
+
         <!-- Real Interactive Input Form -->
         <form id="voice-input-form" class="voice-form-inline">
           <input type="text" id="voice-text-input" class="voice-text-field" placeholder="Habla o escribe aquí (ej. 'agenda la cena de hoy a las 8pm')..." autocomplete="off" />
           <button type="submit" id="btn-submit-voice-form" class="voice-send-btn">Enviar</button>
         </form>
+
+        <!-- Developer Telemetry Stream (Toggleable) -->
+        <div id="voice-dev-inspector" class="voice-dev-inspector" hidden>
+          <div class="dev-stream-header">
+            <span>📡 TELEMETRY STREAM & EVENT LOG</span>
+            <button type="button" id="btn-clear-dev-log" class="dev-clear-btn">Limpiar</button>
+          </div>
+          <div id="voice-event-log" class="voice-event-log">
+            <div class="dev-log-entry info">[00:00] Initializing WebAudio Context & SpeechEngine...</div>
+          </div>
+        </div>
 
         <div class="modal-footer-tip">
           🎙️ Micrófono en vivo • Presiona <kbd>Escape</kbd> para cerrar
