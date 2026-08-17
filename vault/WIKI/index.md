@@ -8,7 +8,8 @@
 
 ## 🧭 Dominios de Conocimiento
 
-### 📂 [AI-SYSTEMS](./ai-systems/index.md) (1 notas)
+### 📂 [AI-SYSTEMS](./ai-systems/index.md) (2 notas)
+- [Reporte de Inteligencia Matutino: 2026-08-17](./ai-systems/2026-08-17-morning-intel.md) — *Tendencias destacadas de IA: NousResearch/hermes-agent lidera GitHub y en Hacker...*
 - [Arquitectura de Voz Local en TrautsLab OS](./ai-systems/local-voice-pipeline.md) — *Detalle técnico de la integración de Faster-Whisper para transcripción y Kokoro ...*
 
 ### 📂 [PRODUCTIVITY](./productivity/index.md) (1 notas)

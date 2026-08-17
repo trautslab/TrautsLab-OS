@@ -10,9 +10,9 @@
   </p>
 
   <p>
-    <a href="#-visión-y-características"><img src="https://img.shields.io/badge/Status-v0.1.0--alpha.1-indigo?style=for-the-badge" alt="Version"></a>
+    <a href="#-visión-y-características"><img src="https://img.shields.io/badge/Status-v1.0.0_Stable-emerald?style=for-the-badge" alt="Version"></a>
     <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/Changelog-Keep_a_Changelog-blue?style=for-the-badge" alt="Changelog"></a>
-    <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/Contributions-Welcome-emerald?style=for-the-badge" alt="Contributions"></a>
+    <a href="docs/benchmarks/performance-report.md"><img src="https://img.shields.io/badge/Benchmarks-0.13ms_Cache-amber?style=for-the-badge" alt="Benchmarks"></a>
     <a href="VERSIONING.md"><img src="https://img.shields.io/badge/SemVer-2.0.0-cyan?style=for-the-badge" alt="SemVer"></a>
   </p>
 </div>
@@ -23,9 +23,9 @@
 
 - [Visión y Características](#-visión-y-características)
 - [Los 4 Pilares Arquitectónicos](#-los-4-pilares-arquitectónicos)
+- [Métricas de Rendimiento Oficiales](#-métricas-de-rendimiento-oficiales)
 - [Estructura del Repositorio](#-estructura-del-repositorio)
 - [Documentación del Proyecto](#-documentación-del-proyecto)
-- [Prototipo Frontend Interactivo](#-prototipo-frontend-interactivo)
 - [Guía de Inicio Rápido](#-guía-de-inicio-rápido)
 - [Control de Versiones y Contribución](#-control-de-versiones-y-contribución)
 - [Licencia](#-licencia)

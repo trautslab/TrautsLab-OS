@@ -1,21 +1,22 @@
 {
   "schema_version": "1.0",
   "category": "daily_intel",
-  "generated_at": "2026-08-17T08:00:00Z",
-  "expires_at": "2026-08-18T08:00:00Z",
-  "quick_summary_tts": "La noticia principal de IA hoy es que Claude implementó marcas de agua invisibles globales, y DeepSeek superó ciento diez mil estrellas en GitHub.",
-  "headlines": [
-    {
-      "source": "GitHub Trending",
-      "title": "DeepSeek-V3 & Open-R1 superan 110k estrellas",
-      "url": "https://github.com/deepseek-ai/DeepSeek-V3",
-      "stars_gained": "+14.2k esta semana"
+  "generated_at": "2026-08-17T17:49:44.456Z",
+  "expires_at": "2026-08-18T17:49:44.456Z",
+  "quick_summary_tts": "La noticia principal hoy es que NousResearch/hermes-agent lidera las tendencias en GitHub, y en Hacker News destaca A Preview of DuckDB v2.0.",
+  "data": {
+    "topRepo": {
+      "name": "NousResearch/hermes-agent",
+      "url": "https://github.com/NousResearch/hermes-agent",
+      "description": "The agent that grows with you",
+      "stars": "⭐ 231.9k stars"
     },
-    {
-      "source": "Hacker News",
-      "title": "Marcas de agua a nivel de modelo en Claude conformes con EU AI Act",
-      "url": "https://news.ycombinator.com/item?id=41209384",
-      "points": 482
-    }
-  ]
+    "topHn": {
+      "title": "A Preview of DuckDB v2.0",
+      "url": "https://duckdb.org/2026/08/17/duckdb-20-highlights",
+      "score": 290
+    },
+    "totalRepos": 4,
+    "totalStories": 3
+  }
 }

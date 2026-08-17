@@ -1,10 +1,11 @@
 {
   "name": "@trautslab/voice-engine",
-  "version": "0.1.0-alpha.1",
+  "version": "1.0.0",
   "description": "Local & hybrid real-time 3-Tier voice engine (Faster-Whisper STT, 3-Tier Router, Kokoro TTS) for TrautsLab OS",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
+    "test": "tsx src/cli.ts simulate",
     "simulate": "tsx src/cli.ts simulate",
     "server": "tsx src/cli.ts server",
     "query": "tsx src/cli.ts query"

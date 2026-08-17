@@ -1,29 +1,39 @@
 {
   "schema_version": "1.0",
   "category": "daily_agenda",
-  "generated_at": "2026-08-17T07:30:00Z",
+  "generated_at": "2026-08-17T16:23:38.962Z",
   "expires_at": "2026-08-17T23:59:59Z",
-  "quick_summary_tts": "Tu compromiso principal hoy es la Revisión de Arquitectura TrautsLab OS a las once de la mañana, seguido por la grabación del demo a las tres y media de la tarde.",
-  "events_count": 3,
-  "events": [
-    {
-      "time": "09:00 AM",
-      "title": "Morning Intel Scan & Sync",
-      "status": "completed",
-      "priority": "normal"
-    },
-    {
+  "quick_summary_tts": "Tu compromiso principal hoy es Revisión de Arquitectura TrautsLab OS a las 11:00 AM, seguido por la grabación del demo a las tres y media de la tarde.",
+  "data": {
+    "eventsCount": 3,
+    "mainCommitment": {
       "time": "11:00 AM",
       "title": "Revisión de Arquitectura TrautsLab OS",
-      "status": "pending",
+      "location": "Sala de Reuniones",
       "priority": "high",
-      "location": "Sala de Reuniones"
+      "status": "pending"
     },
-    {
-      "time": "03:30 PM",
-      "title": "Grabación Demo: Asistente de Voz y Skills",
-      "status": "pending",
-      "priority": "high"
-    }
-  ]
+    "events": [
+      {
+        "time": "09:00 AM",
+        "title": "Morning Intel Scan & Sync",
+        "priority": "normal",
+        "status": "completed"
+      },
+      {
+        "time": "11:00 AM",
+        "title": "Revisión de Arquitectura TrautsLab OS",
+        "location": "Sala de Reuniones",
+        "priority": "high",
+        "status": "pending"
+      },
+      {
+        "time": "03:30 PM",
+        "title": "Grabación Demo: Asistente de Voz y Skills",
+        "location": "Estudio Local",
+        "priority": "high",
+        "status": "pending"
+      }
+    ]
+  }
 }

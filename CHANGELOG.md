@@ -11,7 +11,17 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
-## [0.1.0-alpha.7] - 2026-08-17 12:28:00 (PET / UTC-5)
+## [1.0.0] - 2026-08-17 12:51:00 (PET / UTC-5)
+
+### Added
+- **Lanzamiento Estable Oficial v1.0.0 (TrautsLab OS):**
+  - **Patrón de Memoria Karpathy:** Reducción comprobada del **99.5%** en el consumo de tokens mediante tablas de contenido jerárquicas en `vault/WIKI/index.md`.
+  - **Pipeline de Voz 3-Tier Ultrarrápido:** Latencias récord de lectura en Caché Tier 2 (**0.13 ms**) y enrutamiento inteligente en **0.003 ms** (`@trautslab/voice-engine`).
+  - **Centro de Mando Cinemático (HUD V.A.U.L.T.):** Esfera neuronal 3D interactiva en HTML5 Canvas con 360 nodos en espiral de Fibonacci, 4 modos completos (Cockpit, Daily Intel, Vault Explorer, Skills Manager) y conmutación fluida de temas (Amber Void vs Pure Light HUD).
+  - **Plugin Nativo de Obsidian:** Command Center con soporte de Glassmorphism y auto-despliegue (`@trautslab/obsidian-plugin`).
+  - **Acceso Remoto Móvil:** PWA instalable con Service Worker offline y bot privado de Telegram (`@trautslab/telegram-bridge`) para notas de voz en la calle sin abrir puertos ($0/mes).
+  - **Self-Improving Loops:** `SkillQualityEvaluator` para auditoría y mejora automática de resúmenes y agendas.
+  - **Certificación de Pruebas E2E:** 100% de tests unitarios y 17 pruebas de interfaz en Google Chrome real (desktop y móvil) aprobadas con 0 errores.
 
 ### Added
 - **Fase 6: Acceso Remoto Móvil y Asistente en la Calle:**

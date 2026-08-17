@@ -1,6 +1,6 @@
 {
   "name": "@trautslab/skills-engine",
-  "version": "0.1.0-alpha.1",
+  "version": "1.0.0",
   "description": "Deterministic skills runner and cron automation engine for TrautsLab OS",
   "main": "dist/index.js",
   "scripts": {

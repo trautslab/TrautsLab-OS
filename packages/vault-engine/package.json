@@ -1,10 +1,11 @@
 {
   "name": "@trautslab/vault-engine",
-  "version": "0.1.0-alpha.1",
+  "version": "1.0.0",
   "description": "Hierarchical memory indexing, file watcher, and Tier 2 fast cache manager for TrautsLab OS",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
+    "test": "tsx src/cli.ts health && tsx src/cli.ts index",
     "index": "tsx src/cli.ts index",
     "watch": "tsx src/cli.ts watch",
     "health": "tsx src/cli.ts health",

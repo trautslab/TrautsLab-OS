@@ -1,6 +1,6 @@
 {
   "name": "@trautslab/telegram-bridge",
-  "version": "0.1.0-alpha.1",
+  "version": "1.0.0",
   "description": "Private Telegram Bot Assistant & Voice Bridge for TrautsLab OS",
   "main": "dist/bot.js",
   "types": "dist/bot.d.ts",
