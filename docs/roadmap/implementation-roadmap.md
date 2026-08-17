@@ -112,15 +112,20 @@ gantt
 
 ---
 
-### 🟡 FASE 5: Plugin de Obsidian (Centro de Mando Visual)
-**Objetivo:** Integrar el dashboard interactivo dentro de Obsidian como plugin nativo.
+> **Documento:** `docs/roadmap/implementation-roadmap.md`  
+> **Proyecto:** TrautsLab OS  
+> **Estado:** Fase 5 Completada  
+> **Fecha y Hora:** 2026-08-17 11:05:00 (PET / UTC-5 - Hora Perú)  
 
-1. **Paso 5.1 — Scaffolding del Plugin:**
-   - Configurar proyecto de plugin Obsidian en TypeScript con soporte de desarrollo rápido (*Hot Reload*).
-2. **Paso 5.2 — Migración del Dashboard UI:**
-   - Portar la interfaz creada en `frontend/` (Glassmorphism, modo alto contraste, widgets en tiempo real) a una vista personalizada (*Custom View*) en Obsidian.
-3. **Paso 5.3 — Conexión Bidireccional:**
-   - Conectar los botones de la UI con el motor de skills, el log de ejecución en tiempo real y el Voice Orb.
+---
+
+### 🟡 FASE 5: Plugin de Obsidian (*COMPLETADA — v0.1.0-alpha.5*)
+**Objetivo:** Integrar el centro de comando visual nativamente dentro de Obsidian como plugin con soporte de Hot Reload.
+
+- [x] **Paso 5.1 — Scaffolding del Plugin:** Paquete `@trautslab/obsidian-plugin` configurado con TypeScript, `esbuild` y `manifest.json`.
+- [x] **Paso 5.2 — Lifecycle, Comandos y Ajustes:** `TrautsLabPlugin` con registro de Ribbon Icon, pestaña de ajustes (`TrautsLabSettingTab`), comandos de paleta y estado en la barra inferior.
+- [x] **Paso 5.3 — Custom View Glassmorphic & Puente de Voz:** `TrautsLabView` con interfaz de widgets interactivos, disparadores de skills y conexión HTTP con el motor de voz (`http://localhost:3030/api/voice/query`).
+- [x] **Paso 5.4 — Pipeline de Build y Despliegue:** Script de compilación y despliegue automático hacia `vault/.obsidian/plugins/trautslab-command-center/`.
 
 ---
 

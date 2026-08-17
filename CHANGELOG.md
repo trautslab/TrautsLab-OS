@@ -16,7 +16,16 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
-## [0.1.0-alpha.4] - 2026-08-17 10:57:30 (PET / UTC-5)
+## [0.1.0-alpha.5] - 2026-08-17 11:05:00 (PET / UTC-5)
+
+### Added
+- **Fase 5: Plugin de Obsidian (Centro de Mando Visual Integrado):**
+  - Implementación del paquete `@trautslab/obsidian-plugin` con:
+    - `TrautsLabPlugin`: Registro de Ribbon Icon (`layout-dashboard`), comandos en la paleta de Obsidian y monitor de estado del motor en la barra de estado.
+    - `TrautsLabView`: Vista personalizada (`ItemView`) con estética Glassmorphism, paneles (*Overview, Daily Intel, Skills, Memory/Vault*) y modal de voz interactivo.
+    - `TrautsLabSettingTab`: Pestaña de configuración dentro de Obsidian para ajustar la URL del servidor de voz, voz de Kokoro TTS y temporizadores de actualización.
+    - `styles.css`: Estilos adaptados a las variables nativas de tema de Obsidian (modo oscuro y alto contraste).
+    - Script de despliegue automático hacia `vault/.obsidian/plugins/trautslab-command-center/`.
 
 ### Added
 - **Fase 4: Pipeline de Voz Local e Híbrido (3-Tier Engine):**
