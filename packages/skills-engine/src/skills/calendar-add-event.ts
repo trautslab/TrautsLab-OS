@@ -19,64 +19,81 @@ export class CalendarAddEventSkill implements Skill {
 
   async execute(ctx: SkillContext): Promise<SkillResult> {
     const start = Date.now();
-    const vaultRoot = ctx.vaultRoot || path.resolve(process.cwd(), 'vault');
     const query = (ctx.args?.eventText as string || ctx.args?.query as string || 'Cena de hoy 8:00 PM').trim();
 
     // 1. Extract Event Title and Time
     const parsed = this.extractEventDetails(query);
     const todayStr = (ctx.timestamp || new Date()).toISOString().split('T')[0];
 
-    const outputDir = path.join(vaultRoot, 'OUTPUT');
-    const agendaMdPath = path.join(outputDir, `daily-agenda-${todayStr}.md`);
+    // List all candidate vault locations
+    const candidateVaults = [
+      '/Users/jlorenzor/Documents/Obsidian Vault',
+      path.resolve(process.cwd(), 'vault'),
+      ctx.vaultRoot
+    ].filter(Boolean);
 
-    await fs.mkdir(outputDir, { recursive: true });
+    const uniqueVaults = Array.from(new Set(candidateVaults));
+    const createdArtifacts: string[] = [];
 
-    // 2. Read or initialize daily agenda markdown
-    let currentMd = '';
-    try {
-      currentMd = await fs.readFile(agendaMdPath, 'utf-8');
-    } catch {
-      currentMd = `# Agenda Diaria y Cronograma — ${todayStr}\n\n| Hora | Compromiso / Evento | Estado |\n| :--- | :--- | :--- |\n`;
+    for (const vaultPath of uniqueVaults) {
+      try {
+        const outputDir = path.join(vaultPath, 'OUTPUT');
+        await fs.mkdir(outputDir, { recursive: true });
+        const agendaMdPath = path.join(outputDir, `daily-agenda-${todayStr}.md`);
+
+        // 2. Read or initialize daily agenda markdown
+        let currentMd = '';
+        try {
+          currentMd = await fs.readFile(agendaMdPath, 'utf-8');
+        } catch {
+          currentMd = `# Agenda Diaria y Cronograma — ${todayStr}\n\n| Hora | Compromiso / Evento | Estado |\n| :--- | :--- | :--- |\n`;
+        }
+
+        // Append event row
+        const newRow = `| \`${parsed.time}\` | **${parsed.title}** | 🟡 Programado |\n`;
+        currentMd += newRow;
+        await fs.writeFile(agendaMdPath, currentMd, 'utf-8');
+        createdArtifacts.push(agendaMdPath);
+
+        // 3. Update Tier 2 Cache (OUTPUT/cache/today-agenda.json)
+        const cacheMgr = new Tier2CacheManager(vaultPath);
+        await cacheMgr.ensureCacheDir();
+
+        const existingPayload = await cacheMgr.getCache<any>('today-agenda');
+        const existingEvents = existingPayload?.data?.events || [];
+
+        const updatedEvents = [...existingEvents, {
+          time: parsed.time,
+          title: parsed.title,
+          status: 'scheduled'
+        }];
+
+        const quickSummary = `He agendado '${parsed.title}' a las ${parsed.time}. Tienes ${updatedEvents.length} eventos programados para hoy.`;
+
+        await cacheMgr.setCache('today-agenda', {
+          schema_version: '1.0',
+          category: 'daily_agenda',
+          generated_at: new Date().toISOString(),
+          expires_at: `${todayStr}T23:59:59Z`,
+          quick_summary_tts: quickSummary,
+          data: {
+            eventsCount: updatedEvents.length,
+            events: updatedEvents
+          }
+        });
+      } catch (err) {
+        console.warn(`[CalendarAddEventSkill] Warning writing to ${vaultPath}:`, err);
+      }
     }
 
-    // Append event row
-    const newRow = `| **${parsed.time}** | ${parsed.title} | 🟡 Programado |\n`;
-    currentMd += newRow;
-    await fs.writeFile(agendaMdPath, currentMd, 'utf-8');
-
-    // 3. Update Tier 2 Cache (OUTPUT/cache/today-agenda.json)
-    const cacheMgr = new Tier2CacheManager(vaultRoot);
-    await cacheMgr.ensureCacheDir();
-
-    const existingPayload = await cacheMgr.getCache<any>('today-agenda');
-    const existingEvents = existingPayload?.data?.events || [];
-
-    const updatedEvents = [...existingEvents, {
-      time: parsed.time,
-      title: parsed.title,
-      status: 'scheduled'
-    }];
-
-    const quickSummary = `He agendado '${parsed.title}' a las ${parsed.time}. Tienes ${updatedEvents.length} eventos programados para hoy.`;
-
-    await cacheMgr.setCache('today-agenda', {
-      schema_version: '1.0',
-      category: 'daily_agenda',
-      generated_at: new Date().toISOString(),
-      expires_at: `${todayStr}T23:59:59Z`,
-      quick_summary_tts: quickSummary,
-      data: {
-        eventsCount: updatedEvents.length,
-        events: updatedEvents
-      }
-    });
+    const quickSummary = `He agendado '${parsed.title}' a las ${parsed.time}.`;
 
     return {
       success: true,
       skillId: this.metadata.id,
       executionTimeMs: Date.now() - start,
       message: `✓ Evento añadido con éxito: "${parsed.title}" a las ${parsed.time}. ${quickSummary}`,
-      artifactsCreated: [agendaMdPath],
+      artifactsCreated: createdArtifacts,
       cacheKeysUpdated: ['today-agenda']
     };
   }
