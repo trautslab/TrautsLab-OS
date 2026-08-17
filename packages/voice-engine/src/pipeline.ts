@@ -4,6 +4,7 @@ import { FasterWhisperSTTEngine } from './stt-engine.js';
 import { KokoroTTSEngine } from './tts-engine.js';
 import { VoiceIntentRouter } from './router.js';
 import { LLMEngine } from './llm-engine.js';
+import { sanitizeTextForSpeech } from './speech-sanitizer.js';
 import { VoiceSessionInput, VoiceSessionResponse } from './types.js';
 
 export interface VoicePipelineConfig {
@@ -108,12 +109,15 @@ export class VoicePipeline {
         const llmReply = await this.llm.generateResponse(transcription);
         actionMs = Date.now() - actionStart;
         responsePlainText = llmReply;
-        responsePhoneticTts = llmReply;
+        responsePhoneticTts = sanitizeTextForSpeech(llmReply);
         break;
       }
     }
 
-    // 3. Audio Synthesis with Kokoro TTS
+    // 3. Ensure Phonetic TTS text is completely clean of Markdown tags
+    responsePhoneticTts = sanitizeTextForSpeech(responsePhoneticTts);
+
+    // Audio Synthesis with Kokoro TTS
     const ttsStart = Date.now();
     const ttsResult = await this.tts.synthesize(responsePhoneticTts);
     const ttsMs = Date.now() - ttsStart;

@@ -437,10 +437,34 @@ document.addEventListener('DOMContentLoaded', () => {
     logDevEvent('Navegador sin soporte de SpeechRecognition nativo. Usando fallback por texto y servidor.', 'warn');
   }
 
+  function cleanTextForSpeech(text) {
+    if (!text) return '';
+    return text
+      .replace(/```[\s\S]*?```/g, ' bloque de código omitido ')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/^#{1,6}\s+(.*)$/gm, '$1. ')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/__([^_]+)__/g, '$1')
+      .replace(/_([^_]+)_/g, '$1')
+      .replace(/[*#]/g, '')
+      .replace(/^\s*\d+\.\s+/gm, '')
+      .replace(/^\s*[-+•]\s+/gm, '')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/\|/g, ', ')
+      .replace(/^[=\-]{3,}$/gm, '')
+      .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+      .replace(/:\s*:/g, ':')
+      .replace(/,\s*,/g, ',')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   function speakText(text) {
+    const cleanSpeech = cleanTextForSpeech(text);
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(text);
+      const utter = new SpeechSynthesisUtterance(cleanSpeech);
       utter.lang = 'es-ES';
       utter.rate = 1.05;
       utter.pitch = 1.0;
