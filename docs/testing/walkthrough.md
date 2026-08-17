@@ -3,12 +3,20 @@
 > **Documento:** `docs/testing/walkthrough.md`  
 > **Proyecto:** TrautsLab OS  
 > **Versión:** `v0.1.0-alpha.5`  
-> **Fecha y Hora:** 2026-08-17 11:24:00 (PET / UTC-5 - Hora Perú)  
+> **Fecha y Hora:** 2026-08-17 11:27:00 (PET / UTC-5 - Hora Perú)  
 > **Entorno:** macOS (Apple Silicon), Node.js v26.7.0, Obsidian Desktop  
 
 ---
 
-## 📋 Resumen Ejecutivo de la Evaluación
+## 🎨 1. Demostración Visual de la Interfaz (Command Center UI)
+
+A continuación se presenta la interfaz visual del **Centro de Comando de TrautsLab OS** con estética *Glassmorphism*, modo oscuro de alto rendimiento, monitor de eficiencia de tokens, timeline de compromisos, agregador de noticias de IA en tiempo real y el **Voice Orb 3D**:
+
+![TrautsLab OS Command Center UI](../assets/dashboard-preview.jpg)
+
+---
+
+## 📋 2. Resumen Ejecutivo de la Evaluación
 
 Se ha ejecutado la batería completa de pruebas unitarias, de integración y rendimiento de extremo a extremo (*End-to-End*) para los 4 subsistemas principales de **TrautsLab OS**:
 1. **Motor de Memoria y Vault (`@trautslab/vault-engine`)**
@@ -20,9 +28,9 @@ Todos los módulos superaron las pruebas con **0 errores**, validando latencias 
 
 ---
 
-## 🧪 Resultados Detallados por Módulo
+## 🧪 3. Resultados Detallados por Módulo
 
-### 1. Motor de Memoria y Vault (`packages/vault-engine`)
+### 3.1. Motor de Memoria y Vault (`packages/vault-engine`)
 
 | Prueba | Comando | Resultado | Estado |
 | :--- | :--- | :--- | :--- |
@@ -31,17 +39,9 @@ Todos los módulos superaron las pruebas con **0 errores**, validando latencias 
 | **Lector Rápido Tier 2** | `npm run cache:tts today-agenda` | Resumen fonético extraído en < 5ms sin parsing de markdown | ✅ PASS |
 | **File Watcher Daemon** | `npm run watch` | Eventos `add/change` detectados con debounce de 500ms | ✅ PASS |
 
-```text
-[Salida de Health Check]:
-🩺 Evaluando salud del Vault y conformidad de Frontmatter...
-- Total de Archivos Markdown: 4
-- Archivos con Frontmatter Válido: 4
-- Estado General: ✅ Saludable
-```
-
 ---
 
-### 2. Motor de Skills y Automatizaciones (`packages/skills-engine`)
+### 3.2. Motor de Skills y Automatizaciones (`packages/skills-engine`)
 
 | Habilidad (Skill) | Tipo | Tiempo de Ejecución | Salida Generada | Estado |
 | :--- | :--- | :--- | :--- | :--- |
@@ -52,9 +52,7 @@ Todos los módulos superaron las pruebas con **0 errores**, validando latencias 
 
 ---
 
-### 3. Pipeline de Voz 3-Tier (`packages/voice-engine`)
-
-Se ejecutó la batería de simulación de consultas conversacionales en tiempo real evaluando la precisión del enrutador y las latencias de respuesta:
+### 3.3. Pipeline de Voz 3-Tier (`packages/voice-engine`)
 
 ```text
 ------------------------------------------------------------
@@ -68,7 +66,7 @@ Se ejecutó la batería de simulación de consultas conversacionales en tiempo r
 [Test 2/4 - Tier 2] Entrada: "¿Cuál es la noticia de IA más importante de hoy?"
   └─ Clasificación: TIER_2_CACHE &rarr; Target: today-intel
   └─ Latencia Total: 1 ms (Snapshot pre-cargado)
-  └─ Respuesta Fonética: "La noticia principal hoy es que NousResearch/hermes-agent lidera las tendencias en GitHub, y en Hacker News destaca Apple's App Tracking..."
+  └─ Respuesta Fonética: "La noticia principal hoy es que NousResearch/hermes-agent lidera las tendencias en GitHub..."
   └─ Estado: ✅ PASS
 
 ------------------------------------------------------------
@@ -88,7 +86,7 @@ Se ejecutó la batería de simulación de consultas conversacionales en tiempo r
 
 ---
 
-### 4. Plugin de Obsidian (`packages/obsidian-plugin`)
+### 3.4. Plugin de Obsidian (`packages/obsidian-plugin`)
 
 | Componente | Verificación | Estado |
 | :--- | :--- | :--- |
@@ -99,7 +97,7 @@ Se ejecutó la batería de simulación de consultas conversacionales en tiempo r
 
 ---
 
-## 📊 Matriz de Rendimiento & Ahorro de Tokens
+## 📊 4. Matriz de Rendimiento & Ahorro de Tokens
 
 | Métrica | Enfoque Tradicional (Brute-Force LLM) | TrautsLab OS (Patrón Karpathy + Tier 2 Cache) | Mejora / Ahorro |
 | :--- | :--- | :--- | :--- |
@@ -107,9 +105,3 @@ Se ejecutó la batería de simulación de consultas conversacionales en tiempo r
 | **Consumo de Tokens por Consulta** | ~8,000 – 15,000 tokens | **0 tokens** (Lectura directa de caché) | **100% de ahorro** |
 | **Costo por 500 consultas de voz/mes** | ~$4.50 – $12.00 USD | **$0.00 USD** | **Cero costo recurrente** |
 | **Navegación en Vault (1,000 notas)** | Escaneo ciego (~100k tokens) | 2 saltos por `index.md` (~450 tokens) | **>70% reducción de tokens** |
-
----
-
-## 🏁 Conclusión
-
-Los cuatro subsistemas de las **Fases 1 a 5** están completamente integrados, compilados, probados y verificados con éxito en tu entorno. El sistema está listo para proceder con la **Fase 6 (Acceso Remoto Móvil y Asistente en la Calle)**.
