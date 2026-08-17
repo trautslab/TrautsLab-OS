@@ -16,7 +16,20 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
-## [0.1.0-alpha.2] - 2026-08-17
+## [0.1.0-alpha.3] - 2026-08-17 10:53:30 (PET / UTC-5)
+
+### Added
+- **Fase 3: Motor de Habilidades (Skills) y Automatizaciones:**
+  - Implementación del paquete `@trautslab/skills-engine` con:
+    - `SkillRegistry`: Registro dinámico y ejecución controlada de procedimientos deterministas con métricas de tiempo de ejecución.
+    - `MorningIntelScanSkill`: Escaneo de tendencias en GitHub Trending y Hacker News con ingesta en `RAW/` y síntesis en `WIKI/` y caché Tier 2 (`today-intel.json`).
+    - `CalendarDailyBriefSkill`: Generación de cronograma diario, compromisos prioritarios y resumen fonético en `today-agenda.json`.
+    - `VaultSyncIndexerSkill`: Re-indexación automática de tablas de contenidos jerárquicas en el Vault.
+    - `SkillScheduler`: Planificador de tareas desatendidas con `node-cron`.
+    - `LaunchdGenerator`: Generador de archivo `com.trautslab.os.scheduler.plist` para ejecución permanente 24/7 en macOS.
+    - CLI unificada (`npm run run:skill <id>`, `npm run list`, `npm run cron`, `npm run generate-plist`).
+- **Estandarización de Documentación:**
+  - Inclusión obligatoria de marcas temporales con **Fecha y Hora Peruana (America/Lima / UTC-5)** en todos los documentos de ingeniería para trazabilidad cronológica intra-día.
 
 ### Added
 - **Fase 2: Motor de Memoria y Vault (Patrón Karpathy):**

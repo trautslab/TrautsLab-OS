@@ -76,16 +76,21 @@ gantt
 
 ---
 
-### 🟣 FASE 3: Motor de Habilidades (Skills) y Automatizaciones
+> **Documento:** `docs/roadmap/implementation-roadmap.md`  
+> **Proyecto:** TrautsLab OS  
+> **Estado:** Fase 3 Completada  
+> **Fecha y Hora:** 2026-08-17 10:53:30 (PET / UTC-5 - Hora Perú)  
+
+---
+
+### 🟣 FASE 3: Motor de Habilidades (Skills) y Automatizaciones (*COMPLETADA — v0.1.0-alpha.3*)
 **Objetivo:** Desarrollar las primeras rutinas deterministas que alimentan de información al sistema cada mañana.
 
-1. **Paso 3.1 — Framework Ejecutor de Skills:**
-   - Crear una interfaz estándar para registrar, ejecutar y loguear habilidades.
-2. **Paso 3.2 — Implementación de Habilidades Core:**
-   - **`morning-intel-scan`:** Scraper/Fetcher que consulta GitHub Trending (7d/30d) y Hacker News Top Stories, almacena los datos brutos en `RAW/` y genera el reporte sintetizado en `WIKI/` y `OUTPUT/`.
-   - **`calendar-daily-brief`:** Conector con Google Calendar / iCal que extrae los eventos del día y los formatea con sus prioridades.
-3. **Paso 3.3 — Planificador de Automatizaciones (Cron Daemon):**
-   - Configurar servicio desatendido (mediante daemon local `launchd` en macOS o `node-cron`) para ejecutar `morning-intel-scan` automáticamente a las 08:00 AM todos los días.
+- [x] **Paso 3.1 — Framework Ejecutor de Skills:** Paquete `@trautslab/skills-engine` con `SkillRegistry`, métricas de ejecución y tipado extensible.
+- [x] **Paso 3.2 — Skill `morning-intel-scan`:** Conectores con GitHub Search/Trending y Hacker News, generación de entregables en `RAW/` y `WIKI/`, y caché Tier 2 (`today-intel.json`).
+- [x] **Paso 3.3 — Skill `calendar-daily-brief`:** Formateo de cronogramas y prioridades con resumen fonético para Kokoro TTS (`today-agenda.json`).
+- [x] **Paso 3.4 — Skill `vault-sync-indexer`:** Reconstrucción bajo demanda de todas las tablas de contenidos e índices jerárquicos.
+- [x] **Paso 3.5 — Planificador de Automatizaciones (Cron Daemon):** Motor `node-cron` para ejecución desatendida y generador de `.plist` para `launchd` de macOS (`com.trautslab.os.scheduler.plist`).
 
 ---
 
