@@ -1,0 +1,10 @@
+{
+  "id": "trautslab-command-center",
+  "name": "TrautsLab OS — Command Center",
+  "version": "0.1.0-alpha.1",
+  "minAppVersion": "1.0.0",
+  "description": "Visual Command Center, Local 3-Tier Voice Assistant, and Automated Intel Dashboard for TrautsLab OS.",
+  "author": "Jorge Lorenzo (jlorenzor)",
+  "authorUrl": "https://github.com/trautslab",
+  "isDesktopOnly": false
+}

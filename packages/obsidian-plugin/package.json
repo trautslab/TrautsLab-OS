@@ -1,0 +1,26 @@
+{
+  "name": "@trautslab/obsidian-plugin",
+  "version": "0.1.0-alpha.1",
+  "description": "Obsidian Command Center plugin for TrautsLab OS",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs production"
+  },
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "trautslab",
+    "dashboard",
+    "voice-assistant"
+  ],
+  "author": "Jorge Lorenzo (jlorenzor)",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "esbuild": "^0.25.0",
+    "obsidian": "latest",
+    "tslib": "^2.8.1",
+    "typescript": "^5.7.3"
+  }
+}
