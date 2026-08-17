@@ -3,7 +3,7 @@
 > **Documento:** `docs/inception/0-main-idea.md`  
 > **Proyecto:** TrautsLab OS *(Nombres alternativos considerados: Trauts Command Center, Trauts Core, Nexus OS)*  
 > **Estado:** Fase de Incepción / Ideación Inicial  
-> **Fecha:** 2026-08-17  
+> **Fecha y Hora:** 2026-08-17 09:37:44 (PET / UTC-5 - Hora Perú)  
 
 ---
 

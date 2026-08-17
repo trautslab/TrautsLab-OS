@@ -2,8 +2,8 @@
 
 > **Documento:** `docs/architecture/diagrams.md`  
 > **Proyecto:** TrautsLab OS  
-> **Versión:** 1.0.0-alpha.1  
-> **Fecha:** 2026-08-17  
+> **Versión:** 1.0.0-alpha.2  
+> **Fecha y Hora:** 2026-08-17 10:42:38 (PET / UTC-5 - Hora Perú)  
 
 Este documento reúne las representaciones formales del sistema en **Mermaid** estructuradas en cuatro vistas arquitectónicas:
 1. Diagrama de Arquitectura Global

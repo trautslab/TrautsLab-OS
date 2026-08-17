@@ -56,5 +56,6 @@
 
 ## 3. Estándares de Documentación y Diagramación
 
+* **Marcas Temporales (Fecha y Hora Peruana):** Todo documento dentro de `docs/` debe incluir en su encabezado tanto la **Fecha como la Hora Peruana exacta (America/Lima / UTC-5)** (ej. `2026-08-17 10:48:00 (PET / UTC-5 - Hora Perú)`), permitiendo una trazabilidad cronológica precisa de documentos creados en un mismo día.
 * **Diagramas Mermaid:** Todos los diagramas de arquitectura, componentes, secuencia y casos de uso deben estar embebidos en bloques de código markdown con el identificador `mermaid`.
 * **Especificaciones de Requisitos:** Toda nueva funcionalidad de envergadura debe documentarse siguiendo la plantilla de Casos de Uso (`docs/requirements/use-cases.md`).
