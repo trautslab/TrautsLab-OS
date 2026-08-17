@@ -8,6 +8,15 @@ import { NeuralSphereEngine } from './sphere-canvas.js';
 document.addEventListener('DOMContentLoaded', () => {
   console.log("⚡ [TrautsLab OS] Inicializando HUD Command Center...");
 
+  // Register PWA Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('✓ [TrautsLab PWA] Service Worker registrado:', reg.scope))
+        .catch(err => console.warn('! [TrautsLab PWA] Service Worker falló:', err));
+    });
+  }
+
   // 1. Initialize 3D Neural Sphere Constellation
   const sphere = new NeuralSphereEngine('neural-sphere-canvas');
 

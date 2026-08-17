@@ -1,6 +1,7 @@
 /* ==========================================================================
    T.R.A.U.T.S.L.A.B. — Cinematic HUD & Logic Terminal Stylesheet
    Inspired by V.A.U.L.T. (Voice-Activated Unified Logic Terminal)
+   With Mobile PWA Responsiveness & Full Theme Architecture
    ========================================================================== */
 
 :root {
@@ -82,6 +83,7 @@ body.high-contrast {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html, body {
@@ -1245,3 +1247,89 @@ html, body {
 .term-cursor { animation: blink 1s infinite; color: var(--amber-primary); }
 
 @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+
+/* ==========================================================================
+   MOBILE PWA RESPONSIVE BREAKPOINTS (@media max-width: 900px)
+   ========================================================================== */
+@media (max-width: 900px) {
+  html, body {
+    overflow-y: auto;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .hud-container {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    padding: 10px;
+    gap: 12px;
+  }
+
+  .hud-topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .hud-brand {
+    text-align: center;
+  }
+
+  .hud-mode-selector {
+    overflow-x: auto;
+    justify-content: space-between;
+    padding: 3px;
+  }
+
+  .hud-mode-btn {
+    padding: 6px 10px;
+    font-size: 0.68rem;
+    white-space: nowrap;
+  }
+
+  .hud-node-status {
+    display: none; /* Hide node status text on mobile to save vertical space */
+  }
+
+  .hud-header-tools {
+    justify-content: space-between;
+  }
+
+  .hud-main-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: auto;
+  }
+
+  .hud-viewport {
+    height: auto;
+  }
+
+  .sphere-canvas-wrap {
+    height: 280px;
+  }
+
+  .intel-full-deck, .vault-full-deck {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+  }
+
+  .hud-terminal-drawer {
+    left: 8px;
+    right: 8px;
+    bottom: 44px;
+    height: 260px;
+  }
+
+  .hud-bottom-bar {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-void);
+    z-index: 50;
+    padding: 8px 0;
+  }
+}

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <rect width="192" height="192" rx="36" fill="#050608"/>
+  <circle cx="96" cy="96" r="70" fill="none" stroke="#f59e0b" stroke-width="3" opacity="0.3"/>
+  <circle cx="96" cy="96" r="50" fill="none" stroke="#f59e0b" stroke-width="2" opacity="0.6"/>
+  <!-- Central Glowing Orb -->
+  <circle cx="96" cy="96" r="28" fill="url(#amberGlow)"/>
+  <!-- Lightning Glyph -->
+  <path d="M98 64 L80 94 L94 94 L90 128 L114 96 L100 96 Z" fill="#ffffff"/>
+  <defs>
+    <radialGradient id="amberGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="60%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309" stop-opacity="0.8"/>
+    </radialGradient>
+  </defs>
+</svg>
