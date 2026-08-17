@@ -93,6 +93,7 @@ TrautsLab-OS/
 
 ## 📚 Documentación del Proyecto
 
+* 🗺️ **[implementation-roadmap.md](docs/roadmap/implementation-roadmap.md):** Secuencia de implementación técnica por fases (Gantt, hitos y pasos de ingeniería).
 * 📄 **[0-main-idea.md](docs/inception/0-main-idea.md):** Concepto fundacional, comparación vs soluciones tradicionales y arquitectura de 4 pilares.
 * 📱 **[1-mobile-remote-access-and-costs.md](docs/inception/1-mobile-remote-access-and-costs.md):** Guía de uso en smartphone fuera de casa (PWA, Telegram bot, túneles Tailscale/Cloudflare) y estimación de costos (~$4 - $8/mes).
 * 📐 **[diagrams.md](docs/architecture/diagrams.md):** Diagramas Mermaid completos (Arquitectura, Componentes, Secuencia 3-Tier y Actividades).
