@@ -142,4 +142,4 @@ Este proyecto sigue las pautas de:
 
 ## 👤 Autor
 
-* **Jorge Lorenzo** ([@jlorenzor](https://github.com/jlorenzor))
+* **Jhonny Lorenzo** ([@jlorenzor](https://github.com/jlorenzor))

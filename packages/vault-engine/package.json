@@ -18,7 +18,7 @@
     "memory",
     "karpathy-pattern"
   ],
-  "author": "Jorge Lorenzo (jlorenzor)",
+  "author": "Jhonny Lorenzo (jlorenzor)",
   "license": "MIT",
   "dependencies": {
     "chokidar": "^4.0.3",

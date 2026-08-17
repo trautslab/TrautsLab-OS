@@ -15,7 +15,7 @@
     "dashboard",
     "voice-assistant"
   ],
-  "author": "Jorge Lorenzo (jlorenzor)",
+  "author": "Jhonny Lorenzo (jlorenzor)",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^22.13.4",

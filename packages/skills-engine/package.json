@@ -17,7 +17,7 @@
     "cron",
     "morning-intel"
   ],
-  "author": "Jorge Lorenzo (jlorenzor)",
+  "author": "Jhonny Lorenzo (jlorenzor)",
   "license": "MIT",
   "dependencies": {
     "@trautslab/vault-engine": "file:../vault-engine",

@@ -18,7 +18,7 @@
     "kokoro",
     "3-tier-router"
   ],
-  "author": "Jorge Lorenzo (jlorenzor)",
+  "author": "Jhonny Lorenzo (jlorenzor)",
   "license": "MIT",
   "dependencies": {
     "@trautslab/skills-engine": "file:../skills-engine",
