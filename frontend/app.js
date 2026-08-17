@@ -437,9 +437,24 @@ document.addEventListener('DOMContentLoaded', () => {
       utter.onend = () => {
         sphere.setState('idle');
         animateVUMeter(false);
-        logDevEvent('Locución finalizada.', 'info');
+        logDevEvent('Locución finalizada. Listo para siguiente interacción.', 'info');
+        
+        // Auto-refocus input and restart speech recognition for seamless multi-turn dialog
+        if (voiceTextInput) {
+          voiceTextInput.value = '';
+          voiceTextInput.focus();
+        }
+        if (recognition && voiceModal && !voiceModal.hasAttribute('hidden')) {
+          try { recognition.start(); } catch {}
+        }
       };
       window.speechSynthesis.speak(utter);
+    } else {
+      // Fallback if no speech synthesis
+      if (voiceTextInput) {
+        voiceTextInput.value = '';
+        voiceTextInput.focus();
+      }
     }
   }
 
@@ -451,7 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
     newEventEl.innerHTML = `
       <span class="sched-time">${time}</span>
       <span class="sched-task">${title}</span>
-      <span class="sched-now-tag" style="background: var(--emerald-accent);">[NUEVO]</span>
+      <span class="sched-now-tag" style="background: var(--emerald-accent);">[ACTUALIZADO]</span>
     `;
     scheduleList.appendChild(newEventEl);
     logDevEvent(`✓ Evento visual insertado en Schedule: [${time}] ${title}`, 'success');
@@ -488,13 +503,13 @@ document.addEventListener('DOMContentLoaded', () => {
         appendTerminalLog(`✓ [${tier}] ${reply}`, 'success');
         logDevEvent(`✓ Respuesta del servidor (${tier}) recibida en ${data.latencies?.totalMs || 20}ms`, 'success');
 
-        if (q.toLowerCase().includes('cena') || q.toLowerCase().includes('agenda') || q.toLowerCase().includes('agendando')) {
-          const timeMatch = q.match(/(?:a las\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana)?)/i);
-          let time = '06:19 PM';
-          if (timeMatch && timeMatch[1]) {
-            time = timeMatch[1].toUpperCase();
-          }
-          addScheduleEventToUI(time, 'Cena');
+        // Extract time and update UI schedule card
+        const timeMatch = q.match(/(?:(?:a las|cambies a las|cambia a las|pactada a las)\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana)?)/i);
+        const time = timeMatch && timeMatch[1] ? timeMatch[1].toUpperCase() : '06:09 PM';
+        const title = q.toLowerCase().includes('cena') ? 'Cena' : (q.toLowerCase().includes('reunion') || q.toLowerCase().includes('reunión')) ? 'Reunión' : 'Compromiso';
+        
+        if (tier === 'TIER_1_SKILL' || q.toLowerCase().includes('cena') || q.toLowerCase().includes('agenda')) {
+          addScheduleEventToUI(time, title);
         }
 
         speakText(reply);
@@ -509,30 +524,38 @@ document.addEventListener('DOMContentLoaded', () => {
     let reply = '';
     let tierName = 'TIER 2: FAST CACHE LOOKUP (< 20MS)';
 
-    if (lower.includes('agendando') || lower.includes('agenda la') || lower.includes('agenda el') || lower.includes('agenda cena') || lower.includes('agendar')) {
+    const isCalendarAction = 
+      /\b(agenda|agendar|agendando|agéndame|agendame|programa|programar|programando|prográmame|pon|poner|crea|crear|añade|añadir|agrega|agregar|cambia|cambiar|cambies|cambiame|mueve|mover|reprograma|reprogramar|pasa|pasar|posterga|postergar|modifica|modificar)\b/i.test(lower) ||
+      (/\b(cena|almuerzo|desayuno|reunion|reunión|meet|call|cita|evento|compromiso)\b/i.test(lower) && /\b(\d{1,2}(?::\d{2})?|\d{1,2}\s*(?:am|pm|hrs|horas)|a las|tarde|noche|mañana)\b/i.test(lower)) ||
+      /\b(cambies a las|cambia a las|pactada a las|para las)\b/i.test(lower);
+
+    if (isCalendarAction) {
       tierName = 'TIER 1: CALENDAR-ADD-EVENT (SKILL)';
-      const timeMatch = q.match(/(?:a las\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana)?)/i);
-      const time = timeMatch ? timeMatch[1].toUpperCase() : '06:19 PM';
-      const cleanTitle = q.replace(/(?:ayúdame|agendando|agenda|la|el|cena|a las|\d|pm|am|hrs|de la tarde|de la noche|de la mañana)/gi, '').trim() || 'Cena';
-      const fullTitle = `Cena ${cleanTitle ? '(' + cleanTitle + ')' : ''}`.trim();
+      const timeMatches = Array.from(lower.matchAll(/(?:(?:a las|cambies a las|cambia a las|pactada a las)\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana)?)/gi)).filter(m => m[1] && /\d/.test(m[1]));
+      let time = '06:09 PM';
+      if (timeMatches.length > 0) {
+        time = timeMatches[timeMatches.length - 1][1].toUpperCase().trim();
+      }
+      const title = lower.includes('cena') ? 'Cena' : (lower.includes('reunion') || lower.includes('reunión')) ? 'Reunión' : 'Compromiso';
+      const isChange = lower.includes('cambi') || lower.includes('muev') || lower.includes('reprogram');
       
-      reply = `He agendado "${fullTitle}" a las ${time}. Tu cronograma ha sido actualizado con éxito.`;
-      addScheduleEventToUI(time, fullTitle);
-      appendTerminalLog(`✓ [TIER_1_SKILL] Evento creado: "${fullTitle}" a las ${time}`, 'success');
-      logDevEvent(`✓ [TIER_1_SKILL] calendar-add-event ejecutado: "${fullTitle}" a las ${time}`, 'success');
-    } else if (lower.includes('agenda') || lower.includes('compromiso') || lower.includes('que tengo')) {
+      reply = `He ${isChange ? 'actualizado' : 'agendado'} '${title}' para hoy a las ${time}. Tu cronograma ha sido modificado con éxito.`;
+      addScheduleEventToUI(time, title);
+      appendTerminalLog(`✓ [TIER_1_SKILL] Evento procesado: "${title}" a las ${time}`, 'success');
+      logDevEvent(`✓ [TIER_1_SKILL] calendar-add-event ejecutado: "${title}" a las ${time}`, 'success');
+    } else if (lower.includes('agenda') || lower.includes('compromiso') || lower.includes('que tengo') || lower.includes('horario')) {
       tierName = 'TIER 2: FAST CACHE LOOKUP (< 20MS)';
-      reply = 'Tu compromiso principal hoy es la Revisión de Arquitectura TrautsLab OS a las 11:00 AM, seguido por la cena a las 8:00 PM.';
-      appendTerminalLog(`✓ [TIER_2_CACHE] Consulta de agenda respondida en 1.2ms`, 'info');
-      logDevEvent(`✓ [TIER_2_CACHE] today-agenda consultado en 1.2ms`, 'success');
+      reply = 'Tu agenda se encuentra lista. No tienes compromisos conflictivos en este momento.';
+      appendTerminalLog(`✓ [TIER_2_CACHE] Consulta de agenda respondida en 1.1ms`, 'info');
+      logDevEvent(`✓ [TIER_2_CACHE] today-agenda consultado en 1.1ms`, 'success');
     } else if (lower.includes('noticia') || lower.includes('trending') || lower.includes('intel') || lower.includes('ia')) {
       tierName = 'TIER 2: FAST CACHE LOOKUP (< 20MS)';
-      reply = 'Hoy en GitHub destaca Hermes Agent de NousResearch y Kokoro TTS para síntesis ultrarrápida.';
+      reply = 'Feed de inteligencia disponible para escaneo bajo demanda.';
       appendTerminalLog(`✓ [TIER_2_CACHE] Consulta de intel respondida en 0.8ms`, 'info');
       logDevEvent(`✓ [TIER_2_CACHE] today-intel consultado en 0.8ms`, 'success');
     } else {
       tierName = 'TIER 3: HEADLESS AGENT RUNNER';
-      reply = `He delegado "${q}" al agente autónomo en segundo plano. Te notificaré cuando finalice la tarea.`;
+      reply = `He recibido tu instrucción: "${q}". El agente autónomo ha iniciado el proceso en segundo plano.`;
       appendTerminalLog(`⚡ [TIER_3_HEADLESS] Despachando tarea en segundo plano...`, 'prompt');
       logDevEvent(`⚡ [TIER_3_HEADLESS] Tarea despachada en background`, 'info');
     }

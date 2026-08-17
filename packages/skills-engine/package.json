@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
+    "test": "tsx src/cli.ts list",
     "run:skill": "tsx src/cli.ts run",
     "list": "tsx src/cli.ts list",
     "cron": "tsx src/cli.ts cron",
