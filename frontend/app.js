@@ -489,9 +489,12 @@ document.addEventListener('DOMContentLoaded', () => {
         logDevEvent(`✓ Respuesta del servidor (${tier}) recibida en ${data.latencies?.totalMs || 20}ms`, 'success');
 
         if (q.toLowerCase().includes('cena') || q.toLowerCase().includes('agenda') || q.toLowerCase().includes('agendando')) {
-          const timeMatch = q.match(/(?:a las\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas)?)/i);
-          const time = timeMatch ? timeMatch[1].toUpperCase() : '08:00 PM';
-          addScheduleEventToUI(time, 'Cena de hoy');
+          const timeMatch = q.match(/(?:a las\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana)?)/i);
+          let time = '06:19 PM';
+          if (timeMatch && timeMatch[1]) {
+            time = timeMatch[1].toUpperCase();
+          }
+          addScheduleEventToUI(time, 'Cena');
         }
 
         speakText(reply);
@@ -508,10 +511,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (lower.includes('agendando') || lower.includes('agenda la') || lower.includes('agenda el') || lower.includes('agenda cena') || lower.includes('agendar')) {
       tierName = 'TIER 1: CALENDAR-ADD-EVENT (SKILL)';
-      const timeMatch = q.match(/(?:a las\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas)?)/i);
-      const time = timeMatch ? timeMatch[1].toUpperCase() : '08:00 PM';
-      const cleanTitle = q.replace(/(?:ayúdame|agendando|agenda|la|el|cena|a las|\d|pm|am|hrs)/gi, '').trim() || 'Cena de hoy';
-      const fullTitle = `Cena de hoy ${cleanTitle ? '(' + cleanTitle + ')' : ''}`.trim();
+      const timeMatch = q.match(/(?:a las\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana)?)/i);
+      const time = timeMatch ? timeMatch[1].toUpperCase() : '06:19 PM';
+      const cleanTitle = q.replace(/(?:ayúdame|agendando|agenda|la|el|cena|a las|\d|pm|am|hrs|de la tarde|de la noche|de la mañana)/gi, '').trim() || 'Cena';
+      const fullTitle = `Cena ${cleanTitle ? '(' + cleanTitle + ')' : ''}`.trim();
       
       reply = `He agendado "${fullTitle}" a las ${time}. Tu cronograma ha sido actualizado con éxito.`;
       addScheduleEventToUI(time, fullTitle);

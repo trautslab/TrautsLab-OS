@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "category": "daily_agenda",
+  "generated_at": "2026-08-17T18:55:39.662Z",
+  "expires_at": "2026-08-17T23:59:59Z",
+  "quick_summary_tts": "He agendado 'Cena' a las 06:19 PM. Tienes 2 eventos programados para hoy.",
+  "data": {
+    "eventsCount": 2,
+    "events": [
+      {
+        "time": "8PM",
+        "title": "Cena de hoy",
+        "status": "scheduled"
+      },
+      {
+        "time": "06:19 PM",
+        "title": "Cena",
+        "status": "scheduled"
+      }
+    ]
+  }
+}

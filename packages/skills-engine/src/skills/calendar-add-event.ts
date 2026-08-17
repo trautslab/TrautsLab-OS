@@ -104,17 +104,53 @@ export class CalendarAddEventSkill implements Skill {
       .replace(/^(a la agenda|en mi calendario|en la agenda)\s*/i, '')
       .trim();
 
-    // Try to extract time pattern (e.g., "a las 8:00 PM", "8pm", "20:00", "a las 8", "8:00 pm", "20:30")
+    // Try to extract time pattern (e.g., "6:19 pm", "6:19", "a las 6:19 pm", "18:19", "8pm", "20:00")
     let time = '08:00 PM';
-    const timeMatch = clean.match(/(?:a las\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas)?)/i);
+    const timeMatch = clean.match(/(?:a las\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana)?)/i);
 
     if (timeMatch && timeMatch[0]) {
-      time = timeMatch[1].toUpperCase().trim();
+      let rawTime = timeMatch[1].toUpperCase().trim();
+      
+      // Normalize Spanish time suffixes
+      if (rawTime.includes('DE LA TARDE') || rawTime.includes('DE LA NOCHE')) {
+        rawTime = rawTime.replace(/DE LA TARDE|DE LA NOCHE/gi, '').trim();
+        const [h, m] = rawTime.split(':');
+        const hourNum = parseInt(h, 10);
+        rawTime = `${hourNum < 12 ? hourNum : hourNum - 12}:${m || '00'} PM`;
+      } else if (rawTime.includes('DE LA MAÑANA')) {
+        rawTime = rawTime.replace(/DE LA MAÑANA/gi, '').trim() + ' AM';
+      }
+
+      // Add PM/AM if simple numbers without indicator
+      if (!rawTime.includes('AM') && !rawTime.includes('PM')) {
+        const hour = parseInt(rawTime.split(':')[0], 10);
+        if (hour >= 1 && hour <= 7) {
+          rawTime += ' PM'; // Default afternoon/evening
+        } else if (hour >= 8 && hour <= 11) {
+          rawTime += ' AM';
+        } else if (hour >= 12 && hour <= 23) {
+          rawTime += ' PM';
+        }
+      }
+
+      // Ensure 2-digit hour (e.g., "06:19 PM")
+      const parts = rawTime.split(' ');
+      const clock = parts[0];
+      const ampm = parts[1] || 'PM';
+      const [h, m] = clock.split(':');
+      time = `${h.padStart(2, '0')}:${m ? m.padStart(2, '0') : '00'} ${ampm}`;
+
       clean = clean.replace(timeMatch[0], '').replace(/\s+a las\s*$/i, '').trim();
     }
 
-    let title = clean.charAt(0).toUpperCase() + clean.slice(1);
-    if (!title || title.length < 2) title = 'Cena de hoy';
+    // Clean up residual words from title
+    let title = clean
+      .replace(/\b(para hoy|de hoy|hoy|esta noche|esta tarde)\b/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    title = title.charAt(0).toUpperCase() + title.slice(1);
+    if (!title || title.length < 2) title = 'Cena';
 
     return { title, time };
   }
