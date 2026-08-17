@@ -1,0 +1,32 @@
+{
+  "name": "@trautslab/telegram-bridge",
+  "version": "0.1.0-alpha.1",
+  "description": "Private Telegram Bot Assistant & Voice Bridge for TrautsLab OS",
+  "main": "dist/bot.js",
+  "types": "dist/bot.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "tsx src/cli.ts",
+    "simulate": "tsx src/cli.ts --simulate",
+    "test": "node --test dist/tests/*.test.js || tsx tests/bot.test.ts"
+  },
+  "keywords": [
+    "trautslab",
+    "telegram",
+    "voice-assistant",
+    "mobile-remote-access"
+  ],
+  "author": "Jhonny Lorenzo (jlorenzor)",
+  "license": "MIT",
+  "dependencies": {
+    "@trautslab/skills-engine": "file:../skills-engine",
+    "@trautslab/vault-engine": "file:../vault-engine",
+    "@trautslab/voice-engine": "file:../voice-engine"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  }
+}
