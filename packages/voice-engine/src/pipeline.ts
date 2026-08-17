@@ -3,12 +3,15 @@ import { Tier2CacheManager } from '@trautslab/vault-engine';
 import { FasterWhisperSTTEngine } from './stt-engine.js';
 import { KokoroTTSEngine } from './tts-engine.js';
 import { VoiceIntentRouter } from './router.js';
+import { LLMEngine } from './llm-engine.js';
 import { VoiceSessionInput, VoiceSessionResponse } from './types.js';
 
 export interface VoicePipelineConfig {
   vaultRoot: string;
   sttEndpoint?: string;
   ttsEndpoint?: string;
+  ollamaEndpoint?: string;
+  modelName?: string;
 }
 
 export class VoicePipeline {
@@ -18,6 +21,7 @@ export class VoicePipeline {
   private router: VoiceIntentRouter;
   private cacheMgr: Tier2CacheManager;
   private skillRegistry: SkillRegistry;
+  private llm: LLMEngine;
 
   constructor(config: VoicePipelineConfig) {
     this.vaultRoot = config.vaultRoot;
@@ -25,6 +29,10 @@ export class VoicePipeline {
     this.tts = new KokoroTTSEngine({ endpointUrl: config.ttsEndpoint });
     this.router = new VoiceIntentRouter();
     this.cacheMgr = new Tier2CacheManager(this.vaultRoot);
+    this.llm = new LLMEngine({
+      ollamaEndpoint: config.ollamaEndpoint,
+      modelName: config.modelName || 'qwen2.5:7b'
+    });
 
     // Setup skills registry
     this.skillRegistry = new SkillRegistry();
@@ -95,12 +103,12 @@ export class VoicePipeline {
       }
 
       case 'TIER_3_HEADLESS': {
-        const prompt = classification.target;
-        console.log(`[VoicePipeline] 🤖 Lanzando Agente Headless Tier 3: "${prompt}"`);
-        // Simulating async headless agent launch
+        const prompt = classification.target || transcription;
+        console.log(`[VoicePipeline] 🤖 Ejecutando Razonamiento Conversacional LLM (Ollama/Qwen): "${prompt}"`);
+        const llmReply = await this.llm.generateResponse(transcription);
         actionMs = Date.now() - actionStart;
-        responsePlainText = `Agente headless lanzado en segundo plano para procesar: "${prompt}".`;
-        responsePhoneticTts = `He iniciado el agente en segundo plano para trabajar en tu solicitud. Te notificaré al terminar.`;
+        responsePlainText = llmReply;
+        responsePhoneticTts = llmReply;
         break;
       }
     }

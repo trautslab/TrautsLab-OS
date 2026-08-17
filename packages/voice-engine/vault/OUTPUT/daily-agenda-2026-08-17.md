@@ -3,4 +3,5 @@
 | Hora | Compromiso / Evento | Estado |
 | :--- | :--- | :--- |
 | `8PM` | **Cena de hoy** | 🟡 Programado |
-| `06:09 PM` | **Cena** | N/A | `HIGH` | 🟡 Programado |
+| `8PM:00 PM` | **Cena** | N/A | `HIGH` | 🟡 Programado |
+| `10:30 AM` | **Reunión** | N/A | `HIGH` | 🟡 Programado |

@@ -381,9 +381,13 @@ document.addEventListener('DOMContentLoaded', () => {
     recognition.continuous = false;
     recognition.interimResults = true;
 
+    let isSpeaking = false;
+
     recognition.onstart = () => {
       logDevEvent('SpeechRecognition iniciado (Esperando voz humana)...', 'info');
-      if (transcriptionText) transcriptionText.textContent = '"🎙️ Escuchando... Habla ahora."';
+      if (transcriptionText && !transcriptionText.textContent.includes('Procesando')) {
+        transcriptionText.textContent = '"🎙️ Escuchando... Habla ahora."';
+      }
     };
 
     recognition.onresult = (event) => {
@@ -408,15 +412,26 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     recognition.onerror = (e) => {
-      logDevEvent(`SpeechRecognition error: ${e.error}`, 'warn');
-      if (transcriptionText && transcriptionText.textContent.includes('Escuchando')) {
-        transcriptionText.textContent = '"Habla de nuevo o usa los botones rápidos..."';
+      // no-speech occurs on natural pauses; do not break the session
+      if (e.error === 'no-speech') {
+        logDevEvent('SpeechRecognition: Pausa de voz detectada. Manteniendo sesión activa...', 'info');
+      } else {
+        logDevEvent(`SpeechRecognition error: ${e.error}`, 'warn');
       }
     };
 
     recognition.onend = () => {
-      logDevEvent('SpeechRecognition finalizó sesión.', 'info');
-      animateVUMeter(false);
+      // Keep-Alive: Auto-restart recognition while modal is open and not actively speaking
+      if (voiceModal && !voiceModal.hasAttribute('hidden') && !isSpeaking) {
+        setTimeout(() => {
+          try {
+            recognition.start();
+            logDevEvent('🔄 Keep-Alive: Micrófono reactivado (Escucha continua activa).', 'info');
+          } catch {}
+        }, 150);
+      } else {
+        animateVUMeter(false);
+      }
     };
   } else {
     logDevEvent('Navegador sin soporte de SpeechRecognition nativo. Usando fallback por texto y servidor.', 'warn');
@@ -430,11 +445,13 @@ document.addEventListener('DOMContentLoaded', () => {
       utter.rate = 1.05;
       utter.pitch = 1.0;
       utter.onstart = () => {
+        isSpeaking = true;
         sphere.setState('speaking');
         animateVUMeter(true);
         logDevEvent('Kokoro/SpeechSynthesis locución iniciada.', 'info');
       };
       utter.onend = () => {
+        isSpeaking = false;
         sphere.setState('idle');
         animateVUMeter(false);
         logDevEvent('Locución finalizada. Listo para siguiente interacción.', 'info');

@@ -1,20 +1,26 @@
 {
   "schema_version": "1.0",
   "category": "daily_agenda",
-  "generated_at": "2026-08-17T19:10:20.688Z",
+  "generated_at": "2026-08-17T19:22:44.163Z",
   "expires_at": "2026-08-17T23:59:59Z",
-  "quick_summary_tts": "He actualizado 'Cena' para hoy a las 06:09 PM.",
+  "quick_summary_tts": "He actualizado 'Cena' para hoy a las 8PM:00 PM.",
   "data": {
-    "eventsCount": 2,
+    "eventsCount": 3,
     "events": [
       {
-        "time": "06:09 PM",
+        "time": "8PM:00 PM",
         "title": "Cena de hoy",
         "status": "scheduled"
       },
       {
         "time": "06:19 PM",
         "title": "Cena",
+        "status": "scheduled"
+      },
+      {
+        "time": "10:30 AM",
+        "title": "Reunión",
+        "priority": "high",
         "status": "scheduled"
       }
     ]
