@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import path from 'node:path';
 import fs from 'node:fs/promises';
+import { resolveVaultRoot } from '@trautslab/vault-engine';
 import { SkillRegistry } from './registry.js';
 import { SkillScheduler } from './scheduler.js';
 import { LaunchdGenerator } from './launchd-generator.js';
@@ -10,15 +11,17 @@ import { VaultSyncIndexerSkill } from './skills/vault-sync-indexer.js';
 import { SkillContext } from './types.js';
 
 const command = process.argv[2] || 'list';
-let targetVault = path.resolve(process.cwd(), '../../vault');
+let customVault = '';
 
 if (command === 'run') {
   if (process.argv[4]) {
-    targetVault = path.resolve(process.argv[4]);
+    customVault = process.argv[4];
   }
 } else if (process.argv[3] && !process.argv[3].startsWith('--')) {
-  targetVault = path.resolve(process.argv[3]);
+  customVault = process.argv[3];
 }
+
+const targetVault = resolveVaultRoot(customVault);
 
 // Setup registry & skills
 const registry = new SkillRegistry();

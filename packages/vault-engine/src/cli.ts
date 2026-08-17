@@ -4,9 +4,10 @@ import { VaultIndexer } from './indexer.js';
 import { VaultWatcher } from './watcher.js';
 import { VaultHealthChecker } from './health-check.js';
 import { Tier2CacheManager } from './cache-manager.js';
+import { resolveVaultRoot } from './config.js';
 
 const command = process.argv[2] || 'index';
-const targetVault = process.argv[3] || path.resolve(process.cwd(), '../../vault');
+const targetVault = resolveVaultRoot(process.argv[3]);
 
 async function main() {
   console.log(`\n🧠 [TrautsLab OS — Vault Engine]`);

@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 import path from 'node:path';
+import { resolveVaultRoot } from '@trautslab/vault-engine';
 import { VoicePipeline } from './pipeline.js';
 import { VoiceServer } from './server.js';
 
 const command = process.argv[2] || 'simulate';
-const targetVault = path.resolve(process.cwd(), '../../vault');
+const targetVault = resolveVaultRoot(process.argv[4]);
 
 async function main() {
   console.log(`\n🎙️ [TrautsLab OS — 3-Tier Voice Engine]`);
