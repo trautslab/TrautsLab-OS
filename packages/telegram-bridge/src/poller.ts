@@ -60,11 +60,12 @@ export class TelegramPoller {
                 chatId: msg.chat.id,
                 userId: msg.from.id,
                 text: msg.text,
-                voiceFileId: msg.voice?.file_id,
+                voiceFileId: msg.voice?.file_id || msg.audio?.file_id,
                 date: msg.date
               };
 
-              console.log(`📩 [TelegramPoller] Mensaje de @${msg.from.username || msg.from.first_name} (${msg.from.id}): "${msg.text || '[Audio]'}"`);
+              const msgType = msg.text ? `"${msg.text}"` : (msg.voice ? '[Nota de Voz 🎙️]' : '[Audio 🎵]');
+              console.log(`📩 [TelegramPoller] Mensaje de @${msg.from.username || msg.from.first_name} (${msg.from.id}): ${msgType}`);
 
               // Process via Bridge
               const reply = await this.bridge.handleMessage(telegramMsg);

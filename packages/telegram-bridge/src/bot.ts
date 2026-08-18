@@ -6,7 +6,10 @@
 import { VoicePipeline, VoiceTier } from '@trautslab/voice-engine';
 import { Tier2CacheManager } from '@trautslab/vault-engine';
 import { SkillRegistry } from '@trautslab/skills-engine';
+import { TelegramAudioTranscriber } from './audio-transcriber.js';
+import { getTelegramConfig } from './notifier.js';
 import path from 'node:path';
+import fs from 'node:fs';
 
 export interface TelegramMessage {
   messageId: number;
@@ -35,8 +38,16 @@ export class TelegramBotBridge {
     allowedUserIds?: number[];
     vaultPath?: string;
   }) {
-    this.allowedUserIds = new Set(options?.allowedUserIds || [123456789]);
-    this.vaultPath = options?.vaultPath || path.resolve(process.cwd(), '../../vault');
+    this.allowedUserIds = new Set(options?.allowedUserIds || [8431939545]);
+
+    const defaultVault = process.env.OBSIDIAN_VAULT_ROOT || 
+      (fs.existsSync('/Users/jlorenzor/Documents/Obsidian Vault') 
+        ? '/Users/jlorenzor/Documents/Obsidian Vault' 
+        : (fs.existsSync(path.resolve(process.cwd(), 'vault'))
+          ? path.resolve(process.cwd(), 'vault')
+          : path.resolve(process.cwd(), '../../vault')));
+
+    this.vaultPath = options?.vaultPath || defaultVault;
     this.cacheManager = new Tier2CacheManager(this.vaultPath);
     this.registry = new SkillRegistry();
     this.voicePipeline = new VoicePipeline({
@@ -86,13 +97,25 @@ export class TelegramBotBridge {
       };
     }
 
-    // 3. Handle Voice Note
+    // 3. Handle Real Voice Note from Telegram
     if (msg.voiceFileId) {
-      const simulatedAudio = Buffer.alloc(16000 * 2);
-      const result = await this.voicePipeline.processAudio(simulatedAudio);
+      const config = getTelegramConfig();
+      const botToken = config.botToken || process.env.TELEGRAM_BOT_TOKEN || '';
+
+      const transcriber = new TelegramAudioTranscriber();
+      const sttResult = await transcriber.transcribeVoiceFile(botToken, msg.voiceFileId);
+
+      const result = await this.voicePipeline.processQuery({
+        transcription: sttResult.text,
+        sourceClient: 'telegram'
+      });
+
+      let replyText = `🎙️ *Transcripción de Voz:* "${sttResult.text}"\n\n` +
+                      `🤖 *Respuesta [${result.tier}]:*\n${result.responsePlainText}`;
+
       return {
         chatId: msg.chatId,
-        text: `🎙️ *Transcripción:* "${result.inputTranscription}"\n\n🤖 *Respuesta:* ${result.responsePlainText}`,
+        text: replyText,
         audioBuffer: result.audioBuffer,
         tier: result.tier
       };
