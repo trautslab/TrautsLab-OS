@@ -6,6 +6,19 @@ export interface VoiceServerConfig {
   vaultRoot: string;
 }
 
+const sseClients = new Set<http.ServerResponse>();
+
+export function broadcastLiveEvent(eventType: string, payload: any = {}) {
+  const msg = `event: ${eventType}\ndata: ${JSON.stringify({ type: eventType, timestamp: new Date().toISOString(), ...payload })}\n\n`;
+  for (const client of Array.from(sseClients)) {
+    try {
+      client.write(msg);
+    } catch {
+      sseClients.delete(client);
+    }
+  }
+}
+
 export class VoiceServer {
   private port: number;
   private vaultRoot: string;
@@ -33,6 +46,22 @@ export class VoiceServer {
         }
 
         const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+
+        if (url.pathname === '/api/events/live' && req.method === 'GET') {
+          res.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'Access-Control-Allow-Origin': '*'
+          });
+          res.write(`data: ${JSON.stringify({ type: 'CONNECTED', message: 'SSE Event Stream Activo' })}\n\n`);
+          sseClients.add(res);
+
+          req.on('close', () => {
+            sseClients.delete(res);
+          });
+          return;
+        }
 
         if (url.pathname === '/api/voice/health' && req.method === 'GET') {
           res.writeHead(200, { 'Content-Type': 'application/json' });

@@ -711,6 +711,42 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load schedule from Obsidian Vault on initial boot
   loadScheduleFromVault();
 
+  // --- REAL-TIME SERVER-SENT EVENTS (SSE) & LIVE VAULT SYNC ---
+  function initLiveSSEStream() {
+    try {
+      const evtSource = new EventSource('http://localhost:3030/api/events/live');
+
+      evtSource.onopen = () => {
+        console.log('✓ [SSE] Conectado al stream de eventos en vivo de TrautsLab OS');
+      };
+
+      evtSource.addEventListener('SCHEDULE_UPDATED', async () => {
+        console.log('⚡ [SSE] Evento recibido: SCHEDULE_UPDATED');
+        await loadScheduleFromVault();
+        if (typeof loadObservabilityData === 'function') await loadObservabilityData();
+      });
+
+      evtSource.addEventListener('TASK_ARCHIVED', async () => {
+        console.log('⚡ [SSE] Evento recibido: TASK_ARCHIVED');
+        await loadScheduleFromVault();
+      });
+
+      evtSource.onerror = () => {
+        evtSource.close();
+        setTimeout(initLiveSSEStream, 4000);
+      };
+    } catch (err) {
+      console.warn('[SSE] Error inicializando SSE:', err);
+    }
+  }
+
+  // Auto-sync polling every 2.5 seconds (seamless background sync with zero lag)
+  setInterval(() => {
+    loadScheduleFromVault();
+  }, 2500);
+
+  initLiveSSEStream();
+
   async function processVoiceQuery(query) {
     const q = query.trim();
     if (!q) return;

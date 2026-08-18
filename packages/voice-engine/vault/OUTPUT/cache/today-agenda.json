@@ -1,24 +1,11 @@
 {
   "schema_version": "1.0",
   "category": "daily_agenda",
-  "generated_at": "2026-08-18T22:06:12.050Z",
+  "generated_at": "2026-08-18T22:08:53.828Z",
   "expires_at": "2026-08-18T23:59:59Z",
-  "quick_summary_tts": "He actualizado 'Cena' para hoy a las 08:00 PM.",
+  "quick_summary_tts": "Todas las actividades han sido archivadas con éxito.",
   "data": {
-    "eventsCount": 2,
-    "events": [
-      {
-        "time": "08:00 PM",
-        "title": "Cena",
-        "priority": "high",
-        "status": "scheduled"
-      },
-      {
-        "time": "09:30 PM",
-        "title": "Ver Spiderman en Centro Cívico y en el Cineplanet",
-        "priority": "high",
-        "status": "scheduled"
-      }
-    ]
+    "eventsCount": 0,
+    "events": []
   }
 }

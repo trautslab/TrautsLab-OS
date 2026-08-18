@@ -18,9 +18,16 @@ summary: "Agenda diaria para Jhonny Lorenzo (2026-08-18)."
 
 | Hora | Actividad / Compromiso | Ubicación | Prioridad | Estado |
 | :--- | :--- | :--- | :--- | :--- |
-| `09:30 PM` | **Ver Spiderman en Centro Cívico y en el Cineplanet** | N/A | `HIGH` | 🟡 Programado |
-| `08:00 PM` | **Cena** | N/A | `HIGH` | 🟡 Programado |
 
 ---
 
 ## 🎯 Notas y Foco del Día
+
+---
+
+## 📦 Archivo de Compromisos e Historial
+
+| Hora | Actividad Archivada | Ubicación | Estado |
+| :--- | :--- | :--- | :--- |
+| `09:30 PM` | ~~**Ver Spiderman en Centro Cívico y en el Cineplanet**~~ | N/A | 🟢 Archivado |
+| `08:00 PM` | ~~**Cena**~~ | N/A | 🟢 Archivado |

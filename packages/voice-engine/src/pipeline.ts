@@ -102,6 +102,12 @@ export class VoicePipeline {
         const result = await this.skillRegistry.execute(skillId, ctx);
         actionMs = Date.now() - actionStart;
 
+        // Broadcast real-time SSE event to frontend clients
+        try {
+          const { broadcastLiveEvent } = await import('./server.js');
+          broadcastLiveEvent('SCHEDULE_UPDATED', { skillId, success: result.success });
+        } catch {}
+
         if (result.success) {
           responsePlainText = result.message || `Skill ${skillId} ejecutada exitosamente en ${result.executionTimeMs}ms.`;
           responsePhoneticTts = result.message || `Operación completada con éxito.`;
