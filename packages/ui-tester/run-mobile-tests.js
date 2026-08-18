@@ -49,7 +49,7 @@ async function main() {
 
   // 1. Carga Inicial Móvil & PWA
   await assertStep('1. Carga Inicial PWA Móvil y Verificación de Header', async () => {
-    await page.goto(APP_URL, { waitUntil: 'networkidle0' });
+    await page.goto(APP_URL, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('.hud-acronym');
     const isMobileViewport = await page.$eval('.hud-container', el => el.offsetWidth <= 400);
     if (!isMobileViewport) throw new Error('Viewport móvil no adaptado correctamente');

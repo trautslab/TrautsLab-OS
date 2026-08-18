@@ -43,7 +43,7 @@ async function main() {
 
   // 1. Carga inicial del HUD Cockpit (Modo 1)
   await assertStep('1. Carga inicial del HUD Cockpit (Esfera 3D y Vitals)', async () => {
-    await page.goto(APP_URL, { waitUntil: 'networkidle0' });
+    await page.goto(APP_URL, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('.hud-acronym');
     const title = await page.$eval('.hud-acronym', el => el.textContent);
     if (!title.includes('T.R.A.U.T.S.L.A.B.')) throw new Error(`Título no coincide: ${title}`);
