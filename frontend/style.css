@@ -771,7 +771,8 @@ html, body {
   color: #b45309;
 }
 
-.sched-archive-item-btn {
+.sched-archive-item-btn,
+.sched-edit-item-btn {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 4px;
@@ -783,19 +784,22 @@ html, body {
   line-height: 1;
 }
 
-.sched-archive-item-btn:hover {
+.sched-archive-item-btn:hover,
+.sched-edit-item-btn:hover {
   background: rgba(245, 158, 11, 0.2);
   border-color: var(--amber-primary);
   color: var(--amber-bright);
   transform: scale(1.1);
 }
 
-.theme-light .sched-archive-item-btn {
+.theme-light .sched-archive-item-btn,
+.theme-light .sched-edit-item-btn {
   border-color: #cbd5e1;
   color: #64748b;
 }
 
-.theme-light .sched-archive-item-btn:hover {
+.theme-light .sched-archive-item-btn:hover,
+.theme-light .sched-edit-item-btn:hover {
   background: #fef3c7;
   border-color: #f59e0b;
   color: #b45309;

@@ -314,6 +314,86 @@ export class VoiceServer {
           return;
         }
 
+        if (url.pathname === '/api/vault/agenda/edit' && req.method === 'POST') {
+          let body = '';
+          req.on('data', chunk => { body += chunk; });
+          req.on('end', async () => {
+            try {
+              const payload = JSON.parse(body || '{}');
+              const { oldTitle, newTitle, date, newTime } = payload;
+              const fsPromises = await import('node:fs/promises');
+              const path = await import('node:path');
+
+              const candidateVaults = [
+                this.vaultRoot,
+                '/Users/jlorenzor/Documents/Obsidian Vault',
+                path.resolve(process.cwd(), 'vault')
+              ];
+
+              let edited = false;
+              for (const vPath of Array.from(new Set(candidateVaults))) {
+                const targetDate = date || new Date().toISOString().split('T')[0];
+                const agendaFile = path.join(vPath, 'OUTPUT', `daily-agenda-${targetDate}.md`);
+                try {
+                  const content = await fsPromises.readFile(agendaFile, 'utf-8');
+                  const lines = content.split('\n');
+                  const updatedLines = lines.map(line => {
+                    if (line.startsWith('|') && (line.toLowerCase().includes(oldTitle.toLowerCase()) || (oldTitle && line.includes(oldTitle)))) {
+                      edited = true;
+                      const cols = line.split('|').map(c => c.trim());
+                      const timeCol = newTime ? `\`${newTime}\`` : (cols[1] || '`09:00 AM`');
+                      const titleCol = newTitle ? `**${newTitle}**` : (cols[2] || `**${oldTitle}**`);
+                      const locCol = cols[3] || 'N/A';
+                      const priCol = cols[4] || '`HIGH`';
+                      const statusCol = cols[5] || '🟡 Programado';
+                      return `| ${timeCol} | ${titleCol} | ${locCol} | ${priCol} | ${statusCol} |`;
+                    }
+                    return line;
+                  });
+
+                  if (edited) {
+                    await fsPromises.writeFile(agendaFile, updatedLines.join('\n'), 'utf-8');
+                  }
+                } catch {}
+
+                // Update Tier 2 Cache if today
+                const todayStr = new Date().toISOString().split('T')[0];
+                if (targetDate === todayStr) {
+                  const cacheFile = path.join(vPath, 'OUTPUT', 'cache', 'today-agenda.json');
+                  try {
+                    const cacheRaw = await fsPromises.readFile(cacheFile, 'utf-8');
+                    const cacheJson = JSON.parse(cacheRaw);
+                    if (cacheJson?.data?.events) {
+                      cacheJson.data.events = cacheJson.data.events.map((e: any) => {
+                        if (e.title.toLowerCase().includes(oldTitle.toLowerCase())) {
+                          return {
+                            ...e,
+                            title: newTitle || e.title,
+                            time: newTime || e.time
+                          };
+                        }
+                        return e;
+                      });
+                      cacheJson.quick_summary_tts = `Tu evento '${newTitle || oldTitle}' ha sido actualizado exitosamente.`;
+                      await fsPromises.writeFile(cacheFile, JSON.stringify(cacheJson, null, 2), 'utf-8');
+                    }
+                  } catch {}
+                }
+              }
+
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({
+                success: edited,
+                message: edited ? `Compromiso actualizado a '${newTitle}'.` : `No se encontró el compromiso '${oldTitle}' para editar.`
+              }));
+            } catch (err: any) {
+              res.writeHead(500, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: err.message }));
+            }
+          });
+          return;
+        }
+
         if (url.pathname === '/api/vault/agenda/clean' && req.method === 'POST') {
           try {
             const fsPromises = await import('node:fs/promises');

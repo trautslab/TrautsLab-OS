@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "category": "daily_agenda",
-  "generated_at": "2026-08-18T22:00:27.050Z",
+  "generated_at": "2026-08-18T22:06:12.050Z",
   "expires_at": "2026-08-18T23:59:59Z",
   "quick_summary_tts": "He actualizado 'Cena' para hoy a las 08:00 PM.",
   "data": {
@@ -15,7 +15,7 @@
       },
       {
         "time": "09:30 PM",
-        "title": "Ver Spiderman en centros híbicos y en el planec",
+        "title": "Ver Spiderman en Centro Cívico y en el Cineplanet",
         "priority": "high",
         "status": "scheduled"
       }

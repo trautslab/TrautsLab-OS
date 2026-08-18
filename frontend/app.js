@@ -612,12 +612,25 @@ document.addEventListener('DOMContentLoaded', () => {
               ${dateBadge}
             </div>
             <span class="sched-task" title="${evt.title}">${evt.title}</span>
-            <button class="sched-archive-item-btn" data-title="${evt.title}" data-date="${evt.date}" title="Archivar este compromiso individual en Obsidian">📦</button>
+            <div class="sched-item-actions" style="display:flex; gap:4px;">
+              <button class="sched-edit-item-btn" data-title="${evt.title}" data-date="${evt.date}" data-time="${evt.time}" title="Editar este compromiso">✏️</button>
+              <button class="sched-archive-item-btn" data-title="${evt.title}" data-date="${evt.date}" title="Archivar este compromiso en Obsidian">📦</button>
+            </div>
           `;
           scheduleHudList.appendChild(itemEl);
         });
 
-        // Add event listeners for per-item archive buttons
+        // Add event listeners for edit and archive buttons
+        scheduleHudList.querySelectorAll('.sched-edit-item-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const title = btn.getAttribute('data-title');
+            const date = btn.getAttribute('data-date');
+            const time = btn.getAttribute('data-time');
+            await editScheduleItem(title, date, time);
+          });
+        });
+
         scheduleHudList.querySelectorAll('.sched-archive-item-btn').forEach(btn => {
           btn.addEventListener('click', async (e) => {
             e.stopPropagation();
@@ -631,6 +644,27 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {
       console.warn('[Schedule] No se pudo conectar con el servidor 3030:', e.message);
+    }
+  }
+
+  async function editScheduleItem(oldTitle, date, time) {
+    const newTitle = prompt(`Editar título para el compromiso (${time}):`, oldTitle);
+    if (!newTitle || newTitle.trim() === '' || newTitle === oldTitle) return;
+
+    try {
+      const res = await fetch('http://localhost:3030/api/vault/agenda/edit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oldTitle, newTitle: newTitle.trim(), date })
+      });
+      if (res.ok) {
+        showHudToast('COMPROMISO EDITADO', `'${newTitle}' guardado en tu Obsidian Vault.`, 'success', 4000);
+        appendTerminalLog(`✓ [EDIT] '${oldTitle}' ➔ '${newTitle}' en daily-agenda-${date}.md`, 'success');
+        speakText(`He actualizado el compromiso a '${newTitle}'.`);
+        await loadScheduleFromVault();
+      }
+    } catch (e) {
+      console.error('Error editando compromiso:', e);
     }
   }
 

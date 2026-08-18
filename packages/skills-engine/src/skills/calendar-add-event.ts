@@ -92,13 +92,23 @@ summary: "Agenda diaria para Jhonny Lorenzo (${parsed.targetDate})."
 
         // 3. Update or Insert Event in Markdown
         const cleanTitle = parsed.title;
-        const rowRegex = new RegExp(`\\|[^\\n]*\\*\\*${cleanTitle}\\*\\*[^\\n]*\\|`, 'i');
+        const oldTitleHint = (ctx.args?.oldTitle || ctx.args?.targetEventTitle || '') as string;
         const newRow = `| \`${parsed.time}\` | **${cleanTitle}** | N/A | \`HIGH\` | 🟡 Programado |`;
 
         let isUpdate = false;
-        if (rowRegex.test(currentMd)) {
+        const directTitleRegex = new RegExp(`\\|[^\\n]*\\*\\*${cleanTitle}\\*\\*[^\\n]*\\|`, 'i');
+
+        if (directTitleRegex.test(currentMd)) {
           isUpdate = true;
-          currentMd = currentMd.replace(rowRegex, newRow);
+          currentMd = currentMd.replace(directTitleRegex, newRow);
+        } else if (oldTitleHint && new RegExp(`\\|[^\\n]*${oldTitleHint}[^\\n]*\\|`, 'i').test(currentMd)) {
+          isUpdate = true;
+          const oldRowRegex = new RegExp(`\\|[^\\n]*${oldTitleHint}[^\\n]*\\|`, 'i');
+          currentMd = currentMd.replace(oldRowRegex, newRow);
+        } else if (parsed.time && new RegExp('\\|\\s*`' + parsed.time + '`[^\\n]*\\|', 'i').test(currentMd) && (query.toLowerCase().includes('cambia') || query.toLowerCase().includes('edita') || query.toLowerCase().includes('corrige') || query.toLowerCase().includes('modifica'))) {
+          isUpdate = true;
+          const timeRowRegex = new RegExp('\\|\\s*`' + parsed.time + '`[^\\n]*\\|', 'i');
+          currentMd = currentMd.replace(timeRowRegex, newRow);
         } else {
           // Find table insertion position
           const tableHeaderMarker = '| :--- | :--- | :--- | :--- | :--- |\n';
