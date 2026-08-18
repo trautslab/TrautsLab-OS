@@ -23,7 +23,8 @@ export class VoiceIntentRouter {
 
     // 2. Check for TIER 1: Calendar Archiving & Task Completion
     const isArchiveIntent = 
-      /\b(archivar|archiva|archíva|archívame|archivame|archívalo|archivalo|archívala|archivala|completar|completa|marcar como completada|marca como completada|marcar como hecha|marca como hecha|dar por concluida|limpiar día|limpiar dia|archivar todo|archivar día|archivar dia)\b/i.test(normalized);
+      /\b(archivar|archiva|archíva|artivar|artiva|arcaive|archive|archibar|archíbame|archivame|archívalo|archivalo|archívala|archivala|completar|completa|marcar como completada|marca como completada|marcar como hecha|marca como hecha|dar por concluida|limpiar día|limpiar dia|archivar todo|archivar día|archivar dia)\b/i.test(normalized) ||
+      (/\b(archibar|artivar|archivar|archive|arcaive)\b/i.test(normalized) && /\b(día|dia|lía|lia|lda|today|todo)\b/i.test(normalized));
 
     if (isArchiveIntent) {
       return {

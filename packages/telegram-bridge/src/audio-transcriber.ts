@@ -69,7 +69,12 @@ export class TelegramAudioTranscriber {
   private ffmpegBinPath: string;
 
   constructor(modelPath?: string) {
-    this.modelPath = modelPath || '/Users/jlorenzor/Documents/TrautsLab-OS/packages/voice-engine/models/ggml-base.bin';
+    const candidateModels = [
+      '/Users/jlorenzor/Documents/TrautsLab-OS/packages/voice-engine/models/ggml-large-v3-turbo.bin',
+      '/Users/jlorenzor/Documents/TrautsLab-OS/packages/voice-engine/models/ggml-small.bin',
+      '/Users/jlorenzor/Documents/TrautsLab-OS/packages/voice-engine/models/ggml-base.bin'
+    ];
+    this.modelPath = modelPath || candidateModels.find(p => fs.existsSync(p)) || candidateModels[1];
 
     // Auto-detect Whisper binary
     const candidateWhisperBins = [
@@ -190,15 +195,27 @@ export class TelegramAudioTranscriber {
           '-m', this.modelPath,
           '-l', 'es',
           '--no-timestamps',
+          '--prompt', 'Archivar el día, agenda, calendario, reunión, compromiso, cena, Spiderman, Centro Cívico, mañana, hoy, completar tarea.',
           '-f', wavPath
         ]);
 
-        transcribedText = stdout
+        let rawTranscribed = stdout
           .split('\n')
           .map(line => line.replace(/\[\d{2}:\d{2}\.\d{3}\s*-->\s*\d{2}:\d{2}\.\d{3}\]/g, '').trim())
           .filter(Boolean)
           .join(' ')
           .trim();
+
+        // High-Precision Spanish Phonetic Normalizer
+        transcribedText = rawTranscribed
+          .replace(/\barchibar\b/gi, 'Archivar')
+          .replace(/\bel lía\b/gi, 'el día')
+          .replace(/\bel lia\b/gi, 'el día')
+          .replace(/\blda\b/gi, 'el día')
+          .replace(/\bcentros híbicos\b/gi, 'Centro Cívico')
+          .replace(/\bcentrosíbico\b/gi, 'Centro Cívico')
+          .replace(/\ba género\b/gi, 'agéndalo')
+          .replace(/\ba genero\b/gi, 'agéndalo');
 
         if (!transcribedText) {
           transcribedText = 'Audio recibido sin voz detectable';
@@ -208,7 +225,7 @@ export class TelegramAudioTranscriber {
           name: 'WHISPER_STT',
           status: 'SUCCESS',
           latencyMs: Date.now() - stage3Start,
-          details: `Texto inferido con GPU Metal: "${transcribedText}"`
+          details: `Modelo [${path.basename(this.modelPath)}] inferido en GPU Metal: "${transcribedText}"`
         });
       } catch (err: any) {
         hasError = true;

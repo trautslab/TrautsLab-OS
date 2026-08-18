@@ -18,6 +18,7 @@ summary: "Agenda diaria para Jhonny Lorenzo (2026-08-19)."
 
 | Hora | Actividad / Compromiso | Ubicación | Prioridad | Estado |
 | :--- | :--- | :--- | :--- | :--- |
+| `09:00 AM` | **Evento Spiderman A ver Spiderman en centrosíbico p m** | N/A | `HIGH` | 🟡 Programado |
 | `09:00 AM` | **A cena con amigos p m** | N/A | `HIGH` | 🟡 Programado |
 
 ---

@@ -91,9 +91,16 @@ export class VoiceServer {
         if (url.pathname === '/api/observability/health' && req.method === 'GET') {
           try {
             const fs = await import('node:fs');
+            const path = await import('node:path');
             const whisperPath = '/opt/homebrew/bin/whisper-cli';
             const ffmpegPath = '/opt/homebrew/bin/ffmpeg';
-            const modelPath = '/Users/jlorenzor/Documents/TrautsLab-OS/packages/voice-engine/models/ggml-base.bin';
+            const modelsDir = '/Users/jlorenzor/Documents/TrautsLab-OS/packages/voice-engine/models';
+            const candidateModels = [
+              path.join(modelsDir, 'ggml-large-v3-turbo.bin'),
+              path.join(modelsDir, 'ggml-small.bin'),
+              path.join(modelsDir, 'ggml-base.bin')
+            ];
+            const modelPath = candidateModels.find(p => fs.existsSync(p)) || candidateModels[2];
 
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({
@@ -101,6 +108,7 @@ export class VoiceServer {
               whisperPath: fs.existsSync(whisperPath) ? whisperPath : 'NOT_FOUND',
               ffmpegInstalled: fs.existsSync(ffmpegPath),
               modelLoaded: fs.existsSync(modelPath),
+              modelName: path.basename(modelPath),
               modelSizeMb: fs.existsSync(modelPath) ? Math.round(fs.statSync(modelPath).size / (1024 * 1024)) : 0,
               hardwareAcceleration: 'Metal (Apple GPU)'
             }));

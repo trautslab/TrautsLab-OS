@@ -1,11 +1,18 @@
 {
   "schema_version": "1.0",
   "category": "daily_agenda",
-  "generated_at": "2026-08-18T22:08:53.828Z",
+  "generated_at": "2026-08-18T22:13:05.172Z",
   "expires_at": "2026-08-18T23:59:59Z",
-  "quick_summary_tts": "Todas las actividades han sido archivadas con éxito.",
+  "quick_summary_tts": "He actualizado 'Cena' para hoy a las 08:00 PM.",
   "data": {
-    "eventsCount": 0,
-    "events": []
+    "eventsCount": 1,
+    "events": [
+      {
+        "time": "08:00 PM",
+        "title": "Cena",
+        "priority": "high",
+        "status": "scheduled"
+      }
+    ]
   }
 }

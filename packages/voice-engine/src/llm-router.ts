@@ -78,7 +78,7 @@ Debes responder ÚNICAMENTE un objeto JSON válido con esta estructura exacta:
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3500); // 3.5s timeout for voice responsiveness
+      const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s timeout for reliable Ollama reasoning
 
       const res = await fetch(`${this.ollamaEndpoint}/api/chat`, {
         method: 'POST',
