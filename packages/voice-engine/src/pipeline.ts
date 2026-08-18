@@ -31,14 +31,6 @@ export class VoicePipeline {
     this.vaultRoot = config.vaultRoot;
     this.stt = new FasterWhisperSTTEngine({ endpointUrl: config.sttEndpoint });
     this.tts = new KokoroTTSEngine({ endpointUrl: config.ttsEndpoint });
-    this.router = new VoiceIntentRouter();
-    this.llmRouter = new LLMIntentRouter(config.ollamaEndpoint, config.modelName || 'qwen2.5:7b');
-    this.cacheMgr = new Tier2CacheManager(this.vaultRoot);
-    this.llm = new LLMEngine({
-      ollamaEndpoint: config.ollamaEndpoint,
-      modelName: config.modelName || 'qwen2.5:7b'
-    });
-
     // Setup skills registry
     this.skillRegistry = new SkillRegistry();
     this.skillRegistry.register(new MorningIntelScanSkill());
@@ -46,6 +38,14 @@ export class VoicePipeline {
     this.skillRegistry.register(new CalendarAddEventSkill());
     this.skillRegistry.register(new CalendarArchiveEventSkill());
     this.skillRegistry.register(new VaultSyncIndexerSkill());
+
+    this.llmRouter = new LLMIntentRouter(config.ollamaEndpoint || 'http://localhost:11434', config.modelName || 'qwen2.5:3b');
+    this.router = new VoiceIntentRouter(this.skillRegistry, this.llmRouter);
+    this.cacheMgr = new Tier2CacheManager(this.vaultRoot);
+    this.llm = new LLMEngine({
+      ollamaEndpoint: config.ollamaEndpoint || 'http://localhost:11434',
+      modelName: config.modelName || 'qwen2.5:3b'
+    });
   }
 
   /**
@@ -55,28 +55,10 @@ export class VoicePipeline {
     const totalStart = Date.now();
     const transcription = input.transcription.trim();
 
-    // 1. Brain Routing: Try Semantic LLM Intent Classification first
+    // 1. Brain Routing: Pure Semantic LLM Intent Classification & Tool Calling
     const routerStart = Date.now();
-    let classification: any = null;
-    let llmParameters: any = null;
-
-    try {
-      const llmResult = await this.llmRouter.classify(transcription);
-      if (llmResult && llmResult.intent && llmResult.intent !== 'conversational_chat') {
-        classification = {
-          tier: llmResult.tier,
-          confidence: llmResult.confidence,
-          target: llmResult.intent,
-          rationale: llmResult.reasoning
-        };
-        llmParameters = llmResult.parameters;
-      }
-    } catch {}
-
-    // Fallback to fast deterministic regex router if LLM router was neutral or timed out
-    if (!classification) {
-      classification = await this.router.classify(transcription);
-    }
+    const classification = await this.router.classify(transcription);
+    const llmParameters = classification.parameters;
     const routerMs = Date.now() - routerStart;
 
     let responsePlainText = '';

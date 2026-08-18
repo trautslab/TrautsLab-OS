@@ -17,7 +17,7 @@ export class LLMEngine {
 
   constructor(config: LLMEngineConfig = {}) {
     this.ollamaEndpoint = config.ollamaEndpoint || 'http://localhost:11434';
-    this.modelName = config.modelName || 'qwen2.5:7b';
+    this.modelName = config.modelName || 'qwen2.5:3b';
     this.systemPrompt = config.systemPrompt || 
       `Eres TrautsLab OS, el asistente inteligente personal de IA de Jhonny Lorenzo.
 Tu personalidad es proactiva, precisa, directa y conversacional.
@@ -45,6 +45,7 @@ Mantén tus respuestas breves y directas al grano para locución por voz (2 a 4 
           model: this.modelName,
           messages,
           stream: false,
+          keep_alive: '60m',
           options: {
             temperature: 0.7,
             num_predict: 200

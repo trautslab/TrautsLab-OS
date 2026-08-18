@@ -25,7 +25,7 @@ export class LLMIntentRouter {
   private ollamaEndpoint: string;
   private modelName: string;
 
-  constructor(endpoint = 'http://localhost:11434', model = 'qwen2.5:7b') {
+  constructor(endpoint = 'http://localhost:11434', model = 'qwen2.5:3b') {
     this.ollamaEndpoint = process.env.OLLAMA_ENDPOINT || endpoint;
     this.modelName = process.env.OLLAMA_MODEL || model;
   }
@@ -41,27 +41,37 @@ export class LLMIntentRouter {
   /**
    * Semantically classifies user query using LLM with structured JSON output
    */
-  async classify(query: string): Promise<LLMIntentResult | null> {
+  async classify(query: string, availableSkills?: any[]): Promise<LLMIntentResult | null> {
     const { dateStr, dayName, timeStr } = this.getPeruTimeContext();
+
+    const skillsDescription = availableSkills && availableSkills.length > 0
+      ? availableSkills.map((s, idx) => `${idx + 1}. "${s.metadata.id}": ${s.metadata.description} (Dominio: ${s.metadata.domain})`).join('\n')
+      : `1. "calendar-add-event": Agendar, programar, cambiar o asistir a un evento, cita, cena, película o reunión.
+2. "calendar-archive-event": Archivar, completar o limpiar compromisos o todo el día.
+3. "calendar-daily-brief": Consultar agenda de hoy o cronograma.
+4. "morning-intel-scan": Escaneo de noticias, GitHub Trending y Hacker News.
+5. "vault-sync-indexer": Reindexar o estructurar el Obsidian Vault.`;
 
     const systemPrompt = `Eres el Enrutador Semántico y Extractor de Herramientas de TrautsLab OS para Jhonny Lorenzo.
 Contexto Temporal Actual:
 - Fecha de Hoy: ${dateStr} (${dayName})
 - Hora Actual (Perú): ${timeStr}
 
-Analiza la orden del usuario (que puede provenir de voz o texto con posibles errores fonéticos) y determina si requiere ejecutar una herramienta o si es una conversación general.
+Analiza la orden del usuario (que proviene de voz o texto en español) y determina semánticamente la herramienta correspondiente o si es conversación general.
 
-Herramientas Disponibles:
-1. "calendar-add-event": Si el usuario expresa la intención de agendar, programar, cambiar, asistir o realizar un compromiso, cita, reunión, evento, ver una película, cine, cena, almuerzo, doctor, etc. (Ej: "quiero ir al cine a las 9:30 pm", "agenda cena mañana", "tengo dentista a las 4").
-2. "calendar-archive-event": Si el usuario pide archivar, completar, dar por concluida o limpiar una tarea o todo el día.
-3. "calendar-daily-brief": Si el usuario pregunta qué tiene hoy, su agenda, qué compromisos hay.
-4. "morning-intel-scan": Si pide escanear noticias, tendencias de GitHub, Hacker News o briefing matutino.
-5. "vault-sync-indexer": Si pide sincronizar, reindexar o auditar el Vault de Obsidian.
+Herramientas del Sistema:
+${skillsDescription}
 6. "conversational_chat": Charla, dudas generales, explicaciones, preguntas no relacionadas a herramientas.
+
+Reglas Semánticas:
+- Si el usuario dice "archivar el día", "archivar todo", "artivar", "completar el día" o variaciones, selecciona "calendar-archive-event" con action "archive_all".
+- Si el usuario menciona ir a un lugar, ver una película, cine, cena, reunión, cita médica, o cualquier compromiso con hora/fecha, selecciona "calendar-add-event" y extrae title, date, time y location.
+- Si pregunta qué tiene hoy o qué hay en su agenda, selecciona "calendar-daily-brief" o TIER_2_CACHE con target "today-agenda".
+- Si pregunta por noticias o tendencias de IA, selecciona TIER_2_CACHE con target "today-intel" o "morning-intel-scan".
 
 Debes responder ÚNICAMENTE un objeto JSON válido con esta estructura exacta:
 {
-  "intent": "calendar-add-event" | "calendar-archive-event" | "calendar-daily-brief" | "morning-intel-scan" | "vault-sync-indexer" | "conversational_chat",
+  "intent": "id-de-la-skill" | "today-agenda" | "today-intel" | "conversational_chat",
   "tier": "TIER_1_SKILL" | "TIER_2_CACHE" | "TIER_3_HEADLESS",
   "confidence": 0.95,
   "parameters": {
@@ -72,7 +82,7 @@ Debes responder ÚNICAMENTE un objeto JSON válido con esta estructura exacta:
     "location": "Lugar si aplica",
     "action": "add" | "modify" | "archive_one" | "archive_all"
   },
-  "reasoning": "Breve explicación de por qué elegiste esta herramienta",
+  "reasoning": "Breve explicación semántica de por qué elegiste esta acción",
   "suggestedReply": "Respuesta hablada natural y concisa para el usuario"
 }`;
 
@@ -88,6 +98,7 @@ Debes responder ÚNICAMENTE un objeto JSON válido con esta estructura exacta:
           model: this.modelName,
           stream: false,
           format: 'json',
+          keep_alive: '60m',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: query }
@@ -111,11 +122,26 @@ Debes responder ÚNICAMENTE un objeto JSON válido con esta estructura exacta:
 
       const parsed = JSON.parse(content);
 
-      // Normalize tier
-      let tier: LLMIntentResult['tier'] = 'TIER_3_HEADLESS';
-      if (['calendar-add-event', 'calendar-archive-event', 'morning-intel-scan', 'vault-sync-indexer'].includes(parsed.intent)) {
+      // Canonicalize intent and tier
+      let canonicalIntent = parsed.intent || 'conversational_chat';
+      let tier: LLMIntentResult['tier'] = parsed.tier || 'TIER_3_HEADLESS';
+
+      if (parsed.parameters?.action === 'archive_all' || parsed.parameters?.action === 'archive_one' || String(parsed.intent).includes('archive')) {
+        canonicalIntent = 'calendar-archive-event';
         tier = 'TIER_1_SKILL';
-      } else if (parsed.intent === 'calendar-daily-brief') {
+      } else if (parsed.parameters?.action === 'add' || parsed.parameters?.action === 'modify' || String(parsed.intent).includes('add-event') || String(parsed.intent).includes('schedule')) {
+        canonicalIntent = 'calendar-add-event';
+        tier = 'TIER_1_SKILL';
+      } else if (String(parsed.intent).includes('intel') || String(parsed.intent).includes('morning')) {
+        canonicalIntent = 'morning-intel-scan';
+        tier = 'TIER_1_SKILL';
+      } else if (String(parsed.intent).includes('indexer') || String(parsed.intent).includes('vault')) {
+        canonicalIntent = 'vault-sync-indexer';
+        tier = 'TIER_1_SKILL';
+      } else if (String(parsed.intent).includes('brief') || canonicalIntent === 'today-agenda') {
+        canonicalIntent = 'today-agenda';
+        tier = 'TIER_2_CACHE';
+      } else if (canonicalIntent === 'today-intel') {
         tier = 'TIER_2_CACHE';
       }
 
@@ -125,7 +151,7 @@ Debes responder ÚNICAMENTE un objeto JSON válido con esta estructura exacta:
       }
 
       return {
-        intent: parsed.intent || 'conversational_chat',
+        intent: canonicalIntent,
         tier,
         confidence: parsed.confidence || 0.9,
         parameters: parsed.parameters || {},

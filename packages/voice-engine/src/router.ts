@@ -1,144 +1,83 @@
+/**
+ * TrautsLab OS — Pure LLM Semantic Intent Router
+ * The LLM is the single source of truth for all intent classification, parameter extraction,
+ * and skill execution decisions without hardcoded regexes.
+ */
+
 import { VoiceClassification, VoiceTier } from './types.js';
+import { LLMIntentRouter, LLMIntentResult } from './llm-router.js';
+import { SkillRegistry } from '@trautslab/skills-engine';
 
 export class VoiceIntentRouter {
+  private llmRouter: LLMIntentRouter;
+  private skillRegistry?: SkillRegistry;
+
+  constructor(skillRegistry?: SkillRegistry, llmRouter?: LLMIntentRouter) {
+    this.skillRegistry = skillRegistry;
+    this.llmRouter = llmRouter || new LLMIntentRouter();
+  }
+
   /**
-   * Classify transcribed input text into one of the 3 tiers
+   * Semantically classifies user query using LLM as the sole authority
    */
-  async classify(text: string): Promise<VoiceClassification> {
-    const normalized = text.toLowerCase().trim();
-
-    // 1. Check for TIER 2: Read-Only Fast Cache Queries first for questions
-    const isCalendarRead = 
-      /\b(qué tengo|que tengo|qué hay|que hay|cuál es mi agenda|cual es mi agenda|lo más importante|lo mas importante|mis compromisos|compromisos programados|qué eventos|que eventos|mis eventos|mi horario|consultar agenda|ver agenda|revisar agenda|tengo algo hoy|tengo programado|tengo agendado|qué tengo que hacer|que tengo que hacer|mis tareas|qué tareas|que tareas)\b/i.test(normalized) ||
-      (/\b(compromisos|eventos|agenda|actividades|tareas|reuniones)\b/i.test(normalized) && /\b(tengo|hay|hoy|programados|agendados|pendientes|día|dia)\b/i.test(normalized) && !/\b(agendar|agendando|agéndame|agendame|agregar|añadir|crear|archivar|archiva)\b/i.test(normalized));
-
-    if (isCalendarRead) {
+  async classify(text: string): Promise<VoiceClassification & { parameters?: any }> {
+    const rawInput = text.trim();
+    if (!rawInput) {
       return {
-        tier: 'TIER_2_CACHE',
-        confidence: 0.98,
-        target: 'today-agenda',
-        rationale: 'Consulta de lectura sobre agenda y compromisos del día. Se atiende leyendo OUTPUT/cache/today-agenda.json.'
+        tier: 'TIER_3_HEADLESS',
+        confidence: 1.0,
+        target: 'general_chat',
+        rationale: 'Entrada vacía'
       };
     }
 
-    // 2. Check for TIER 1: Calendar Archiving & Task Completion
-    const isArchiveIntent = 
-      /\b(archivar|archiva|archíva|artivar|artiva|arcaive|archive|archibar|archíbame|archivame|archívalo|archivalo|archívala|archivala|completar|completa|marcar como completada|marca como completada|marcar como hecha|marca como hecha|dar por concluida|limpiar día|limpiar dia|archivar todo|archivar día|archivar dia)\b/i.test(normalized) ||
-      (/\b(archibar|artivar|archivar|archive|arcaive)\b/i.test(normalized) && /\b(día|dia|lía|lia|lda|today|todo)\b/i.test(normalized));
+    try {
+      // 1. Dynamic Tool Reasoning: Query the LLM with the list of registered skills
+      const availableSkills = this.skillRegistry?.list();
+      const llmResult = await this.llmRouter.classify(rawInput, availableSkills);
 
-    if (isArchiveIntent) {
-      return {
-        tier: 'TIER_1_SKILL',
-        confidence: 0.99,
-        target: 'calendar-archive-event',
-        rationale: 'Coincide con la orden de archivar una actividad o todos los compromisos del día en Obsidian.'
-      };
+      if (llmResult && llmResult.intent) {
+        // Tier 1: Skill Invocation
+        if (llmResult.tier === 'TIER_1_SKILL' || (this.skillRegistry && this.skillRegistry.get(llmResult.intent))) {
+          return {
+            tier: 'TIER_1_SKILL',
+            confidence: llmResult.confidence || 0.95,
+            target: llmResult.intent,
+            rationale: llmResult.reasoning || `Habilidad '${llmResult.intent}' seleccionada por el LLM.`,
+            parameters: llmResult.parameters
+          };
+        }
+
+        // Tier 2: Cache Read
+        if (llmResult.tier === 'TIER_2_CACHE' || llmResult.intent.startsWith('today-')) {
+          return {
+            tier: 'TIER_2_CACHE',
+            confidence: llmResult.confidence || 0.95,
+            target: llmResult.intent,
+            rationale: llmResult.reasoning || 'Consulta rápida a caché leída por el LLM.',
+            parameters: llmResult.parameters
+          };
+        }
+
+        // Tier 3: Conversational LLM
+        return {
+          tier: 'TIER_3_HEADLESS',
+          confidence: llmResult.confidence || 0.9,
+          target: rawInput,
+          rationale: llmResult.reasoning || 'Conversación general resuelta por razonamiento conversacional.',
+          parameters: llmResult.parameters
+        };
+      }
+    } catch (err: any) {
+      console.warn('[VoiceIntentRouter] Error en enrutador semántico LLM:', err.message);
     }
 
-    // 3. Check for TIER 1: Calendar Scheduling, Modification & Action Directives
-    const isCalendarAction = 
-      /\b(agendar|agendando|agéndame|agendame|agendes|agende|agendarme|agenda|agendalo|agéndalo|a género|a genero|programa|programar|programando|prográmame|programame|programes|programe|anota|anótame|anotame|anotes|pon|poner|ponme|crea|crear|añade|añadir|añádeme|agrega|agregar|agrégame|cambia|cambiar|cambies|cambiame|mueve|mover|reprograma|reprogramar|reprogrames|pasa|pasar|posterga|postergar|modifica|modificar|modifiques|recuérdame|recuerdame|recuerdes|recuerde|recordar|recordarme|avísame|avisame|avises|avise|avisar|avisarme)\b/i.test(normalized) ||
-      (/\b(quiero ir|voy a ir|vamos a ir|tengo que ir|tengo que|voy a|quiero ver|vamos a ver|asistir a|viajar a)\b/i.test(normalized) && /\b(a las|hoy|mañana|manana|pm|am|\d{1,2})\b/i.test(normalized)) ||
-      (/\b(cena|almuerzo|desayuno|reunion|reunión|meet|call|cita|evento|compromiso|recordatorio|estudiar|certificación|certificacion|clase|entrenamiento|doctor|médico|dentista|pelicula|película|cine|spiderman|concierto|partido)\b/i.test(normalized) && /\b(\d{1,2}(?::\d{2})?|\d{1,2}\s*(?:am|pm|hrs|horas|p\s*m|a\s*m)|a las|tarde|noche|mañana|pasado mañana)\b/i.test(normalized)) ||
-      /\b(a las\s*\d{1,2}(?::\d{2}|\s*y\s*\d{1,2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana)?)\b/i.test(normalized) ||
-      /\b(cambies a las|cambia a las|pactada a las|para las)\b/i.test(normalized);
-
-    if (isCalendarAction) {
-      return {
-        tier: 'TIER_1_SKILL',
-        confidence: 0.98,
-        target: 'calendar-add-event',
-        rationale: 'Coincide con la intención de crear, modificar o reprogramar un evento o compromiso en el calendario.'
-      };
-    }
-
-    if (
-      normalized.includes('ejecuta el escaneo') ||
-      normalized.includes('corre el escaneo') ||
-      normalized.includes('ejecutar escaneo') ||
-      normalized.includes('morning intel') ||
-      normalized.includes('escanear noticias')
-    ) {
-      return {
-        tier: 'TIER_1_SKILL',
-        confidence: 0.95,
-        target: 'morning-intel-scan',
-        rationale: 'Coincide con la orden directa de ejecutar el escaneo de inteligencia matutino.'
-      };
-    }
-
-    if (
-      normalized.includes('actualiza el calendario') ||
-      normalized.includes('sincronizar calendario') ||
-      normalized.includes('actualizar agenda')
-    ) {
-      return {
-        tier: 'TIER_1_SKILL',
-        confidence: 0.92,
-        target: 'calendar-daily-brief',
-        rationale: 'Coincide con la orden de actualizar el briefing de agenda.'
-      };
-    }
-
-    if (
-      normalized.includes('reindexar vault') ||
-      normalized.includes('indexa el vault') ||
-      normalized.includes('actualiza los indices')
-    ) {
-      return {
-        tier: 'TIER_1_SKILL',
-        confidence: 0.96,
-        target: 'vault-sync-indexer',
-        rationale: 'Coincide con la orden de reconstruir índices del Vault.'
-      };
-    }
-
-    // 2. Check for TIER 2: Fast Cache Report Queries (Read-Only)
-    if (
-      normalized.includes('que tengo en mi agenda') ||
-      normalized.includes('que hay en mi agenda') ||
-      normalized.includes('mis compromisos') ||
-      normalized.includes('mi horario') ||
-      normalized.includes('consultar agenda') ||
-      normalized.includes('agenda de hoy') ||
-      normalized.includes('compromisos de hoy') ||
-      normalized.includes('reuniones de hoy') ||
-      normalized.includes('que tengo hoy') ||
-      (normalized.includes('agenda') && !normalized.includes('agend')) ||
-      normalized.includes('calendario')
-    ) {
-      return {
-        tier: 'TIER_2_CACHE',
-        confidence: 0.98,
-        target: 'today-agenda',
-        rationale: 'Consulta de lectura sobre agenda y compromisos del día. Se atiende leyendo OUTPUT/cache/today-agenda.json.'
-      };
-    }
-
-    if (
-      normalized.includes('noticia') ||
-      normalized.includes('noticias') ||
-      normalized.includes('trending') ||
-      normalized.includes('tendencias') ||
-      normalized.includes('github') ||
-      normalized.includes('hacker news') ||
-      normalized.includes('ia de hoy') ||
-      normalized.includes('titulares')
-    ) {
-      return {
-        tier: 'TIER_2_CACHE',
-        confidence: 0.97,
-        target: 'today-intel',
-        rationale: 'Consulta de inteligencia/noticias matutinas. Se atiende leyendo OUTPUT/cache/today-intel.json.'
-      };
-    }
-
-    // 3. Fallback / Complex Goal: TIER 3: Headless Autonomous Agent
+    // 2. Safe Fallback: Default to Conversational LLM (Tier 3)
     return {
       tier: 'TIER_3_HEADLESS',
       confidence: 0.85,
-      target: text,
-      rationale: 'La consulta requiere investigación profunda, planificación o modificaciones de código mediante un agente CLI desatendido.'
+      target: rawInput,
+      rationale: 'Enrutado a procesamiento conversacional por LLM.'
     };
   }
 }
