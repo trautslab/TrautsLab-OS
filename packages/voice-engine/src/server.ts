@@ -82,6 +82,50 @@ export class VoiceServer {
           return;
         }
 
+        if (url.pathname === '/api/observability/logs' && req.method === 'GET') {
+          try {
+            const component = url.searchParams.get('component') || undefined;
+            const limit = parseInt(url.searchParams.get('limit') || '100', 10);
+            const { globalSessionManager } = await import('./session-manager.js');
+            const logs = globalSessionManager.getLogs(limit, component);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+              total_logs: logs.length,
+              logs
+            }));
+          } catch (err: any) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          }
+          return;
+        }
+
+        if (url.pathname === '/api/observability/session' && req.method === 'GET') {
+          try {
+            const { globalSessionManager } = await import('./session-manager.js');
+            const session = globalSessionManager.getSession();
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(session));
+          } catch (err: any) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          }
+          return;
+        }
+
+        if (url.pathname === '/api/observability/logs/clear' && req.method === 'POST') {
+          try {
+            const { globalSessionManager } = await import('./session-manager.js');
+            globalSessionManager.clearLogs();
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: true, message: 'Logs limpiados con éxito.' }));
+          } catch (err: any) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          }
+          return;
+        }
+
         if (url.pathname === '/api/telegram/status' && req.method === 'GET') {
           try {
             const { getTelegramConfig } = await import('@trautslab/telegram-bridge');

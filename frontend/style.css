@@ -2400,3 +2400,166 @@ html, body {
   font-size: 0.8rem;
 }
 
+/* Observability Tabs */
+.obs-tab-bar {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.obs-tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 14px;
+  color: var(--text-muted);
+  font-family: var(--font-hud-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: var(--transition-fast);
+}
+
+.obs-tab-btn:hover {
+  color: var(--amber-bright);
+}
+
+.obs-tab-btn.active {
+  color: var(--amber-primary);
+  border-bottom-color: var(--amber-primary);
+}
+
+/* Session Meta Banner */
+.obs-session-banner {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-family: var(--font-hud-mono);
+}
+
+.session-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.meta-label {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+}
+
+.meta-val {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #38bdf8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Log Toolbar & Chips */
+.obs-log-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.obs-filter-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.obs-filter-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  border-radius: 3px;
+  padding: 4px 10px;
+  font-family: var(--font-hud-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.obs-filter-chip:hover {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--amber-primary);
+}
+
+.obs-filter-chip.active {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: var(--amber-primary);
+  color: var(--amber-bright);
+}
+
+/* Logs Terminal Stream */
+.obs-logs-terminal {
+  background: #010409;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 12px;
+  max-height: 420px;
+  overflow-y: auto;
+  font-family: var(--font-hud-mono);
+  font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.obs-log-entry {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  line-height: 1.4;
+}
+
+.obs-log-time {
+  color: var(--text-dim);
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.obs-log-lvl {
+  padding: 1px 5px;
+  border-radius: 2px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.obs-log-lvl.INFO { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+.obs-log-lvl.SUCCESS { background: rgba(52, 211, 153, 0.15); color: #34d399; }
+.obs-log-lvl.WARN { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+.obs-log-lvl.ERROR { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.obs-log-lvl.STT { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+.obs-log-lvl.ROUTER { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+.obs-log-lvl.SKILL { background: rgba(236, 72, 153, 0.15); color: #f472b6; }
+.obs-log-lvl.TELEGRAM { background: rgba(14, 165, 233, 0.2); color: #38bdf8; }
+
+.obs-log-comp {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.obs-log-msg {
+  color: #e2e8f0;
+  word-break: break-word;
+}
+
+

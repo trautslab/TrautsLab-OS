@@ -553,39 +553,86 @@ Antes de buscar en todos los archivos, lee siempre el `index.md` del nivel en el
           <button id="btn-close-obs" class="voice-btn-close" aria-label="Cerrar (Esc)">&times;</button>
         </header>
 
+        <div class="obs-tab-bar">
+          <button type="button" class="obs-tab-btn active" id="tab-btn-obs-telemetry" data-target="obs-view-telemetry">📊 TELEMETRÍA Y SALUD</button>
+          <button type="button" class="obs-tab-btn" id="tab-btn-obs-logs" data-target="obs-view-logs">📜 LOGS Y SESIÓN END-TO-END</button>
+        </div>
+
         <div class="obs-body">
-          <!-- 1. Health Status Grid -->
-          <div class="obs-health-grid">
-            <div class="obs-health-card" id="obs-whisper-card">
-              <span class="obs-card-label">WHISPER-CLI ENGINE</span>
-              <span class="obs-card-val status-ok" id="obs-whisper-val">🟢 CARGANDO...</span>
-              <span class="obs-card-sub" id="obs-whisper-path">/opt/homebrew/bin/whisper-cli</span>
+          <!-- VIEW 1: TELEMETRY & HEALTH -->
+          <div id="obs-view-telemetry" class="obs-tab-content active">
+            <!-- 1. Health Status Grid -->
+            <div class="obs-health-grid">
+              <div class="obs-health-card" id="obs-whisper-card">
+                <span class="obs-card-label">WHISPER-CLI ENGINE</span>
+                <span class="obs-card-val status-ok" id="obs-whisper-val">🟢 CARGANDO...</span>
+                <span class="obs-card-sub" id="obs-whisper-path">/opt/homebrew/bin/whisper-cli</span>
+              </div>
+              <div class="obs-health-card" id="obs-ffmpeg-card">
+                <span class="obs-card-label">FFMPEG CONVERTER</span>
+                <span class="obs-card-val status-ok" id="obs-ffmpeg-val">🟢 CARGANDO...</span>
+                <span class="obs-card-sub" id="obs-ffmpeg-path">/opt/homebrew/bin/ffmpeg</span>
+              </div>
+              <div class="obs-health-card" id="obs-model-card">
+                <span class="obs-card-label">MODELO ESPAÑOL</span>
+                <span class="obs-card-val status-ok" id="obs-model-val">🟢 ggml-base.bin</span>
+                <span class="obs-card-sub">141 MB • GPU Metal (Apple M4)</span>
+              </div>
+              <div class="obs-health-card" id="obs-tg-card">
+                <span class="obs-card-label">TELEGRAM POLLER</span>
+                <span class="obs-card-val status-ok" id="obs-tg-val">🟢 EN LÍNEA</span>
+                <span class="obs-card-sub">@TrautsLabBot</span>
+              </div>
             </div>
-            <div class="obs-health-card" id="obs-ffmpeg-card">
-              <span class="obs-card-label">FFMPEG CONVERTER</span>
-              <span class="obs-card-val status-ok" id="obs-ffmpeg-val">🟢 CARGANDO...</span>
-              <span class="obs-card-sub" id="obs-ffmpeg-path">/opt/homebrew/bin/ffmpeg</span>
-            </div>
-            <div class="obs-health-card" id="obs-model-card">
-              <span class="obs-card-label">MODELO ESPAÑOL</span>
-              <span class="obs-card-val status-ok" id="obs-model-val">🟢 ggml-base.bin</span>
-              <span class="obs-card-sub">141 MB • GPU Metal (Apple M4)</span>
-            </div>
-            <div class="obs-health-card" id="obs-tg-card">
-              <span class="obs-card-label">TELEGRAM POLLER</span>
-              <span class="obs-card-val status-ok" id="obs-tg-val">🟢 EN LÍNEA</span>
-              <span class="obs-card-sub">@TrautsLabBot</span>
+
+            <!-- 2. Real-Time Telemetry Traces List -->
+            <div class="obs-traces-section">
+              <div class="obs-section-header">
+                <span class="obs-section-title">📊 TRAZAS DE AUDIO Y NOTAS DE VOZ EN TIEMPO REAL</span>
+                <button type="button" id="btn-refresh-obs-traces" class="telemetry-clear-btn">🔄 Actualizar</button>
+              </div>
+              <div id="obs-traces-list" class="obs-traces-container">
+                <div class="obs-trace-empty">Cargando trazas de audio...</div>
+              </div>
             </div>
           </div>
 
-          <!-- 2. Real-Time Telemetry Traces List -->
-          <div class="obs-traces-section">
-            <div class="obs-section-header">
-              <span class="obs-section-title">📊 TRAZAS DE AUDIO Y NOTAS DE VOZ EN TIEMPO REAL</span>
-              <button type="button" id="btn-refresh-obs-traces" class="telemetry-clear-btn">🔄 Actualizar</button>
+          <!-- VIEW 2: SESSION & END-TO-END LOGS -->
+          <div id="obs-view-logs" class="obs-tab-content" hidden>
+            <!-- Session Info Banner -->
+            <div class="obs-session-banner">
+              <div class="session-meta-item">
+                <span class="meta-label">ID DE SESIÓN ACTIVA:</span>
+                <span class="meta-val" id="obs-session-id">session_2026-08-18_...</span>
+              </div>
+              <div class="session-meta-item">
+                <span class="meta-label">INTERACCIONES:</span>
+                <span class="meta-val" id="obs-session-count">0</span>
+              </div>
+              <div class="session-meta-item">
+                <span class="meta-label">PERSISTENCIA OBSIDIAN:</span>
+                <span class="meta-val" id="obs-session-file">OUTPUT/reports/session-journal-2026-08-18.md</span>
+              </div>
             </div>
-            <div id="obs-traces-list" class="obs-traces-container">
-              <div class="obs-trace-empty">Cargando trazas de audio...</div>
+
+            <!-- Filters & Actions -->
+            <div class="obs-log-toolbar">
+              <div class="obs-filter-chips">
+                <button type="button" class="obs-filter-chip active" data-comp="ALL">TODOS</button>
+                <button type="button" class="obs-filter-chip" data-comp="telegram_bridge">TELEGRAM</button>
+                <button type="button" class="obs-filter-chip" data-comp="voice_engine">VOICE ENGINE</button>
+                <button type="button" class="obs-filter-chip" data-comp="skills_engine">SKILLS</button>
+                <button type="button" class="obs-filter-chip" data-comp="vault_engine">VAULT</button>
+              </div>
+              <div class="obs-toolbar-actions">
+                <button type="button" id="btn-clear-system-logs" class="telemetry-clear-btn">Limpiar Logs</button>
+                <button type="button" id="btn-refresh-system-logs" class="telemetry-clear-btn">🔄 Recargar</button>
+              </div>
+            </div>
+
+            <!-- Live Logs Terminal -->
+            <div id="obs-system-logs-container" class="obs-logs-terminal">
+              <div class="obs-log-entry info">[--:--:--] Inicializando visualizador de logs de sesión...</div>
             </div>
           </div>
         </div>

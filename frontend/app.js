@@ -1035,10 +1035,106 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // --- OBSERVABILITY LOGS & SESSION CONTROLLER ---
+  let activeLogComponent = 'ALL';
+  const obsSessionIdEl = document.getElementById('obs-session-id');
+  const obsSessionCountEl = document.getElementById('obs-session-count');
+  const obsSessionFileEl = document.getElementById('obs-session-file');
+  const obsLogsContainer = document.getElementById('obs-system-logs-container');
+  const btnClearLogs = document.getElementById('btn-clear-system-logs');
+  const btnRefreshLogs = document.getElementById('btn-refresh-system-logs');
+
+  async function loadSessionAndLogs() {
+    try {
+      // 1. Session Meta
+      const sRes = await fetch('http://localhost:3030/api/observability/session');
+      if (sRes.ok) {
+        const session = await sRes.json();
+        if (obsSessionIdEl) obsSessionIdEl.textContent = session.sessionId || 'N/A';
+        if (obsSessionCountEl) obsSessionCountEl.textContent = `${session.totalInteractions || 0} turnos`;
+        if (obsSessionFileEl) obsSessionFileEl.textContent = `OUTPUT/reports/session-journal-${session.date || 'hoy'}.md`;
+      }
+
+      // 2. System Logs
+      const url = `http://localhost:3030/api/observability/logs?component=${activeLogComponent}&limit=100`;
+      const lRes = await fetch(url);
+      if (lRes.ok) {
+        const data = await lRes.json();
+        const logs = data.logs || [];
+        if (obsLogsContainer) {
+          if (logs.length === 0) {
+            obsLogsContainer.innerHTML = '<div class="obs-trace-empty">No hay eventos registrados para el filtro seleccionado.</div>';
+          } else {
+            obsLogsContainer.innerHTML = logs.map(l => {
+              return `
+                <div class="obs-log-entry">
+                  <span class="obs-log-time">[${l.timePeru || l.timestamp}]</span>
+                  <span class="obs-log-lvl ${l.level}">${l.level}</span>
+                  <span class="obs-log-comp">[${l.component}]</span>
+                  <span class="obs-log-msg">${l.message}</span>
+                </div>
+              `;
+            }).join('');
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error cargando logs de sesión:', err);
+    }
+  }
+
+  // Tab switching in Observability Modal
+  const obsTabBtns = document.querySelectorAll('.obs-tab-btn');
+  obsTabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      obsTabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const targetId = btn.getAttribute('data-target');
+
+      document.querySelectorAll('.obs-tab-content').forEach(content => {
+        if (content.id === targetId) {
+          content.removeAttribute('hidden');
+          content.classList.add('active');
+        } else {
+          content.setAttribute('hidden', '');
+          content.classList.remove('active');
+        }
+      });
+
+      if (targetId === 'obs-view-logs') {
+        loadSessionAndLogs();
+      } else {
+        loadObservabilityData();
+      }
+    });
+  });
+
+  // Filter chips in Logs tab
+  const filterChips = document.querySelectorAll('.obs-filter-chip');
+  filterChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      filterChips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      activeLogComponent = chip.getAttribute('data-comp') || 'ALL';
+      loadSessionAndLogs();
+    });
+  });
+
+  btnClearLogs?.addEventListener('click', async () => {
+    try {
+      await fetch('http://localhost:3030/api/observability/logs/clear', { method: 'POST' });
+      loadSessionAndLogs();
+      showHudToast('LOGS LIMPIADOS', 'Se ha reiniciado el búfer de logs en vivo.', 'info', 3000);
+    } catch {}
+  });
+
+  btnRefreshLogs?.addEventListener('click', loadSessionAndLogs);
+
   function openObservabilityModal() {
     if (obsModal) {
       obsModal.removeAttribute('hidden');
       loadObservabilityData();
+      loadSessionAndLogs();
     }
   }
 

@@ -5,6 +5,7 @@ import { KokoroTTSEngine } from './tts-engine.js';
 import { VoiceIntentRouter } from './router.js';
 import { LLMEngine } from './llm-engine.js';
 import { sanitizeTextForSpeech } from './speech-sanitizer.js';
+import { globalSessionManager } from './session-manager.js';
 import { VoiceSessionInput, VoiceSessionResponse } from './types.js';
 
 export interface VoicePipelineConfig {
@@ -124,6 +125,22 @@ export class VoicePipeline {
     const ttsMs = Date.now() - ttsStart;
 
     const totalMs = Date.now() - totalStart;
+
+    // 4. Record into Active Session and Ledger
+    globalSessionManager.recordMessage({
+      sourceClient: (input.sourceClient as any) || 'global_hotkey',
+      sender: 'user',
+      type: 'text',
+      rawInput: transcription,
+      transcription,
+      responsePlainText,
+      tier: classification.tier,
+      latencyMs: totalMs,
+      metadata: {
+        target: classification.target,
+        confidence: classification.confidence
+      }
+    });
 
     return {
       inputTranscription: transcription,
