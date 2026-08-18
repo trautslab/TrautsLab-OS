@@ -139,6 +139,75 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // --- TELEGRAM PUSH NOTIFIER & LINK ENGINE ---
+  const btnTelegramStatus = document.getElementById('btn-telegram-status');
+  const telegramIcon = document.getElementById('telegram-icon');
+
+  async function checkTelegramStatus() {
+    try {
+      const res = await fetch('http://localhost:3030/api/telegram/status');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.configured) {
+          if (btnTelegramStatus) {
+            btnTelegramStatus.style.borderColor = 'rgba(52, 211, 153, 0.4)';
+            btnTelegramStatus.title = 'Telegram Link: ENLAZADO (Clic para enviar prueba)';
+          }
+          if (telegramIcon) telegramIcon.textContent = '✈️';
+        } else {
+          if (btnTelegramStatus) {
+            btnTelegramStatus.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+            btnTelegramStatus.title = 'Telegram Link: NO CONFIGURADO (Clic para configurar)';
+          }
+        }
+      }
+    } catch {}
+  }
+
+  if (btnTelegramStatus) {
+    btnTelegramStatus.addEventListener('click', async () => {
+      try {
+        const statusRes = await fetch('http://localhost:3030/api/telegram/status');
+        const statusData = await statusRes.json();
+
+        if (statusData.configured) {
+          showHudToast('TELEGRAM PUSH', 'Enviando notificación de prueba a tu móvil...', 'info', 3000);
+          const testRes = await fetch('http://localhost:3030/api/telegram/test', { method: 'POST' });
+          const testData = await testRes.json();
+          if (testData.sent) {
+            showHudToast('TELEGRAM CONECTADO', '¡Mensaje recibido en tu Telegram con éxito!', 'success', 5000);
+            appendTerminalLog('✓ [TELEGRAM] Notificación de prueba enviada con éxito.', 'success');
+          } else {
+            showHudToast('ERROR TELEGRAM', testData.error || 'No se pudo enviar mensaje.', 'warn', 5000);
+          }
+        } else {
+          const token = prompt('Ingresa tu TELEGRAM_BOT_TOKEN (de @BotFather):');
+          if (!token) return;
+          const chatId = prompt('Ingresa tu TELEGRAM_CHAT_ID (de @userinfobot):');
+          if (!chatId) return;
+
+          const cfgRes = await fetch('http://localhost:3030/api/telegram/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ botToken: token, chatId: chatId })
+          });
+
+          if (cfgRes.ok) {
+            showHudToast('TELEGRAM CONFIGURADO', 'Token guardado en .env. Probando conexión...', 'success', 5000);
+            appendTerminalLog('✓ [TELEGRAM] Token y Chat ID guardados en .env.', 'success');
+            await checkTelegramStatus();
+            await fetch('http://localhost:3030/api/telegram/test', { method: 'POST' });
+          }
+        }
+      } catch (err) {
+        console.error('Error con Telegram:', err);
+      }
+    });
+  }
+
+  // Check Telegram on boot
+  checkTelegramStatus();
+
   // 8. Documents Inbox Trail & Vault Tree Interactive Reader
   const docVaultMap = {
     'AGENTS.md': `# AGENTS.md: Vault Navigation Map\n\nEste archivo indica a cualquier agente cómo navegar este repositorio:\n1. **RAW/**: Datos crudos descargados de internet.\n2. **WIKI/**: Artículos sintetizados con index.md.\n3. **OUTPUT/**: Entregables y caché Tier 2.\n\n## Regla de Oro\nConsulta siempre el index.md más cercano para no saturar tu ventana de contexto.`,

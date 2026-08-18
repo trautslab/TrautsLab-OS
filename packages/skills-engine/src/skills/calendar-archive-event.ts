@@ -189,6 +189,17 @@ export class CalendarArchiveEventSkill implements Skill {
       ? `✓ Se han archivado todas las actividades del día (${archivedCount} registros guardados en tu historial de Obsidian).`
       : `✓ He archivado '${archivedItemName || 'la actividad'}' en tu historial de Obsidian.`;
 
+    // Enviar notificación a Telegram si está configurado
+    try {
+      const { sendTelegramNotification } = await import('@trautslab/telegram-bridge');
+      await sendTelegramNotification(
+        '📦 Compromiso Archivado',
+        archiveAll
+          ? `Se han archivado todos los compromisos del día (${archivedCount} registros guardados en tu historial).`
+          : `Se ha archivado *${archivedItemName || 'la actividad'}* en tu historial de Obsidian.`
+      );
+    } catch {}
+
     return {
       success: true,
       skillId: this.metadata.id,

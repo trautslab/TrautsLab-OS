@@ -4,7 +4,7 @@
   "description": "Local & hybrid real-time 3-Tier voice engine (Faster-Whisper STT, 3-Tier Router, Kokoro TTS) for TrautsLab OS",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "node -e 'fs.rmSync(\"dist\",{recursive:true,force:true})' && tsc",
     "test": "tsx src/cli.ts simulate",
     "simulate": "tsx src/cli.ts simulate",
     "server": "tsx src/cli.ts server",
@@ -23,7 +23,8 @@
   "license": "MIT",
   "dependencies": {
     "@trautslab/skills-engine": "file:../skills-engine",
-    "@trautslab/vault-engine": "file:../vault-engine"
+    "@trautslab/vault-engine": "file:../vault-engine",
+    "@trautslab/telegram-bridge": "file:../telegram-bridge"
   },
   "devDependencies": {
     "@types/node": "^22.13.4",

@@ -146,6 +146,15 @@ summary: "Agenda diaria para Jhonny Lorenzo (${parsed.targetDate})."
     const actionWord = query.toLowerCase().includes('cambi') || query.toLowerCase().includes('muev') ? 'actualizado' : 'agendado';
     const message = `✓ He ${actionWord} '${parsed.title}' para ${parsed.dateLabel} (${parsed.targetDate}) a las ${parsed.time}. Guardado en tu Obsidian Vault.`;
 
+    // Enviar notificación a Telegram si está configurado
+    try {
+      const { sendTelegramNotification } = await import('@trautslab/telegram-bridge');
+      await sendTelegramNotification(
+        '📅 Compromiso en Calendario',
+        `Se ha ${actionWord} *${parsed.title}* para ${parsed.dateLabel} (${parsed.targetDate}) a las *${parsed.time}*.\n\nSincronizado en tu Obsidian Vault.`
+      );
+    } catch {}
+
     return {
       success: true,
       skillId: this.metadata.id,

@@ -22,6 +22,7 @@
   "license": "MIT",
   "dependencies": {
     "@trautslab/vault-engine": "file:../vault-engine",
+    "@trautslab/telegram-bridge": "file:../telegram-bridge",
     "node-cron": "^3.0.3"
   },
   "devDependencies": {

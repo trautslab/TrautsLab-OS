@@ -40,6 +40,69 @@ export class VoiceServer {
           return;
         }
 
+        if (url.pathname === '/api/telegram/status' && req.method === 'GET') {
+          try {
+            const { getTelegramConfig } = await import('@trautslab/telegram-bridge');
+            const cfg = getTelegramConfig();
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+              configured: Boolean(cfg.botToken && cfg.chatId),
+              botTokenSet: Boolean(cfg.botToken),
+              chatIdSet: Boolean(cfg.chatId)
+            }));
+          } catch (err: any) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          }
+          return;
+        }
+
+        if (url.pathname === '/api/telegram/config' && req.method === 'POST') {
+          let body = '';
+          req.on('data', chunk => { body += chunk; });
+          req.on('end', async () => {
+            try {
+              const payload = JSON.parse(body || '{}');
+              const fsPromises = await import('node:fs/promises');
+              const path = await import('node:path');
+              const envPath = path.resolve(this.vaultRoot, '../.env');
+
+              const botToken = payload.botToken?.trim() || '';
+              const chatId = payload.chatId?.trim() || '';
+
+              process.env.TELEGRAM_BOT_TOKEN = botToken;
+              process.env.TELEGRAM_CHAT_ID = chatId;
+              process.env.TELEGRAM_ALLOWED_USER_ID = chatId;
+
+              const envContent = `# TrautsLab OS — Environment Configuration\nTELEGRAM_BOT_TOKEN="${botToken}"\nTELEGRAM_CHAT_ID="${chatId}"\nTELEGRAM_ALLOWED_USER_ID="${chatId}"\nOLLAMA_ENDPOINT="http://localhost:11434"\nOLLAMA_MODEL="qwen2.5:7b"\nOBSIDIAN_VAULT_ROOT="${this.vaultRoot}"\n`;
+              await fsPromises.writeFile(envPath, envContent, 'utf-8');
+
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: true, message: 'Configuración de Telegram guardada exitosamente.' }));
+            } catch (err: any) {
+              res.writeHead(500, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: err.message }));
+            }
+          });
+          return;
+        }
+
+        if (url.pathname === '/api/telegram/test' && req.method === 'POST') {
+          try {
+            const { sendTelegramNotification } = await import('@trautslab/telegram-bridge');
+            const result = await sendTelegramNotification(
+              '🧪 Prueba de Conexión TrautsLab OS',
+              '¡Hola Jhonny! Las notificaciones automáticas de TrautsLab OS están enlazadas y funcionando correctamente.'
+            );
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(result));
+          } catch (err: any) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          }
+          return;
+        }
+
         if (url.pathname === '/api/voice/query' && req.method === 'POST') {
           let body = '';
           req.on('data', chunk => { body += chunk; });
