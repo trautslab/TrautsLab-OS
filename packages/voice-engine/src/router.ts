@@ -36,8 +36,10 @@ export class VoiceIntentRouter {
 
     // 3. Check for TIER 1: Calendar Scheduling, Modification & Action Directives
     const isCalendarAction = 
-      /\b(agendar|agendando|agéndame|agendame|agendes|agende|agendarme|agenda|programa|programar|programando|prográmame|programame|programes|programe|anota|anótame|anotame|anotes|pon|poner|ponme|crea|crear|añade|añadir|añádeme|agrega|agregar|agrégame|cambia|cambiar|cambies|cambiame|mueve|mover|reprograma|reprogramar|reprogrames|pasa|pasar|posterga|postergar|modifica|modificar|modifiques|recuérdame|recuerdame|recuerdes|recuerde|recordar|recordarme|avísame|avisame|avises|avise|avisar|avisarme)\b/i.test(normalized) ||
-      (/\b(cena|almuerzo|desayuno|reunion|reunión|meet|call|cita|evento|compromiso|recordatorio|estudiar|certificación|certificacion|clase|entrenamiento|doctor|médico|dentista)\b/i.test(normalized) && /\b(\d{1,2}(?::\d{2})?|\d{1,2}\s*(?:am|pm|hrs|horas|p\s*m|a\s*m)|a las|tarde|noche|mañana|pasado mañana)\b/i.test(normalized)) ||
+      /\b(agendar|agendando|agéndame|agendame|agendes|agende|agendarme|agenda|agendalo|agéndalo|a género|a genero|programa|programar|programando|prográmame|programame|programes|programe|anota|anótame|anotame|anotes|pon|poner|ponme|crea|crear|añade|añadir|añádeme|agrega|agregar|agrégame|cambia|cambiar|cambies|cambiame|mueve|mover|reprograma|reprogramar|reprogrames|pasa|pasar|posterga|postergar|modifica|modificar|modifiques|recuérdame|recuerdame|recuerdes|recuerde|recordar|recordarme|avísame|avisame|avises|avise|avisar|avisarme)\b/i.test(normalized) ||
+      (/\b(quiero ir|voy a ir|vamos a ir|tengo que ir|tengo que|voy a|quiero ver|vamos a ver|asistir a|viajar a)\b/i.test(normalized) && /\b(a las|hoy|mañana|manana|pm|am|\d{1,2})\b/i.test(normalized)) ||
+      (/\b(cena|almuerzo|desayuno|reunion|reunión|meet|call|cita|evento|compromiso|recordatorio|estudiar|certificación|certificacion|clase|entrenamiento|doctor|médico|dentista|pelicula|película|cine|spiderman|concierto|partido)\b/i.test(normalized) && /\b(\d{1,2}(?::\d{2})?|\d{1,2}\s*(?:am|pm|hrs|horas|p\s*m|a\s*m)|a las|tarde|noche|mañana|pasado mañana)\b/i.test(normalized)) ||
+      /\b(a las\s*\d{1,2}(?::\d{2}|\s*y\s*\d{1,2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana)?)\b/i.test(normalized) ||
       /\b(cambies a las|cambia a las|pactada a las|para las)\b/i.test(normalized);
 
     if (isCalendarAction) {

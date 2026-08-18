@@ -30,8 +30,15 @@ export class CalendarAddEventSkill implements Skill {
     const query = (ctx.args?.eventText as string || ctx.args?.query as string || 'Cena 8:00 PM').trim();
     const baseDate = ctx.timestamp ? new Date(ctx.timestamp) : new Date();
 
-    // 1. Universal Spatio-Temporal Event Parsing
-    const parsed = this.parseEventDetails(query, baseDate);
+    // 1. Universal Spatio-Temporal Event Parsing (Uses LLM arguments if provided, else fallback parser)
+    const parsed = (ctx.args?.title && ctx.args?.time)
+      ? {
+          title: ctx.args.title as string,
+          time: ctx.args.time as string,
+          targetDate: (ctx.args.date as string) || baseDate.toISOString().split('T')[0],
+          dateLabel: ctx.args.date ? `el ${ctx.args.date}` : 'hoy'
+        }
+      : this.parseEventDetails(query, baseDate);
 
     // List all candidate vault locations
     const candidateVaults = [
@@ -231,18 +238,24 @@ summary: "Agenda diaria para Jhonny Lorenzo (${parsed.targetDate})."
 
     const targetDate = targetDateObj.toISOString().split('T')[0];
 
-    // 2. Extract Time
-    const timeRegex = /(?:(?:a las|cambies a las|cambia a las|pactada a las|para las|de las)\s*)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana|a\s*m|p\s*m)?)/gi;
+    // 2. Extract Time (supports 9:30 pm, 9 y 30 pm, 9 y media, 9 y cuarto, 21:00, etc.)
+    const timeRegex = /(?:(?:a las|cambies a las|cambia a las|pactada a las|para las|de las)\s*)?(\d{1,2}(?::\d{2}|\s*y\s*\d{1,2}|\s*y\s*media|\s*y\s*cuarto)?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana|a\s*m|p\s*m)?)/gi;
     const matches = Array.from(text.matchAll(timeRegex)).filter(m => m[1] && /\d/.test(m[1]));
 
     let targetTimeStr = '09:00 AM';
 
     if (matches.length > 0) {
       const lastMatch = matches[matches.length - 1];
-      const rawTime = lastMatch[1].toUpperCase().trim()
+      let rawTime = lastMatch[1].toUpperCase().trim()
         .replace(/\s+/g, ' ')
         .replace(/A\s*M/g, 'AM')
         .replace(/P\s*M/g, 'PM');
+
+      // Convert "9 Y 30" -> "9:30", "9 Y MEDIA" -> "9:30", "9 Y CUARTO" -> "9:15"
+      rawTime = rawTime
+        .replace(/(\d{1,2})\s*Y\s*MEDIA/i, '$1:30')
+        .replace(/(\d{1,2})\s*Y\s*CUARTO/i, '$1:15')
+        .replace(/(\d{1,2})\s*Y\s*(\d{1,2})/i, '$1:$2');
 
       const match = rawTime.match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM|HRS|HORAS)?/i);
       if (match) {
@@ -276,10 +289,11 @@ summary: "Agenda diaria para Jhonny Lorenzo (${parsed.targetDate})."
     // 3. Extract Dynamic Event Title (Non-Overfitting)
     let cleanTitle = text
       .replace(/\b(?:ayúdame|ayudame|por favor|quiero que|necesito que|puedes|podrías|podrias)\b/gi, '')
-      .replace(/\b(?:agendar|agendando|agéndame|agendame|agendes|agende|agendarme|agenda|programa|programar|programando|prográmame|programame|programes|programe|anota|anótame|anotame|anotes|pon|poner|ponme|crea|crear|añade|añadir|añádeme|agrega|agregar|agrégame|cambia|cambiar|cambies|cambiame|mueve|mover|reprograma|reprogramar|reprogrames|pasa|pasar|posterga|postergar|modifica|modificar|modifiques|recuérdame|recuerdame|recuerdes|recuerde|recordar|recordarme|avísame|avisame|avises|avise|avisar|avisarme)\b\s*(?:una|un|el|la|los|las)?/gi, '')
+      .replace(/\b(?:quiero ir a|voy a ir a|vamos a ir a|tengo que ir a|quiero ir|voy a ir|tengo que|voy a|vamos a|quiero)\b/gi, '')
+      .replace(/\b(?:agendar|agendando|agéndame|agendame|agendes|agende|agendarme|agenda|agendalo|agéndalo|a género|a genero|programa|programar|programando|prográmame|programame|programes|programe|anota|anótame|anotame|anotes|pon|poner|ponme|crea|crear|añade|añadir|añádeme|agrega|agregar|agrégame|cambia|cambiar|cambies|cambiame|mueve|mover|reprograma|reprogramar|reprogrames|pasa|pasar|posterga|postergar|modifica|modificar|modifiques|recuérdame|recuerdame|recuerdes|recuerde|recordar|recordarme|avísame|avisame|avises|avise|avisar|avisarme)\b\s*(?:una|un|el|la|los|las)?/gi, '')
       .replace(/\b(?:para\s*)?(?:hoy|mañana|manana|pasado mañana|pasado manana|lunes|martes|miércoles|miercoles|jueves|viernes|sábado|sabado|domingo)\b/gi, '')
       .replace(/(?:el\s*)?\b\d{1,2}\s*(?:de|\/)\s*(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre|\d{1,2})\b/gi, '')
-      .replace(/(?:a las|para las|cambies a las|cambia a las|pactada a las|de las)?\s*\b\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana|a\s*m|p\s*m)?/gi, '')
+      .replace(/(?:a las|para las|cambies a las|cambia a las|pactada a las|de las)?\s*\b\d{1,2}(?::\d{2}|\s*y\s*\d{1,2}|\s*y\s*media|\s*y\s*cuarto)?\s*(?:am|pm|hrs|horas|de la tarde|de la noche|de la mañana|a\s*m|p\s*m)?/gi, '')
       .replace(/\b(?:sobre|de|que se trata sobre|para)\b\s*/gi, '')
       .replace(/[.,:;]/g, ' ')
       .replace(/\s+/g, ' ')
@@ -289,7 +303,7 @@ summary: "Agenda diaria para Jhonny Lorenzo (${parsed.targetDate})."
     if (cleanTitle.length > 0) {
       cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
     } else {
-      cleanTitle = 'Compromiso';
+      cleanTitle = 'Compromiso Agendado';
     }
 
     return {

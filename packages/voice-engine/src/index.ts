@@ -7,4 +7,5 @@ export * from './server.js';
 export * from './llm-engine.js';
 export * from './speech-sanitizer.js';
 export * from './session-manager.js';
+export * from './llm-router.js';
 

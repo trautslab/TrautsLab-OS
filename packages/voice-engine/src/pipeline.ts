@@ -3,6 +3,7 @@ import { Tier2CacheManager } from '@trautslab/vault-engine';
 import { FasterWhisperSTTEngine } from './stt-engine.js';
 import { KokoroTTSEngine } from './tts-engine.js';
 import { VoiceIntentRouter } from './router.js';
+import { LLMIntentRouter } from './llm-router.js';
 import { LLMEngine } from './llm-engine.js';
 import { sanitizeTextForSpeech } from './speech-sanitizer.js';
 import { globalSessionManager } from './session-manager.js';
@@ -21,6 +22,7 @@ export class VoicePipeline {
   private stt: FasterWhisperSTTEngine;
   private tts: KokoroTTSEngine;
   private router: VoiceIntentRouter;
+  private llmRouter: LLMIntentRouter;
   private cacheMgr: Tier2CacheManager;
   private skillRegistry: SkillRegistry;
   private llm: LLMEngine;
@@ -30,6 +32,7 @@ export class VoicePipeline {
     this.stt = new FasterWhisperSTTEngine({ endpointUrl: config.sttEndpoint });
     this.tts = new KokoroTTSEngine({ endpointUrl: config.ttsEndpoint });
     this.router = new VoiceIntentRouter();
+    this.llmRouter = new LLMIntentRouter(config.ollamaEndpoint, config.modelName || 'qwen2.5:7b');
     this.cacheMgr = new Tier2CacheManager(this.vaultRoot);
     this.llm = new LLMEngine({
       ollamaEndpoint: config.ollamaEndpoint,
@@ -52,9 +55,28 @@ export class VoicePipeline {
     const totalStart = Date.now();
     const transcription = input.transcription.trim();
 
-    // 1. Brain Routing
+    // 1. Brain Routing: Try Semantic LLM Intent Classification first
     const routerStart = Date.now();
-    const classification = await this.router.classify(transcription);
+    let classification: any = null;
+    let llmParameters: any = null;
+
+    try {
+      const llmResult = await this.llmRouter.classify(transcription);
+      if (llmResult && llmResult.intent && llmResult.intent !== 'conversational_chat') {
+        classification = {
+          tier: llmResult.tier,
+          confidence: llmResult.confidence,
+          target: llmResult.intent,
+          rationale: llmResult.reasoning
+        };
+        llmParameters = llmResult.parameters;
+      }
+    } catch {}
+
+    // Fallback to fast deterministic regex router if LLM router was neutral or timed out
+    if (!classification) {
+      classification = await this.router.classify(transcription);
+    }
     const routerMs = Date.now() - routerStart;
 
     let responsePlainText = '';
@@ -73,7 +95,8 @@ export class VoicePipeline {
           timestamp: new Date(),
           args: {
             query: transcription,
-            eventText: transcription
+            eventText: transcription,
+            ...(llmParameters || {})
           }
         };
         const result = await this.skillRegistry.execute(skillId, ctx);
