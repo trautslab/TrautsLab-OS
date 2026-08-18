@@ -40,6 +40,48 @@ export class VoiceServer {
           return;
         }
 
+        if (url.pathname === '/api/observability/traces' && req.method === 'GET') {
+          try {
+            const fsPromises = await import('node:fs/promises');
+            const path = await import('node:path');
+            const cachePath = path.join(this.vaultRoot, 'OUTPUT', 'cache', 'audio-observability.json');
+            let data = { recent_traces: [] };
+            try {
+              const content = await fsPromises.readFile(cachePath, 'utf-8');
+              data = JSON.parse(content);
+            } catch {}
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(data));
+          } catch (err: any) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          }
+          return;
+        }
+
+        if (url.pathname === '/api/observability/health' && req.method === 'GET') {
+          try {
+            const fs = await import('node:fs');
+            const whisperPath = '/opt/homebrew/bin/whisper-cli';
+            const ffmpegPath = '/opt/homebrew/bin/ffmpeg';
+            const modelPath = '/Users/jlorenzor/Documents/TrautsLab-OS/packages/voice-engine/models/ggml-base.bin';
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+              whisperInstalled: fs.existsSync(whisperPath),
+              whisperPath: fs.existsSync(whisperPath) ? whisperPath : 'NOT_FOUND',
+              ffmpegInstalled: fs.existsSync(ffmpegPath),
+              modelLoaded: fs.existsSync(modelPath),
+              modelSizeMb: fs.existsSync(modelPath) ? Math.round(fs.statSync(modelPath).size / (1024 * 1024)) : 0,
+              hardwareAcceleration: 'Metal (Apple GPU)'
+            }));
+          } catch (err: any) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          }
+          return;
+        }
+
         if (url.pathname === '/api/telegram/status' && req.method === 'GET') {
           try {
             const { getTelegramConfig } = await import('@trautslab/telegram-bridge');

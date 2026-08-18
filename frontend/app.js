@@ -957,14 +957,102 @@ document.addEventListener('DOMContentLoaded', () => {
       openVoiceModal();
     }
 
+    // 'O' -> Audio & STT Observability Modal
+    if (e.key.toLowerCase() === 'o') {
+      e.preventDefault();
+      if (obsModal && obsModal.hasAttribute('hidden')) {
+        openObservabilityModal();
+      } else {
+        closeObservabilityModal();
+      }
+    }
+
     // 'Escape' -> Close any modal / drawer
     if (e.key === 'Escape') {
       closeVoiceModal();
+      closeObservabilityModal();
       if (!terminalDrawer.hasAttribute('hidden')) {
         terminalDrawer.setAttribute('hidden', '');
       }
     }
   });
 
-  console.log("✓ [TrautsLab OS] HUD Command Center con 4 modos conectado y funcional.");
+  // --- AUDIO & STT OBSERVABILITY CONTROLLER ---
+  const btnAudioObs = document.getElementById('btn-audio-observability');
+  const obsModal = document.getElementById('audio-observability-modal');
+  const btnCloseObs = document.getElementById('btn-close-obs');
+  const btnRefreshObs = document.getElementById('btn-refresh-obs-traces');
+
+  const obsWhisperVal = document.getElementById('obs-whisper-val');
+  const obsFfmpegVal = document.getElementById('obs-ffmpeg-val');
+  const obsModelVal = document.getElementById('obs-model-val');
+  const obsTracesList = document.getElementById('obs-traces-list');
+
+  async function loadObservabilityData() {
+    try {
+      // 1. Health check
+      const healthRes = await fetch('http://localhost:3030/api/observability/health');
+      if (healthRes.ok) {
+        const h = await healthRes.json();
+        if (obsWhisperVal) obsWhisperVal.textContent = h.whisperInstalled ? '🟢 WHISPER-CLI ACTIVO' : '🔴 NO INSTALADO';
+        if (obsFfmpegVal) obsFfmpegVal.textContent = h.ffmpegInstalled ? '🟢 FFMPEG ACTIVO' : '🔴 NO INSTALADO';
+        if (obsModelVal) obsModelVal.textContent = h.modelLoaded ? `🟢 ggml-base.bin (${h.modelSizeMb}MB)` : '🔴 MODELO FALTANTE';
+      }
+
+      // 2. Traces
+      const tracesRes = await fetch('http://localhost:3030/api/observability/traces');
+      if (tracesRes.ok) {
+        const data = await tracesRes.json();
+        const traces = data.recent_traces || [];
+        if (obsTracesList) {
+          if (traces.length === 0) {
+            obsTracesList.innerHTML = '<div class="obs-trace-empty">No hay notas de voz registradas aún. Envía un audio por Telegram o haz una prueba en el Mac.</div>';
+          } else {
+            obsTracesList.innerHTML = traces.map(t => {
+              const isError = t.overallStatus === 'ERROR';
+              const stagesHtml = (t.stages || []).map(s => {
+                const icon = s.status === 'SUCCESS' ? '✓' : '⚠️';
+                return `<span class="obs-stage-pill">${icon} ${s.name}: ${s.latencyMs}ms</span>`;
+              }).join('');
+
+              return `
+                <div class="obs-trace-card ${isError ? 'error' : ''}">
+                  <div class="obs-trace-top">
+                    <span class="obs-trace-time">🕒 ${t.timePeru || t.timestamp}</span>
+                    <span class="obs-trace-badge">${t.totalLatencyMs}ms • ${t.pipelineTier || 'STT'}</span>
+                  </div>
+                  <div class="obs-trace-text">🎙️ "${t.transcribedText || 'Sin transcripción'}"</div>
+                  ${t.responsePlainText ? `<div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">🤖 <strong>Respuesta:</strong> ${t.responsePlainText}</div>` : ''}
+                  <div class="obs-trace-stages">${stagesHtml}</div>
+                </div>
+              `;
+            }).join('');
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Error cargando observabilidad:', e);
+    }
+  }
+
+  function openObservabilityModal() {
+    if (obsModal) {
+      obsModal.removeAttribute('hidden');
+      loadObservabilityData();
+    }
+  }
+
+  function closeObservabilityModal() {
+    if (obsModal) obsModal.setAttribute('hidden', '');
+  }
+
+  btnAudioObs?.addEventListener('click', openObservabilityModal);
+  btnCloseObs?.addEventListener('click', closeObservabilityModal);
+  btnRefreshObs?.addEventListener('click', loadObservabilityData);
+
+  obsModal?.addEventListener('click', (e) => {
+    if (e.target === obsModal) closeObservabilityModal();
+  });
+
+  console.log("✓ [TrautsLab OS] HUD Command Center con Observabilidad y Telegram conectado.");
 });

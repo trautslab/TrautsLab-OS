@@ -64,6 +64,9 @@
           <span class="hud-date" id="hud-live-date">MON • AUG 17</span>
         </div>
         <div class="hud-action-buttons">
+          <button id="btn-audio-observability" class="hud-btn-icon" aria-label="Observabilidad de Audio y STT (Tecla O)" title="Observabilidad de Audio & STT (Tecla O)">
+            <span>📡</span>
+          </button>
           <button id="btn-telegram-status" class="hud-btn-icon" aria-label="Estado de Telegram Bot" title="Telegram Push Link">
             <span id="telegram-icon">✈️</span>
           </button>
@@ -533,6 +536,62 @@ Antes de buscar en todos los archivos, lee siempre el `index.md` del nivel en el
         <!-- Footer Accessibility Hints -->
         <footer class="voice-modal-footer-info">
           <span class="footer-hint"><kbd>Espacio</kbd> o <kbd>V</kbd> para activar</span>
+          <span class="footer-sep">•</span>
+          <span class="footer-hint"><kbd>Esc</kbd> para cerrar</span>
+        </footer>
+      </div>
+    </div>
+
+    <!-- AUDIO & STT OBSERVABILITY MODAL -->
+    <div id="audio-observability-modal" class="hud-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="obs-modal-title" hidden>
+      <div class="hud-modal-card observability-card">
+        <header class="voice-modal-header">
+          <div class="voice-modal-tag">
+            <span class="voice-status-led ready"></span>
+            <span id="obs-modal-title">AUDIO & TELEGRAM STT OBSERVABILITY HUB</span>
+          </div>
+          <button id="btn-close-obs" class="voice-btn-close" aria-label="Cerrar (Esc)">&times;</button>
+        </header>
+
+        <div class="obs-body">
+          <!-- 1. Health Status Grid -->
+          <div class="obs-health-grid">
+            <div class="obs-health-card" id="obs-whisper-card">
+              <span class="obs-card-label">WHISPER-CLI ENGINE</span>
+              <span class="obs-card-val status-ok" id="obs-whisper-val">🟢 CARGANDO...</span>
+              <span class="obs-card-sub" id="obs-whisper-path">/opt/homebrew/bin/whisper-cli</span>
+            </div>
+            <div class="obs-health-card" id="obs-ffmpeg-card">
+              <span class="obs-card-label">FFMPEG CONVERTER</span>
+              <span class="obs-card-val status-ok" id="obs-ffmpeg-val">🟢 CARGANDO...</span>
+              <span class="obs-card-sub" id="obs-ffmpeg-path">/opt/homebrew/bin/ffmpeg</span>
+            </div>
+            <div class="obs-health-card" id="obs-model-card">
+              <span class="obs-card-label">MODELO ESPAÑOL</span>
+              <span class="obs-card-val status-ok" id="obs-model-val">🟢 ggml-base.bin</span>
+              <span class="obs-card-sub">141 MB • GPU Metal (Apple M4)</span>
+            </div>
+            <div class="obs-health-card" id="obs-tg-card">
+              <span class="obs-card-label">TELEGRAM POLLER</span>
+              <span class="obs-card-val status-ok" id="obs-tg-val">🟢 EN LÍNEA</span>
+              <span class="obs-card-sub">@TrautsLabBot</span>
+            </div>
+          </div>
+
+          <!-- 2. Real-Time Telemetry Traces List -->
+          <div class="obs-traces-section">
+            <div class="obs-section-header">
+              <span class="obs-section-title">📊 TRAZAS DE AUDIO Y NOTAS DE VOZ EN TIEMPO REAL</span>
+              <button type="button" id="btn-refresh-obs-traces" class="telemetry-clear-btn">🔄 Actualizar</button>
+            </div>
+            <div id="obs-traces-list" class="obs-traces-container">
+              <div class="obs-trace-empty">Cargando trazas de audio...</div>
+            </div>
+          </div>
+        </div>
+
+        <footer class="voice-modal-footer-info">
+          <span class="footer-hint"><kbd>O</kbd> para abrir observabilidad</span>
           <span class="footer-sep">•</span>
           <span class="footer-hint"><kbd>Esc</kbd> para cerrar</span>
         </footer>

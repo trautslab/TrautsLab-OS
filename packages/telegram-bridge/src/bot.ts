@@ -105,13 +105,24 @@ export class TelegramBotBridge {
       const transcriber = new TelegramAudioTranscriber();
       const sttResult = await transcriber.transcribeVoiceFile(botToken, msg.voiceFileId);
 
+      const routeStart = Date.now();
       const result = await this.voicePipeline.processQuery({
         transcription: sttResult.text,
         sourceClient: 'telegram'
       });
 
+      sttResult.trace.pipelineTier = result.tier;
+      sttResult.trace.responsePlainText = result.responsePlainText;
+      sttResult.trace.stages.push({
+        name: 'VOICE_PIPELINE_ROUTE',
+        status: 'SUCCESS',
+        latencyMs: Date.now() - routeStart,
+        details: `Enrutado a ${result.tier} (${result.target}) en ${result.latencies.totalMs}ms`
+      });
+
       let replyText = `🎙️ *Transcripción de Voz:* "${sttResult.text}"\n\n` +
-                      `🤖 *Respuesta [${result.tier}]:*\n${result.responsePlainText}`;
+                      `🤖 *Respuesta [${result.tier}]:*\n${result.responsePlainText}\n\n` +
+                      `⚡ _Latencia Total de Audio: ${sttResult.latencyMs}ms (Whisper GPU: Metal)_`;
 
       return {
         chatId: msg.chatId,

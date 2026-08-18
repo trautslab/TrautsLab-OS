@@ -1,6 +1,6 @@
 /**
- * TrautsLab OS — Telegram Real Audio Transcriber
- * Downloads OGG Opus voice notes from Telegram and transcribes them locally via Whisper-CPP and FFmpeg.
+ * TrautsLab OS — Telegram Real Audio Transcriber & Observability Engine
+ * Downloads OGG Opus voice notes from Telegram and transcribes them locally via Whisper-CLI and FFmpeg.
  */
 
 import { execFile } from 'node:child_process';
@@ -11,106 +11,249 @@ import os from 'node:os';
 
 const execFileAsync = promisify(execFile);
 
+export interface AudioStageTrace {
+  name: 'DOWNLOAD_OGA' | 'FFMPEG_CONVERT' | 'WHISPER_STT' | 'VOICE_PIPELINE_ROUTE' | 'TELEGRAM_REPLY';
+  status: 'SUCCESS' | 'ERROR' | 'WARNING';
+  latencyMs: number;
+  details?: string;
+  error?: string;
+}
+
+export interface AudioTelemetryTrace {
+  id: string;
+  timestamp: string;
+  timePeru: string;
+  source: 'telegram' | 'web_pwa' | 'desktop';
+  fileId?: string;
+  fileSizeBytes?: number;
+  stages: AudioStageTrace[];
+  totalLatencyMs: number;
+  transcribedText?: string;
+  pipelineTier?: string;
+  responsePlainText?: string;
+  overallStatus: 'SUCCESS' | 'ERROR';
+}
+
+// In-memory trace history (last 50 audio requests)
+export const globalAudioTraces: AudioTelemetryTrace[] = [];
+
+export function recordAudioTrace(trace: AudioTelemetryTrace) {
+  globalAudioTraces.unshift(trace);
+  if (globalAudioTraces.length > 50) globalAudioTraces.pop();
+
+  // Also persist to Obsidian Vault cache
+  try {
+    const vaultPath = process.env.OBSIDIAN_VAULT_ROOT || '/Users/jlorenzor/Documents/Obsidian Vault';
+    const cacheDir = path.join(vaultPath, 'OUTPUT', 'cache');
+    if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
+    const cachePath = path.join(cacheDir, 'audio-observability.json');
+    fs.writeFileSync(cachePath, JSON.stringify({
+      last_updated: new Date().toISOString(),
+      traces_count: globalAudioTraces.length,
+      latest_trace: trace,
+      recent_traces: globalAudioTraces.slice(0, 10)
+    }, null, 2), 'utf-8');
+  } catch {}
+}
+
 export interface AudioTranscriptionResult {
   text: string;
   latencyMs: number;
+  trace: AudioTelemetryTrace;
   error?: string;
 }
 
 export class TelegramAudioTranscriber {
   private modelPath: string;
+  private whisperBinPath: string;
+  private ffmpegBinPath: string;
 
   constructor(modelPath?: string) {
     this.modelPath = modelPath || '/Users/jlorenzor/Documents/TrautsLab-OS/packages/voice-engine/models/ggml-base.bin';
+
+    // Auto-detect Whisper binary
+    const candidateWhisperBins = [
+      '/opt/homebrew/bin/whisper-cli',
+      '/usr/local/bin/whisper-cli',
+      '/opt/homebrew/bin/whisper-cpp',
+      '/usr/local/bin/whisper-cpp'
+    ];
+    this.whisperBinPath = candidateWhisperBins.find(p => fs.existsSync(p)) || '/opt/homebrew/bin/whisper-cli';
+
+    // Auto-detect FFmpeg binary
+    const candidateFfmpegBins = [
+      '/opt/homebrew/bin/ffmpeg',
+      '/usr/local/bin/ffmpeg',
+      'ffmpeg'
+    ];
+    this.ffmpegBinPath = candidateFfmpegBins.find(p => fs.existsSync(p)) || '/opt/homebrew/bin/ffmpeg';
   }
 
   /**
    * Downloads a voice note from Telegram API and transcribes it locally
    */
   public async transcribeVoiceFile(botToken: string, fileId: string): Promise<AudioTranscriptionResult> {
-    const start = Date.now();
+    const totalStart = Date.now();
+    const traceId = `trace_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    const nowPeru = new Date().toLocaleString('es-PE', {
+      timeZone: 'America/Lima',
+      hour12: true,
+      year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+
+    const stages: AudioStageTrace[] = [];
     const tempDir = os.tmpdir();
     const ogaPath = path.join(tempDir, `tg_voice_${Date.now()}_${Math.random().toString(36).substring(7)}.oga`);
     const wavPath = path.join(tempDir, `tg_voice_${Date.now()}_${Math.random().toString(36).substring(7)}.wav`);
 
+    let fileSizeBytes = 0;
+    let transcribedText = '';
+    let hasError = false;
+
+    // --- ETAPA 1: DOWNLOAD_OGA ---
+    const stage1Start = Date.now();
     try {
-      // 1. Get File Path from Telegram
       const getFileUrl = `https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`;
       const fileInfoRes = await fetch(getFileUrl);
-      if (!fileInfoRes.ok) {
-        throw new Error(`Error en getFile de Telegram: ${await fileInfoRes.text()}`);
-      }
-      const fileInfo = await fileInfoRes.json() as { ok: boolean; result?: { file_path: string } };
-      if (!fileInfo.ok || !fileInfo.result?.file_path) {
-        throw new Error('No se pudo obtener file_path de Telegram.');
-      }
+      if (!fileInfoRes.ok) throw new Error(`Telegram getFile HTTP error: ${fileInfoRes.status}`);
 
-      // 2. Download audio file (.oga / .ogg)
+      const fileInfo = await fileInfoRes.json() as { ok: boolean; result?: { file_path: string } };
+      if (!fileInfo.ok || !fileInfo.result?.file_path) throw new Error('Telegram no devolvió file_path');
+
       const downloadUrl = `https://api.telegram.org/file/bot${botToken}/${fileInfo.result.file_path}`;
       const audioRes = await fetch(downloadUrl);
-      if (!audioRes.ok) {
-        throw new Error(`Error descargando audio de Telegram: ${await audioRes.text()}`);
-      }
+      if (!audioRes.ok) throw new Error(`Telegram download error: ${audioRes.status}`);
+
       const buffer = Buffer.from(await audioRes.arrayBuffer());
+      fileSizeBytes = buffer.length;
       await fs.promises.writeFile(ogaPath, buffer);
 
-      // 3. Convert OGA to 16kHz Mono WAV with FFmpeg
-      await execFileAsync('/opt/homebrew/bin/ffmpeg', [
-        '-y',
-        '-i', ogaPath,
-        '-ar', '16000',
-        '-ac', '1',
-        '-c:a', 'pcm_s16le',
-        wavPath
-      ]);
-
-      // 4. Transcribe with Whisper-CPP
-      let transcribedText = '';
-      if (fs.existsSync(this.modelPath)) {
-        try {
-          const { stdout } = await execFileAsync('/opt/homebrew/bin/whisper-cpp', [
-            '-m', this.modelPath,
-            '-l', 'es',
-            '--no-timestamps',
-            '-f', wavPath
-          ]);
-
-          transcribedText = stdout
-            .split('\n')
-            .map(line => line.replace(/\[\d{2}:\d{2}\.\d{3}\s*-->\s*\d{2}:\d{2}\.\d{3}\]/g, '').trim())
-            .filter(Boolean)
-            .join(' ')
-            .trim();
-        } catch (whisperErr: any) {
-          console.warn('[TelegramAudioTranscriber] Whisper execution warning:', whisperErr.message);
-        }
-      }
-
-      // Fallback cleanup if text empty
-      if (!transcribedText) {
-        transcribedText = 'Consultar mi agenda de hoy';
-      }
-
-      const latencyMs = Date.now() - start;
-      console.log(`🎙️ [TelegramAudioTranscriber] Transcripción completada en ${latencyMs}ms: "${transcribedText}"`);
-
-      return {
-        text: transcribedText,
-        latencyMs
-      };
+      stages.push({
+        name: 'DOWNLOAD_OGA',
+        status: 'SUCCESS',
+        latencyMs: Date.now() - stage1Start,
+        details: `Descargado archivo ${fileInfo.result.file_path} (${fileSizeBytes} bytes)`
+      });
     } catch (err: any) {
-      console.error('[TelegramAudioTranscriber] Error procesando audio de voz:', err.message);
-      return {
-        text: '¿Qué compromisos tengo hoy?',
-        latencyMs: Date.now() - start,
+      hasError = true;
+      stages.push({
+        name: 'DOWNLOAD_OGA',
+        status: 'ERROR',
+        latencyMs: Date.now() - stage1Start,
         error: err.message
-      };
-    } finally {
-      // Clean temporary audio files
-      try {
-        if (fs.existsSync(ogaPath)) await fs.promises.unlink(ogaPath);
-        if (fs.existsSync(wavPath)) await fs.promises.unlink(wavPath);
-      } catch {}
+      });
     }
+
+    // --- ETAPA 2: FFMPEG_CONVERT ---
+    const stage2Start = Date.now();
+    if (!hasError) {
+      try {
+        await execFileAsync(this.ffmpegBinPath, [
+          '-y',
+          '-i', ogaPath,
+          '-ar', '16000',
+          '-ac', '1',
+          '-c:a', 'pcm_s16le',
+          wavPath
+        ]);
+
+        const wavStats = await fs.promises.stat(wavPath);
+        stages.push({
+          name: 'FFMPEG_CONVERT',
+          status: 'SUCCESS',
+          latencyMs: Date.now() - stage2Start,
+          details: `Convertido a 16kHz mono WAV (${wavStats.size} bytes)`
+        });
+      } catch (err: any) {
+        hasError = true;
+        stages.push({
+          name: 'FFMPEG_CONVERT',
+          status: 'ERROR',
+          latencyMs: Date.now() - stage2Start,
+          error: `Ffmpeg fallo: ${err.message}`
+        });
+      }
+    }
+
+    // --- ETAPA 3: WHISPER_STT ---
+    const stage3Start = Date.now();
+    if (!hasError) {
+      try {
+        if (!fs.existsSync(this.modelPath)) {
+          throw new Error(`Modelo Whisper no encontrado en ${this.modelPath}`);
+        }
+        if (!fs.existsSync(this.whisperBinPath)) {
+          throw new Error(`Binario Whisper no encontrado en ${this.whisperBinPath}`);
+        }
+
+        const { stdout, stderr } = await execFileAsync(this.whisperBinPath, [
+          '-m', this.modelPath,
+          '-l', 'es',
+          '--no-timestamps',
+          '-f', wavPath
+        ]);
+
+        transcribedText = stdout
+          .split('\n')
+          .map(line => line.replace(/\[\d{2}:\d{2}\.\d{3}\s*-->\s*\d{2}:\d{2}\.\d{3}\]/g, '').trim())
+          .filter(Boolean)
+          .join(' ')
+          .trim();
+
+        if (!transcribedText) {
+          transcribedText = 'Audio recibido sin voz detectable';
+        }
+
+        stages.push({
+          name: 'WHISPER_STT',
+          status: 'SUCCESS',
+          latencyMs: Date.now() - stage3Start,
+          details: `Texto inferido con GPU Metal: "${transcribedText}"`
+        });
+      } catch (err: any) {
+        hasError = true;
+        stages.push({
+          name: 'WHISPER_STT',
+          status: 'ERROR',
+          latencyMs: Date.now() - stage3Start,
+          error: `Whisper STT fallo: ${err.message}`
+        });
+      }
+    }
+
+    // Fallback if failed
+    if (hasError && !transcribedText) {
+      transcribedText = 'Error en reconocimiento de voz';
+    }
+
+    const totalLatencyMs = Date.now() - totalStart;
+
+    const trace: AudioTelemetryTrace = {
+      id: traceId,
+      timestamp: new Date().toISOString(),
+      timePeru: nowPeru,
+      source: 'telegram',
+      fileId,
+      fileSizeBytes,
+      stages,
+      totalLatencyMs,
+      transcribedText,
+      overallStatus: hasError ? 'ERROR' : 'SUCCESS'
+    };
+
+    recordAudioTrace(trace);
+    console.log(`🎙️ [Observability] Audio Trace ${traceId} [${trace.overallStatus}] en ${totalLatencyMs}ms: "${transcribedText}"`);
+
+    // Clean temp files
+    try {
+      if (fs.existsSync(ogaPath)) await fs.promises.unlink(ogaPath);
+      if (fs.existsSync(wavPath)) await fs.promises.unlink(wavPath);
+    } catch {}
+
+    return {
+      text: transcribedText,
+      latencyMs: totalLatencyMs,
+      trace
+    };
   }
 }
