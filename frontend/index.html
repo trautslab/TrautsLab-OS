@@ -48,6 +48,15 @@
         <button class="hud-mode-btn" id="mode-skills" data-mode="skills" role="tab" aria-selected="false" title="Skills & Crons (Tecla 4)">
           <span class="mode-num">4</span> SKILLS & CRON
         </button>
+        <button class="hud-mode-btn" id="mode-quickstart" data-mode="quickstart" role="tab" aria-selected="false" title="Guía de Inicio Rápido (Tecla 5)">
+          <span class="mode-num">5</span> QUICKSTART
+        </button>
+        <button class="hud-mode-btn" id="mode-docs" data-mode="docs" role="tab" aria-selected="false" title="Centro de Documentación y Arquitectura (Tecla 6)">
+          <span class="mode-num">6</span> DOCS & SPECS
+        </button>
+        <button class="hud-mode-btn" id="mode-changelog" data-mode="changelog" role="tab" aria-selected="false" title="Historial de Versiones SemVer (Tecla 7)">
+          <span class="mode-num">7</span> CHANGELOG
+        </button>
       </nav>
 
       <!-- Node Status Indicators -->
@@ -401,6 +410,275 @@ Antes de buscar en todos los archivos, lee siempre el `index.md` del nivel en el
                 <button class="s-btn-run hud-skill-btn" data-skill="vault-sync-indexer">Ejecutar Ahora</button>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. VIEW: QUICKSTART & ONBOARDING -->
+      <section id="view-quickstart" class="hud-view-panel" role="tabpanel" aria-labelledby="mode-quickstart">
+        <div class="doc-view-container">
+          <header class="doc-view-header">
+            <div class="doc-badge">⚡ GUÍA DE INICIO RÁPIDO</div>
+            <h2 class="doc-view-title">Onboarding, Atajos y Configuración de TrautsLab OS</h2>
+            <p class="doc-view-subtitle">Aprende a operar el Cockpit, el asistente de voz 3-Tier, el servidor MCP y el bot de Telegram.</p>
+          </header>
+
+          <div class="quickstart-grid">
+            <!-- Card 1: Arranque del Sistema -->
+            <article class="quickstart-card">
+              <div class="q-card-step">PASO 01</div>
+              <h3 class="q-card-title">🚀 Arranque Unificado</h3>
+              <p class="q-card-desc">Inicia los servidores de backend, frontend y abre la app de escritorio en un solo paso:</p>
+              <div class="code-snippet-box">
+                <code>npm run desktop</code>
+                <button type="button" class="btn-copy-snippet" data-copy="npm run desktop" title="Copiar comando">📋 Copiar</button>
+              </div>
+              <ul class="q-card-list">
+                <li><span class="dot-green"></span> <strong>Web HUD:</strong> <code>http://localhost:3000</code></li>
+                <li><span class="dot-green"></span> <strong>Voice Server & SSE:</strong> <code>http://localhost:3030</code></li>
+                <li><span class="dot-green"></span> <strong>Ollama Local LLM:</strong> <code>http://localhost:11434</code></li>
+              </ul>
+            </article>
+
+            <!-- Card 2: Controles y Atajos -->
+            <article class="quickstart-card">
+              <div class="q-card-step">PASO 02</div>
+              <h3 class="q-card-title">⌨️ Atajos de Teclado</h3>
+              <p class="q-card-desc">Navega y controla todo el sistema sin tocar el ratón:</p>
+              <div class="hotkey-compact-table">
+                <div class="hotkey-row"><kbd>Espacio</kbd> / <kbd>V</kbd> <span>Voice Link 3-Tier</span></div>
+                <div class="hotkey-row"><kbd>1</kbd>–<kbd>7</kbd> <span>Conmutar Modos del HUD</span></div>
+                <div class="hotkey-row"><kbd>L</kbd> / <kbd>H</kbd> <span>Modo Claro / Alto Contraste</span></div>
+                <div class="hotkey-row"><kbd>O</kbd> / <kbd>T</kbd> <span>Observabilidad / Terminal Shell</span></div>
+                <div class="hotkey-row"><kbd>Esc</kbd> <span>Cerrar Modales Activos</span></div>
+              </div>
+            </article>
+
+            <!-- Card 3: Servidor MCP para Agentes -->
+            <article class="quickstart-card full-span">
+              <div class="q-card-step">PASO 03</div>
+              <h3 class="q-card-title">🤖 Conexión de Agentes de IA (Model Context Protocol)</h3>
+              <p class="q-card-desc">Conecta <strong>Antigravity IDE</strong>, <strong>Claude Code</strong>, <strong>Cursor</strong> o <strong>Cline</strong> a tu Vault y calendario agregando esto a tu <code>mcp_config.json</code>:</p>
+              <div class="code-snippet-box mcp-json">
+                <pre><code>{
+  "mcpServers": {
+    "trautslab-os": {
+      "command": "npx",
+      "args": ["tsx", "/Users/jlorenzor/Documents/TrautsLab-OS/packages/mcp-server/src/cli.ts"],
+      "env": {
+        "VAULT_ROOT": "/Users/jlorenzor/Documents/Obsidian Vault",
+        "OLLAMA_ENDPOINT": "http://localhost:11434"
+      }
+    }
+  }
+}</code></pre>
+                <button type="button" class="btn-copy-snippet" data-copy='{"mcpServers":{"trautslab-os":{"command":"npx","args":["tsx","/Users/jlorenzor/Documents/TrautsLab-OS/packages/mcp-server/src/cli.ts"],"env":{"VAULT_ROOT":"/Users/jlorenzor/Documents/Obsidian Vault","OLLAMA_ENDPOINT":"http://localhost:11434"}}}}' title="Copiar JSON MCP">📋 Copiar JSON</button>
+              </div>
+            </article>
+
+            <!-- Card 4: Telegram Bot & Acceso Remoto -->
+            <article class="quickstart-card full-span">
+              <div class="q-card-step">PASO 04</div>
+              <h3 class="q-card-title">📱 Telegram Bot y Acceso Remoto Seguro</h3>
+              <div class="q-features-columns">
+                <div class="q-col">
+                  <strong>✈️ Bot de Telegram (@TrautsLabBot)</strong>
+                  <p>Envía notas de voz Opus o texto. Whisper Large v3 Turbo en GPU Metal transcribe tu voz y actualiza tu agenda en menos de 900ms.</p>
+                  <p>Prueba dictar: <em>"Avísame en 2 minutos para sacar la basura"</em>.</p>
+                </div>
+                <div class="q-col">
+                  <strong>🔒 Acceso Remoto Tailscale</strong>
+                  <p>Accede a la PWA desde cualquier lugar de forma cifrada punto a punto conectándote a tu red privada WireGuard de Tailscale a coste $0.</p>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. VIEW: DOCS & ARCHITECTURE CENTER -->
+      <section id="view-docs" class="hud-view-panel" role="tabpanel" aria-labelledby="mode-docs">
+        <div class="doc-view-container">
+          <header class="doc-view-header">
+            <div class="doc-badge">📚 CENTRO DE DOCUMENTACIÓN</div>
+            <h2 class="doc-view-title">Especificaciones, Casos de Uso y Arquitectura</h2>
+            <p class="doc-view-subtitle">Explora los 14 Casos de Uso, 7 ADRs, 11 Herramientas MCP y la matriz de mejoras del sistema.</p>
+
+            <!-- Docs Filter Tabs -->
+            <div class="docs-tab-filters" role="tablist">
+              <button type="button" class="docs-tab-btn active" data-tab="usecases">Casos de Uso (14)</button>
+              <button type="button" class="docs-tab-btn" data-tab="adrs">Decisiones ADR (7)</button>
+              <button type="button" class="docs-tab-btn" data-tab="mcptools">Herramientas MCP (11)</button>
+              <button type="button" class="docs-tab-btn" data-tab="roadmap">Matriz Multicanal & Roadmap</button>
+            </div>
+          </header>
+
+          <!-- Tab Content 1: Use Cases -->
+          <div id="docs-content-usecases" class="docs-tab-pane active">
+            <div class="specs-cards-grid">
+              <div class="spec-card"><span class="spec-id">UC-01</span><h4>🎙️ Voz & Routing 3-Tier</h4><p>Captura con Whisper Metal GPU, enrutador semántico Ollama y síntesis fonética Kokoro TTS.</p></div>
+              <div class="spec-card"><span class="spec-id">UC-02</span><h4>⚡ Skills & Crons</h4><p>Automatizaciones programadas y manuales (Daily Intel, Sync Indexer, Cron 08:00 AM).</p></div>
+              <div class="spec-card"><span class="spec-id">UC-03</span><h4>🧠 Memoria Vault Karpathy</h4><p>Estructura RAW / WIKI / OUTPUT con índices jerárquicos index.md sin saturar tokens.</p></div>
+              <div class="spec-card"><span class="spec-id">UC-04</span><h4>🖥️ Cockpit & Directivas</h4><p>Esfera Neuronal 3D en Three.js, checklist de Directivas Top 3 y 7 modos de navegación.</p></div>
+              <div class="spec-card"><span class="spec-id">UC-05</span><h4>📱 Acceso Remoto Móvil</h4><p>PWA móvil segura y cifrada punto a punto mediante túnel privado Tailscale WireGuard.</p></div>
+              <div class="spec-card"><span class="spec-id">UC-06</span><h4>👁️ Vault Watcher Daemon</h4><p>Observador Chokidar con debounce de 500ms y reindexación automática de tablas.</p></div>
+              <div class="spec-card"><span class="spec-id">UC-07</span><h4>📅 Edición de Agenda In-Place</h4><p>Modificación y archivado de eventos en daily-agenda-[fecha].md con refresco SSE en <100ms.</p></div>
+              <div class="spec-card"><span class="spec-id">UC-08</span><h4>🔔 Telegram Push & Timers</h4><p>Despacho inmediato de alertas y programación diferida de recordatorios con temporizador.</p></div>
+              <div class="spec-card"><span class="spec-id">UC-09</span><h4>📡 Server-Sent Events (SSE)</h4><p>Canal reactivo /api/events/live para auto-sincronización instantánea de vistas sin recargas.</p></div>
+              <div class="spec-card"><span class="spec-id">UC-10</span><h4>📊 Hub de Observabilidad</h4><p>Telemetría de hardware (GPU Metal, RAM, modelos) y trazas de audio de 5 etapas.</p></div>
+              <div class="spec-card"><span class="spec-id">UC-11</span><h4>🤖 Servidor MCP para LLMs</h4><p>Exposición de 11 herramientas sobre protocolo estándar JSON-RPC 2.0 (stdio y SSE).</p></div>
+              <div class="spec-card"><span class="spec-id">UC-12</span><h4>🔍 Búsqueda Vectorial Híbrida</h4><p>Recuperación BM25 léxica + similitud coseno de embeddings Ollama sin alterar Markdown.</p></div>
+              <div class="spec-card"><span class="spec-id">UC-13</span><h4>💻 App Desktop Tauri v2</h4><p>Shell nativa en Rust + WebKit, System Tray en menú de macOS y atajo Cmd+Shift+Space.</p></div>
+              <div class="spec-card"><span class="spec-id">UC-14</span><h4>🚀 Cuadrilla HyperAgent Tier 3</h4><p>Descomposición multi-rol (Planner, Navigator, Editor, Executor) con bucle de auto-reparación.</p></div>
+            </div>
+          </div>
+
+          <!-- Tab Content 2: ADRs -->
+          <div id="docs-content-adrs" class="docs-tab-pane" hidden>
+            <div class="specs-cards-grid">
+              <div class="spec-card"><span class="spec-id">ADR-001</span><h4>Memoria Local-First en Obsidian</h4><p>Adopción de archivos Markdown como fuente de verdad única bajo el patrón Karpathy.</p></div>
+              <div class="spec-card"><span class="spec-id">ADR-002</span><h4>Whisper Large v3 Turbo en Metal</h4><p>Transcripción acústica ultra-precisa en GPU de Apple Silicon eliminando modelos cloud.</p></div>
+              <div class="spec-card"><span class="spec-id">ADR-003</span><h4>Enrutador Semántico LLM 3-Tier</h4><p>Eliminación de expresiones regulares hardcodeadas en favor de enrutamiento neuronal flexible.</p></div>
+              <div class="spec-card"><span class="spec-id">ADR-004</span><h4>Canal Reactivo Server-Sent Events</h4><p>Sincronización en tiempo real cliente-servidor con latencia inferior a 100ms.</p></div>
+              <div class="spec-card"><span class="spec-id">ADR-005</span><h4>Bridge Asíncrono de Telegram</h4><p>Integración de mensajería y notas de voz Opus procesadas localmente con feedback TTS.</p></div>
+              <div class="spec-card"><span class="spec-id">ADR-006</span><h4>Escalabilidad con MCP y Tauri v2</h4><p>Protocolo estándar para agentes LLM y shell de escritorio ligera (<15MB RAM) vs Electron.</p></div>
+              <div class="spec-card"><span class="spec-id">ADR-007</span><h4>Cuadrilla Multi-Rol HyperAgent</h4><p>Descomposición estratégica y auto-reparación en 4 roles para tareas complejas no deterministas.</p></div>
+            </div>
+          </div>
+
+          <!-- Tab Content 3: MCP Tools -->
+          <div id="docs-content-mcptools" class="docs-tab-pane" hidden>
+            <div class="mcp-tools-table-wrap">
+              <table class="mcp-tools-table">
+                <thead>
+                  <tr>
+                    <th>Herramienta MCP</th>
+                    <th>Dominio</th>
+                    <th>Descripción</th>
+                    <th>Parámetros Clave</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td><code>trautslab_vault_read</code></td><td>Memoria</td><td>Lee notas y documentos Markdown íntegros con Frontmatter.</td><td><code>relativePath</code></td></tr>
+                  <tr><td><code>trautslab_vault_search</code></td><td>Memoria</td><td>Búsqueda léxica rápida (BM25) por palabras clave y tags.</td><td><code>query</code></td></tr>
+                  <tr><td><code>trautslab_vault_semantic_search</code></td><td>Búsqueda</td><td>Búsqueda semántica híbrida (BM25 + Ollama Embeddings).</td><td><code>query, topK, alpha</code></td></tr>
+                  <tr><td><code>trautslab_vault_reindex</code></td><td>Memoria</td><td>Reconstruye tablas de contenidos e índices jerárquicos index.md.</td><td><code>-</code></td></tr>
+                  <tr><td><code>trautslab_calendar_get_agenda</code></td><td>Productividad</td><td>Consulta cronograma y compromisos de hoy o cualquier fecha.</td><td><code>date</code></td></tr>
+                  <tr><td><code>trautslab_calendar_add_event</code></td><td>Productividad</td><td>Agenda nuevos compromisos en daily-agenda-[fecha].md.</td><td><code>time, title, location</code></td></tr>
+                  <tr><td><code>trautslab_calendar_edit_event</code></td><td>Productividad</td><td>Edita filas existentes de la agenda in-place en Markdown.</td><td><code>date, rowIndex, updates</code></td></tr>
+                  <tr><td><code>trautslab_calendar_archive</code></td><td>Productividad</td><td>Archiva tareas individuales o la jornada completa.</td><td><code>action, eventTitle</code></td></tr>
+                  <tr><td><code>trautslab_morning_intel_scan</code></td><td>Operaciones</td><td>Escanea repositorios tendencia en GitHub y debates en Hacker News.</td><td><code>-</code></td></tr>
+                  <tr><td><code>trautslab_telegram_notify</code></td><td>Mensajería</td><td>Envía alertas push o programa recordatorios diferidos con timer.</td><td><code>message, delayMinutes</code></td></tr>
+                  <tr><td><code>trautslab_hyperagent_run_task</code></td><td>Agentes</td><td>Delega metas complejas a la cuadrilla de 4 roles HyperAgent.</td><td><code>goal</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tab Content 4: Multichannel Matrix & Roadmap -->
+          <div id="docs-content-roadmap" class="docs-tab-pane" hidden>
+            <div class="roadmap-container">
+              <h3 class="roadmap-subtitle">🧭 Matriz de Políticas Multicanal (Propuesta de Enrutamiento Inteligente)</h3>
+              <p class="roadmap-desc">Criterios para determinar qué canal de comunicación debe emplearse en cada caso de uso:</p>
+              
+              <div class="channel-matrix-grid">
+                <div class="channel-card">
+                  <div class="channel-header"><span>✈️ TELEGRAM BOT</span><span class="badge-active">ACTIVO</span></div>
+                  <p><strong>Uso Recomendado:</strong> Recordatorios diferidos personales, alertas push urgentes, notas de voz rápidas en movilidad y confirmaciones de tareas.</p>
+                  <p><strong>Ventaja:</strong> Inmediatez en pantalla de bloqueo del teléfono móvil.</p>
+                </div>
+
+                <div class="channel-card">
+                  <div class="channel-header"><span>📅 GOOGLE CALENDAR</span><span class="badge-pending">FUTURO</span></div>
+                  <p><strong>Uso Recomendado:</strong> Sincronización con reuniones formales de trabajo, invitaciones a terceros y bloqueos de tiempo en calendario corporativo.</p>
+                  <p><strong>Integración:</strong> Sincronizador bidireccional CalDAV / Google Calendar API con el Vault.</p>
+                </div>
+
+                <div class="channel-card">
+                  <div class="channel-header"><span>💬 SLACK / DISCORD</span><span class="badge-pending">FUTURO</span></div>
+                  <p><strong>Uso Recomendado:</strong> Notificaciones a canales compartidos de equipo, resúmenes del Daily Intel matutino y alertas operativas de repositorios.</p>
+                  <p><strong>Integración:</strong> Incoming Webhooks y bot de workspace.</p>
+                </div>
+
+                <div class="channel-card">
+                  <div class="channel-header"><span>🍎 NOTIFICACIONES MACOS</span><span class="badge-active">ACTIVO</span></div>
+                  <p><strong>Uso Recomendado:</strong> Alertas locales inmediatas mientras se trabaja en la máquina de escritorio (vía Tauri System Tray / Notification Center).</p>
+                  <p><strong>Ventaja:</strong> Cero latencia de red y no interrumpe el flujo si estás en modo concentración.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. VIEW: CHANGELOG & RELEASES -->
+      <section id="view-changelog" class="hud-view-panel" role="tabpanel" aria-labelledby="mode-changelog">
+        <div class="doc-view-container">
+          <header class="doc-view-header">
+            <div class="doc-badge">📜 HISTORIAL DE VERSIONES</div>
+            <h2 class="doc-view-title">Changelog Oficial de TrautsLab OS</h2>
+            <p class="doc-view-subtitle">Evolución del sistema por versiones SemVer, commits atómicos y nuevas capacidades.</p>
+          </header>
+
+          <div class="changelog-timeline">
+            <!-- Release 1.2.0 -->
+            <article class="changelog-entry current">
+              <div class="entry-meta">
+                <span class="version-tag">v1.2.0</span>
+                <span class="release-date">2026-08-19</span>
+                <span class="release-status-badge">ACTUAL</span>
+              </div>
+              <div class="entry-body">
+                <h3 class="entry-title">🚀 The Autonomous Multi-Agent & Scaling Release</h3>
+                <p class="entry-summary">Integración del motor multi-rol HyperAgent Tier 3, Servidor MCP con 11 herramientas, Búsqueda Vectorial Híbrida y App Desktop con Tauri v2.</p>
+                <div class="entry-features">
+                  <div class="feat-tag">🤖 HyperAgent Quad (Planner, Navigator, Editor, Executor)</div>
+                  <div class="feat-tag">🔌 MCP Server con 11 Tools JSON-RPC 2.0</div>
+                  <div class="feat-tag">🔍 Motor Híbrido BM25 + Ollama Embeddings</div>
+                  <div class="feat-tag">💻 Shell Desktop Tauri v2 & System Tray macOS</div>
+                  <div class="feat-tag">⚡ Lanzador npm run desktop con cero errores</div>
+                  <div class="feat-tag">📑 14 Casos de Uso & 7 Decisiones ADR formalizadas</div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Release 1.1.0 -->
+            <article class="changelog-entry">
+              <div class="entry-meta">
+                <span class="version-tag">v1.1.0</span>
+                <span class="release-date">2026-08-18</span>
+              </div>
+              <div class="entry-body">
+                <h3 class="entry-title">⚡ The Real-Time & Telegram Intelligence Release</h3>
+                <p class="entry-summary">Canal reactivo Server-Sent Events, bot de Telegram con Whisper Metal GPU, edición in-place y Hub de Observabilidad.</p>
+                <div class="entry-features">
+                  <div class="feat-tag">✈️ Telegram Bot (@TrautsLabBot) con notas de voz Opus</div>
+                  <div class="feat-tag">🔔 Push inmediato y temporizadores diferidos</div>
+                  <div class="feat-tag">📡 Stream reactivo SSE /api/events/live (<100ms)</div>
+                  <div class="feat-tag">✏️ Edición y archivado in-place en Markdown</div>
+                  <div class="feat-tag">📊 Hub de Observabilidad E2E con telemetría GPU Metal</div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Release 1.0.0 -->
+            <article class="changelog-entry">
+              <div class="entry-meta">
+                <span class="version-tag">v1.0.0</span>
+                <span class="release-date">2026-08-17</span>
+              </div>
+              <div class="entry-body">
+                <h3 class="entry-title">🏛️ The Foundation & Karpathy Vault Release</h3>
+                <p class="entry-summary">Arquitectura inicial monorepo, 3-Tier Voice Pipeline, memoria en Obsidian Vault y Web HUD Cockpit con Esfera 3D.</p>
+                <div class="entry-features">
+                  <div class="feat-tag">🧠 Obsidian Vault Karpathy (RAW / WIKI / OUTPUT)</div>
+                  <div class="feat-tag">🎙️ Voice Pipeline 3-Tier (Skills, Caché, LLM)</div>
+                  <div class="feat-tag">🌐 Web HUD Cockpit con Three.js 3D Sphere</div>
+                  <div class="feat-tag">⌨️ Atajos de teclado completos (1-4, L, H, T, Espacio)</div>
+                  <div class="feat-tag">👁️ Vault Watcher Daemon con Chokidar</div>
+                </div>
+              </div>
+            </article>
           </div>
         </div>
       </section>

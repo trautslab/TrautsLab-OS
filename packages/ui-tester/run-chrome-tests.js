@@ -139,8 +139,8 @@ async function main() {
     await page.click('#btn-high-contrast');
   }, '10_high_contrast_hud.png');
 
-  // 11. Atajos de Teclado E2E (Teclas 1, 2, 3, 4, L, T, Esc)
-  await assertStep('11. Verificación de atajos de teclado HUD (1-4, L, T, Esc)', async () => {
+  // 11. Atajos de Teclado E2E (Teclas 1-7, L, T, Esc)
+  await assertStep('11. Verificación de atajos de teclado HUD (1-7, L, T, Esc)', async () => {
     await page.keyboard.press('KeyL'); // Switch back to Amber Void via L
     await new Promise(r => setTimeout(r, 200));
     const isDark = await page.$eval('body', el => el.classList.contains('theme-dark'));
@@ -153,6 +153,40 @@ async function main() {
     await page.keyboard.press('Digit1'); // Back to Cockpit
     await page.waitForSelector('#view-cockpit.active');
   }, '11_keyboard_shortcuts_verified.png');
+
+  // 12. Modo 5: Quickstart & Onboarding Guide
+  await assertStep('12. Modo 5: Guía Quickstart interactiva y MCP Setup', async () => {
+    await page.keyboard.press('Digit5');
+    await page.waitForSelector('#view-quickstart.active');
+    const title = await page.$eval('#view-quickstart .doc-view-title', el => el.textContent);
+    if (!title.includes('Onboarding')) throw new Error('Título de Quickstart incorrecto');
+  }, '12_hud_quickstart_view.png');
+
+  // 13. Modo 6: Docs & Specs Center (14 UCs, 7 ADRs, 11 MCP Tools)
+  await assertStep('13. Modo 6: Docs & Architecture con sub-tabs dinámicos', async () => {
+    await page.keyboard.press('Digit6');
+    await page.waitForSelector('#view-docs.active');
+
+    // Click on ADRs tab
+    await page.click('.docs-tab-btn[data-tab="adrs"]');
+    await page.waitForSelector('#docs-content-adrs.active');
+
+    // Click on MCP Tools tab
+    await page.click('.docs-tab-btn[data-tab="mcptools"]');
+    await page.waitForSelector('#docs-content-mcptools.active');
+
+    // Click on Roadmap tab
+    await page.click('.docs-tab-btn[data-tab="roadmap"]');
+    await page.waitForSelector('#docs-content-roadmap.active');
+  }, '13_hud_docs_view.png');
+
+  // 14. Modo 7: Changelog Timeline & SemVer Releases
+  await assertStep('14. Modo 7: Changelog interactivo con timeline de versiones', async () => {
+    await page.keyboard.press('Digit7');
+    await page.waitForSelector('#view-changelog.active');
+    const version = await page.$eval('.version-tag', el => el.textContent);
+    if (!version.includes('v1.2.0')) throw new Error('Versión v1.2.0 no encontrada');
+  }, '14_hud_changelog_view.png');
 
   await browser.close();
 

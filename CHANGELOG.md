@@ -1,112 +1,84 @@
-# Changelog
+# Changelog — TrautsLab OS
 
-Todos los cambios notables en este proyecto serán documentados en este archivo.
-
-El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
-y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
+Todas las modificaciones notables de este proyecto están documentadas en este archivo siguiendo el estándar [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [Semantic Versioning (SemVer)](https://semver.org/).
 
 ---
 
-## [Unreleased]
+## [1.2.0] — 2026-08-19 — *The Autonomous Multi-Agent & Scaling Release*
+
+### 🚀 Añadido
+- **Motor HyperAgent Tier 3 (`@trautslab/skills-engine`):**
+  - Implementada la cuadrilla de 4 roles especializados: `HyperPlanner` (descomposición estratégica), `HyperNavigator` (exploración híbrida del Vault), `HyperEditor` (redacción de Markdown y código TypeScript) y `HyperExecutor` (verificación, testeo e indexación).
+  - Bucle de auto-reparación (*Self-Repair Loop*) con hasta 3 reintentos automáticos ante fallos de sintaxis o de entorno.
+  - Carga en caliente (*Hot-Reload*) de nuevas habilidades en tiempo de ejecución.
+- **Servidor Model Context Protocol (MCP) (`@trautslab/mcp-server`):**
+  - Servidor estándar JSON-RPC 2.0 (`stdio` / `SSE`) con catálogo de **11 herramientas tipadas**:
+    1. `trautslab_vault_read`
+    2. `trautslab_vault_search`
+    3. `trautslab_vault_semantic_search`
+    4. `trautslab_vault_reindex`
+    5. `trautslab_calendar_get_agenda`
+    6. `trautslab_calendar_add_event`
+    7. `trautslab_calendar_edit_event`
+    8. `trautslab_calendar_archive`
+    9. `trautslab_morning_intel_scan`
+    10. `trautslab_telegram_notify`
+    11. `trautslab_hyperagent_run_task`
+  - Guía completa de onboarding y configuración para Antigravity IDE, Claude Code, Cursor y Cline (`docs/mcp/onboarding-guide.md`).
+- **Motor de Búsqueda Vectorial Híbrida (`@trautslab/vault-engine`):**
+  - Módulo `HybridSearchEngine` combinando BM25 léxico con similitud coseno de embeddings generados localmente mediante Ollama (`qwen2.5:3b`).
+  - Habilidad `VaultSemanticSearchSkill` integrada en el pipeline de voz y en el servidor MCP.
+- **Aplicación Nativa de Escritorio con Tauri v2 (`packages/desktop-app`):**
+  - Shell de escritorio nativa en Rust + WebKit con huella de memoria inferior a 15 MB RAM.
+  - Icono persistente en la barra de menú de macOS (System Tray) y atajo global a nivel de sistema operativo (`Cmd+Shift+Space`).
+  - Lanzador unificado `npm run desktop` sin bugs en terminal.
+- **Modularización de Documentación de Arquitectura:**
+  - Desglose de `use-cases` en carpetas individuales (`docs/requirements/use-cases/UC-01` a `UC-14` + `index.md`).
+  - Desglose de diagramas de arquitectura en vistas globales, secuencias (`01` a `09`) y actividades (`docs/architecture/diagrams/`).
+  - Creados ADR-006 (Escalabilidad MCP y Tauri) y ADR-007 (Cuadrilla Multi-Rol HyperAgent Tier 3).
 
 ---
 
-## [1.0.0] - 2026-08-17 12:51:00 (PET / UTC-5)
+## [1.1.0] — 2026-08-18 — *The Real-Time & Telegram Intelligence Release*
 
-### Added
-- **Lanzamiento Estable Oficial v1.0.0 (TrautsLab OS):**
-  - **Patrón de Memoria Karpathy:** Reducción comprobada del **99.5%** en el consumo de tokens mediante tablas de contenido jerárquicas en `vault/WIKI/index.md`.
-  - **Pipeline de Voz 3-Tier Ultrarrápido:** Latencias récord de lectura en Caché Tier 2 (**0.13 ms**) y enrutamiento inteligente en **0.003 ms** (`@trautslab/voice-engine`).
-  - **Centro de Mando Cinemático (HUD V.A.U.L.T.):** Esfera neuronal 3D interactiva en HTML5 Canvas con 360 nodos en espiral de Fibonacci, 4 modos completos (Cockpit, Daily Intel, Vault Explorer, Skills Manager) y conmutación fluida de temas (Amber Void vs Pure Light HUD).
-  - **Plugin Nativo de Obsidian:** Command Center con soporte de Glassmorphism y auto-despliegue (`@trautslab/obsidian-plugin`).
-  - **Acceso Remoto Móvil:** PWA instalable con Service Worker offline y bot privado de Telegram (`@trautslab/telegram-bridge`) para notas de voz en la calle sin abrir puertos ($0/mes).
-  - **Self-Improving Loops:** `SkillQualityEvaluator` para auditoría y mejora automática de resúmenes y agendas.
-  - **Certificación de Pruebas E2E:** 100% de tests unitarios y 17 pruebas de interfaz en Google Chrome real (desktop y móvil) aprobadas con 0 errores.
-
-### Added
-- **Fase 6: Acceso Remoto Móvil y Asistente en la Calle:**
-  - **PWA & Service Worker:**
-    - Manifiesto `frontend/manifest.json` e iconos adaptables SVG 192px/512px.
-    - Service Worker `frontend/sw.js` con estrategia Cache-First y modo offline.
-    - Adaptabilidad responsiva móvil (`@media max-width: 900px`) optimizada para iPhone 14 y Pixel 7 (390px).
-  - **Telegram Bot Assistant Bridge (`@trautslab/telegram-bridge`):**
-    - `TelegramBotBridge`: Controlador con soporte para comandos (`/start`, `/intel`, `/agenda`, `/run`, `/status`), notas de voz con Faster-Whisper y respuestas de voz Kokoro TTS.
-    - CLI interactiva y simulación de mensajes (`npm run simulate`).
-    - Suite de pruebas unitarias (`tests/bot.test.ts`).
-  - **Túneles Seguros & Despliegue:**
-    - Scripts de lanzamiento `start-tailscale-serve.sh` y `start-cloudflare-tunnel.sh` con costo $0/mes.
-    - Guía de configuración completa en `docs/deployment/mobile-tunnel-setup.md`.
-  - **Pruebas Automatizadas en Google Chrome Móvil:**
-    - Suite `run-mobile-tests.js` emulando viewport móvil táctil en Chrome con 6/6 pruebas aprobadas y capturas reales.
-
-## [0.1.0-alpha.5] - 2026-08-17 11:05:00 (PET / UTC-5)
-
-### Added
-- **Fase 5: Plugin de Obsidian (Centro de Mando Visual Integrado):**
-  - Implementación del paquete `@trautslab/obsidian-plugin` con:
-    - `TrautsLabPlugin`: Registro de Ribbon Icon (`layout-dashboard`), comandos en la paleta de Obsidian y monitor de estado del motor en la barra de estado.
-    - `TrautsLabView`: Vista personalizada (`ItemView`) con estética Glassmorphism, paneles (*Overview, Daily Intel, Skills, Memory/Vault*) y modal de voz interactivo.
-    - `TrautsLabSettingTab`: Pestaña de configuración dentro de Obsidian para ajustar la URL del servidor de voz, voz de Kokoro TTS y temporizadores de actualización.
-    - `styles.css`: Estilos adaptados a las variables nativas de tema de Obsidian (modo oscuro y alto contraste).
-    - Script de despliegue automático hacia `vault/.obsidian/plugins/trautslab-command-center/`.
-
-### Added
-- **Fase 4: Pipeline de Voz Local e Híbrido (3-Tier Engine):**
-  - Implementación del paquete `@trautslab/voice-engine` con:
-    - `FasterWhisperSTTEngine`: Transcripción de audio local ultrarrápida con soporte para aceleración por hardware (MPS/CUDA).
-    - `KokoroTTSEngine`: Síntesis de voz natural y ligera (82M parámetros) con latencias inferiores a 250ms.
-    - `VoiceIntentRouter`: Enrutador inteligente de intenciones clasificando en Tier 1 (Skills), Tier 2 (Caché instantánea < 25ms) y Tier 3 (Agente headless desatendido).
-    - `VoicePipeline`: Orquestador end-to-end de audio, enrutamiento, ejecución y respuesta hablada.
-    - `VoiceServer`: Servidor HTTP local (puerto 3030) con endpoints `/api/voice/query` y `/api/voice/health`.
-    - CLI interactiva (`npm run simulate`, `npm run query "<texto>"`, `npm run server`).
-  - Verificación exitosa de latencias: **2ms - 21ms** en consultas Tier 2 de agenda e inteligencia matutina.
-
-### Added
-- **Fase 3: Motor de Habilidades (Skills) y Automatizaciones:**
-  - Implementación del paquete `@trautslab/skills-engine` con:
-    - `SkillRegistry`: Registro dinámico y ejecución controlada de procedimientos deterministas con métricas de tiempo de ejecución.
-    - `MorningIntelScanSkill`: Escaneo de tendencias en GitHub Trending y Hacker News con ingesta en `RAW/` y síntesis en `WIKI/` y caché Tier 2 (`today-intel.json`).
-    - `CalendarDailyBriefSkill`: Generación de cronograma diario, compromisos prioritarios y resumen fonético en `today-agenda.json`.
-    - `VaultSyncIndexerSkill`: Re-indexación automática de tablas de contenidos jerárquicas en el Vault.
-    - `SkillScheduler`: Planificador de tareas desatendidas con `node-cron`.
-    - `LaunchdGenerator`: Generador de archivo `com.trautslab.os.scheduler.plist` para ejecución permanente 24/7 en macOS.
-    - CLI unificada (`npm run run:skill <id>`, `npm run list`, `npm run cron`, `npm run generate-plist`).
-- **Estandarización de Documentación:**
-  - Inclusión obligatoria de marcas temporales con **Fecha y Hora Peruana (America/Lima / UTC-5)** en todos los documentos de ingeniería para trazabilidad cronológica intra-día.
-
-### Added
-- **Fase 2: Motor de Memoria y Vault (Patrón Karpathy):**
-  - Creación de la estructura física del Vault (`vault/RAW/`, `vault/WIKI/`, `vault/OUTPUT/cache/`).
-  - Creación del mapa maestro de navegación para agentes `vault/AGENTS.md`.
-  - Implementación del paquete `@trautslab/vault-engine` en TypeScript con:
-    - `VaultIndexer`: Escaneo recursivo y generación automática de tablas de contenido (`index.md` maestros y temáticos).
-    - `VaultWatcher`: Demonio observador de archivos en tiempo real con debounce de 500ms para reindexación automática.
-    - `Tier2CacheManager`: Lector y escritor ultrarrápido (<10ms) de snapshots JSON y resúmenes fonéticos para Kokoro TTS.
-    - `VaultHealthChecker`: Auditor de integridad, tags y YAML frontmatters.
-    - CLI unificada (`npm run index`, `npm run watch`, `npm run health`, `npm run cache:get`).
-- **Actualizaciones de Ingeniería y Especificación:**
-  - Inclusión del Caso de Uso `UC-06` (Observación en Tiempo Real e Indexación Incremental del Vault) en `docs/requirements/use-cases.md`.
-  - Inclusión de los requisitos funcionales `RF-05` (Vault File Watcher) y `RF-06` (Gestor de Caché Tier 2).
-  - Actualización del diagrama de componentes y nuevo diagrama de secuencia para el Vault Watcher en `docs/architecture/diagrams.md`.
-
-### Added
-- **Incepción del Proyecto:** Creación del documento fundacional `docs/inception/0-main-idea.md` con la visión de TrautsLab OS y sus 4 pilares fundamentales.
-- **Análisis de Acceso Móvil y Costos:** Creación de `docs/inception/1-mobile-remote-access-and-costs.md` detallando la arquitectura PWA, túneles seguros (Tailscale/Cloudflare) y desglose de costes ($3-$8/mes).
-- **Prototipo Frontend Accesible:**
-  - Estructura semántica en HTML5 (`frontend/index.html`) con roles ARIA, atajos globales de teclado (`1-4`, `Espacio/V`, `T`, `Esc`) y soporte para lectores de pantalla.
-  - Hoja de estilos `frontend/style.css` con estética moderna *Glassmorphism*, paleta oscura, animaciones de ondas de audio y modo de Alto Contraste.
-  - Lógica interactiva en `frontend/app.js` con simulador de enrutamiento por voz de 3 niveles, reloj en vivo, terminal integrada y visor jerárquico del Vault.
-- **Especificaciones de Ingeniería de Software:**
-  - Especificación formal de Casos de Uso (UC-01 al UC-05) y Requisitos Funcionales (RF-01 al RF-05) con diagramas Mermaid en `docs/requirements/use-cases.md`.
-  - Diagramas de arquitectura, componentes, secuencia y actividades en `docs/architecture/diagrams.md`.
-  - Guías de contribución (`CONTRIBUTING.md`), control de cambios (`CHANGELOG.md`) y política de versionado semántico (`VERSIONING.md`).
+### 🚀 Añadido
+- **Bridge Bidireccional de Telegram (`@trautslab/telegram-bridge`):**
+  - Demonio con Long-Polling para el bot `@TrautsLabBot`.
+  - Transcripción acelerada por Metal GPU de notas de voz (.oga / Opus) usando Whisper Large v3 Turbo en menos de 900ms.
+- **Habilidad de Notificaciones Push & Temporizadores Diferidos (`telegram-notify`):**
+  - Despacho inmediato de alertas con formato Markdown.
+  - Programación de recordatorios diferidos mediante temporizadores en background (`delayMinutes` / `setTimeout`).
+- **Canal Reactivo Server-Sent Events (SSE):**
+  - Endpoint `/api/events/live` en el servidor de voz (:3030).
+  - Actualización instantánea (<100ms) del timeline del HUD ante eventos `SCHEDULE_UPDATED`, `TASK_ARCHIVED` o `INTEL_UPDATED` sin recargas de página.
+- **Edición y Archivado In-Place de la Agenda:**
+  - Botón de edición `✏️` y modal interactivo para modificar hora o título de compromisos en `daily-agenda-[fecha].md`.
+  - Endpoint `POST /api/vault/agenda/edit`.
+  - Botón `📦` para archivar tareas completadas o la jornada entera.
+- **Hub de Observabilidad E2E y Telemetría:**
+  - Panel modal accesible con la tecla `O` que expone signos vitales de hardware (GPU Metal, RAM, modelos activos) y trazas acústicas de 5 etapas con latencias milimétricas.
+  - Exportación automática del diario de sesión a `OUTPUT/reports/session-journal-[fecha].md`.
+- **Arquitectura y Especificaciones Formales:**
+  - Creados ADR-001 a ADR-005.
+  - Suite de pruebas automatizadas en Google Chrome nativo (11 pruebas de escritorio + 6 pruebas móviles PWA).
 
 ---
 
-### Tipos de Cambios
-- `Added` para características nuevas añadidas.
-- `Changed` para cambios en funcionalidades existentes.
-- `Deprecated` para funcionalidades que serán removidas en futuras versiones.
-- `Removed` para funcionalidades eliminadas.
-- `Fixed` para corrección de bugs o errores.
-- `Security` para mejoras o parches de vulnerabilidades.
+## [1.0.0] — 2026-08-17 — *The Foundation & Karpathy Vault Release*
+
+### 🚀 Añadido
+- **Arquitectura Monorepo Inicial:**
+  - Creación de `@trautslab/vault-engine`, `@trautslab/skills-engine`, `@trautslab/voice-engine` y `frontend`.
+- **Estructura de Memoria Obsidian Vault (Patrón Karpathy):**
+  - Jerarquía de 3 capas: `RAW/` (ingesta cruda), `WIKI/` (conocimiento estructurado con índices `index.md`) y `OUTPUT/` (entregables y cronogramas).
+  - Observador en tiempo real con Chokidar (`vault-watcher`) y debounce de 500ms.
+- **Pipeline de Voz de 3 Niveles:**
+  - Tier 1: Habilidades deterministas (`morning-intel-scan`, `calendar-daily-brief`, `calendar-add-event`, `vault-sync-indexer`).
+  - Tier 2: Consultor de caché ultrarrápido (<20ms) desde snapshots JSON en el Vault.
+  - Tier 3: Agente conversacional LLM mediante Ollama local (`qwen2.5:3b`).
+  - Transcripción STT local (Faster-Whisper) y síntesis TTS con Kokoro.
+- **Web HUD Cockpit:**
+  - Interfaz gráfica inspirada en interfaces aeroespaciales (*Amber Void* / *Dark Glass*).
+  - Esfera Neuronal 3D en Three.js reactiva al audio.
+  - 4 Modos iniciales: Cockpit, Daily Intel, Vault Explorer y Skills Directory.
+  - Atajos de teclado completos (`1-4`, `L`, `H`, `T`, `V`, `Espacio`).

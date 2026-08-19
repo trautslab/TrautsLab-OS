@@ -1002,11 +1002,14 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', (e) => {
     if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
 
-    // Keys 1 to 4 -> Switch HUD View Modes
+    // Keys 1 to 7 -> Switch HUD View Modes
     if (e.key === '1') switchMode('cockpit');
     if (e.key === '2') switchMode('intel');
     if (e.key === '3') switchMode('vault');
     if (e.key === '4') switchMode('skills');
+    if (e.key === '5') switchMode('quickstart');
+    if (e.key === '6') switchMode('docs');
+    if (e.key === '7') switchMode('changelog');
 
     // 'L' -> Theme Toggle
     if (e.key.toLowerCase() === 'l') {
@@ -1045,6 +1048,47 @@ document.addEventListener('DOMContentLoaded', () => {
         terminalDrawer.setAttribute('hidden', '');
       }
     }
+  });
+
+  // 13. Docs Sub-Tabs Switcher & Snippet Copy Handlers
+  const docsTabBtns = document.querySelectorAll('.docs-tab-btn');
+  const docsPanes = document.querySelectorAll('.docs-tab-pane');
+
+  docsTabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabId = btn.getAttribute('data-tab');
+      docsTabBtns.forEach(b => b.classList.toggle('active', b === btn));
+      docsPanes.forEach(pane => {
+        const isTarget = pane.id === `docs-content-${tabId}`;
+        pane.classList.toggle('active', isTarget);
+        if (isTarget) {
+          pane.removeAttribute('hidden');
+        } else {
+          pane.setAttribute('hidden', '');
+        }
+      });
+    });
+  });
+
+  // Copy buttons
+  document.querySelectorAll('.btn-copy-snippet').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const textToCopy = btn.getAttribute('data-copy');
+      if (!textToCopy) return;
+      try {
+        await navigator.clipboard.writeText(textToCopy);
+        const originalText = btn.textContent;
+        btn.textContent = '✓ Copiado';
+        btn.classList.add('copied');
+        showHudToast('PORTAPAPELES', 'Texto copiado al portapapeles con éxito.', 'success', 2500);
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.classList.remove('copied');
+        }, 2000);
+      } catch (err) {
+        console.warn('Error al copiar:', err);
+      }
+    });
   });
 
   // --- AUDIO & STT OBSERVABILITY CONTROLLER ---
