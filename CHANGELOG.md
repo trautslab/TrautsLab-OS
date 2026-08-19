@@ -104,3 +104,24 @@ Todas las modificaciones notables de este proyecto están documentadas en este a
   - Esfera Neuronal 3D en Three.js reactiva al audio.
   - 4 Modos iniciales: Cockpit, Daily Intel, Vault Explorer y Skills Directory.
   - Atajos de teclado completos (`1-4`, `L`, `H`, `T`, `V`, `Espacio`).
+
+---
+
+## [0.2.0-beta] — 2026-08-16 — *The Voice & Vault Prototype Stage*
+
+### 🧪 Pruebas y Experimentos Iniciales
+- Integración experimental del servidor Faster-Whisper con aceleración MPS en Apple Silicon.
+- Primer prototipo del motor de síntesis Kokoro TTS (82M) con modulación de onda acústica.
+- Implementación de la memoria basada en sistema de archivos y primeras pruebas de indexación Markdown.
+- Prototipo del componente de Esfera Neuronal 3D en WebGL/Three.js.
+
+---
+
+## [0.1.0-alpha] — 2026-08-15 — *Proof of Concept & Architecture Inception*
+
+### 💡 Concepción & Arquitectura
+- Definición de la tesis arquitectónica: *Local-First Voice Operating System con memoria en Obsidian Vault*.
+- Especificación inicial de las 3 capas de memoria: `RAW/`, `WIKI/` y `OUTPUT/`.
+- Configuración del monorepo con TypeScript y Node.js.
+- Pruebas iniciales de inferencia local con Ollama y modelos de la familia Qwen.
+

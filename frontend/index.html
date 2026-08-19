@@ -416,6 +416,34 @@ Antes de buscar en todos los archivos, lee siempre el `index.md` del nivel en el
                 <div class="s-cron">CRON: 0 */4 * * * (Cada 4h)</div>
                 <button class="s-btn-run hud-skill-btn" data-skill="vault-sync-indexer">Ejecutar Ahora</button>
               </div>
+              <div class="skill-row">
+                <div class="s-info">
+                  <strong>notebooklm-sync</strong>
+                  <span>Google NotebookLM Grounded Research & Síntesis de Libretas en RAW/notebooklm/</span>
+                </div>
+                <div class="s-cron">ON-DEMAND / MCP TOOL 12</div>
+                <button class="s-btn-run hud-skill-btn" data-skill="notebooklm-sync" id="btn-run-notebooklm">Ejecutar Grounded Query</button>
+              </div>
+            </div>
+
+            <!-- NotebookLM Interactive Query Deck -->
+            <div class="notebooklm-interactive-deck">
+              <div class="card-title-bar" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px;">
+                <span class="card-tag">📚 GOOGLE NOTEBOOKLM • GROUNDED RESEARCH LAB</span>
+                <span class="card-subtag">MCP TOOL 12</span>
+              </div>
+              <p class="doc-view-subtitle" style="margin-bottom: 12px;">Interroga libretas de investigación documentadas y genera reportes de síntesis estructurados con citas contextuales en tu Obsidian Vault.</p>
+              <form id="form-notebooklm-query" class="notebooklm-form" onsubmit="event.preventDefault();">
+                <input type="text" id="input-notebooklm-topic" placeholder="Ingresa el tema o pregunta grounded (ej: Arquitectura de Agentes y Memoria Reflexiva)..." autocomplete="off">
+                <button type="submit" id="btn-submit-notebooklm">🚀 Ejecutar Síntesis</button>
+              </form>
+              <div id="notebooklm-result-box" class="notebooklm-result" hidden>
+                <div class="result-header">
+                  <span class="pulse-dot"></span>
+                  <span id="notebooklm-status-text">Sincronizando libreta y sintetizando notas...</span>
+                </div>
+                <div id="notebooklm-output-preview" class="result-content"></div>
+              </div>
             </div>
           </div>
         </div>

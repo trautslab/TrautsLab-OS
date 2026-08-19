@@ -163,14 +163,35 @@ summary: "Agenda diaria para Jhonny Lorenzo (${parsed.targetDate})."
     const actionWord = query.toLowerCase().includes('cambi') || query.toLowerCase().includes('muev') ? 'actualizado' : 'agendado';
     const message = `✓ He ${actionWord} '${parsed.title}' para ${parsed.dateLabel} (${parsed.targetDate}) a las ${parsed.time}. Guardado en tu Obsidian Vault.`;
 
-    // Enviar notificación a Telegram si está configurado
-    try {
-      const { sendTelegramNotification } = await import('@trautslab/telegram-bridge');
-      await sendTelegramNotification(
-        '📅 Compromiso en Calendario',
-        `Se ha ${actionWord} *${parsed.title}* para ${parsed.dateLabel} (${parsed.targetDate}) a las *${parsed.time}*.\n\nSincronizado en tu Obsidian Vault.`
-      );
-    } catch {}
+    // Multichannel Dispatch: TELEGRAM, MACOS, HUD, GOOGLE_CALENDAR, ALL
+    const requestedChannels: string[] = Array.isArray(ctx.args?.notifyChannels)
+      ? ctx.args.notifyChannels
+      : (typeof ctx.args?.notifyChannel === 'string' ? [ctx.args.notifyChannel] : ['ALL']);
+
+    const shouldNotifyAll = requestedChannels.includes('ALL');
+
+    // 1. Canal Telegram
+    if (shouldNotifyAll || requestedChannels.includes('TELEGRAM')) {
+      try {
+        const { sendTelegramNotification } = await import('@trautslab/telegram-bridge');
+        await sendTelegramNotification(
+          '📅 Compromiso en Calendario',
+          `Se ha ${actionWord} *${parsed.title}* para ${parsed.dateLabel} (${parsed.targetDate}) a las *${parsed.time}*.\n\nSincronizado en tu Obsidian Vault.`
+        );
+      } catch {}
+    }
+
+    // 2. Canal macOS Notificación Nativa
+    if (shouldNotifyAll || requestedChannels.includes('MACOS') || requestedChannels.includes('MACOS_NOTIFICATION')) {
+      if (process.platform === 'darwin') {
+        try {
+          const { exec } = await import('node:child_process');
+          const cleanTitle = `📅 Compromiso ${actionWord}: ${parsed.title}`.replace(/"/g, '\\"');
+          const cleanBody = `${parsed.dateLabel} (${parsed.targetDate}) a las ${parsed.time}`.replace(/"/g, '\\"');
+          exec(`osascript -e 'display notification "${cleanBody}" with title "${cleanTitle}" sound name "Glass"'`);
+        } catch {}
+      }
+    }
 
     return {
       success: true,

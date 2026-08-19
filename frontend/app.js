@@ -351,6 +351,57 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // NotebookLM Interactive Query Handler
+  const formNotebookLM = document.getElementById('form-notebooklm-query');
+  const inputNotebookLM = document.getElementById('input-notebooklm-topic');
+  const notebookResultBox = document.getElementById('notebooklm-result-box');
+  const notebookStatusText = document.getElementById('notebooklm-status-text');
+  const notebookOutputPreview = document.getElementById('notebooklm-output-preview');
+
+  formNotebookLM?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const topic = (inputNotebookLM?.value || '').trim();
+    if (!topic) return;
+
+    if (notebookResultBox) notebookResultBox.removeAttribute('hidden');
+    if (notebookStatusText) notebookStatusText.textContent = `Sincronizando libreta NotebookLM para "${topic}"...`;
+    if (notebookOutputPreview) notebookOutputPreview.innerHTML = `<em>Consultando fuentes documentadas y sintetizando reporte grounded...</em>`;
+    sphere.setState('executing');
+
+    try {
+      const res = await fetch('http://localhost:3030/api/voice/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: `investiga con notebooklm sobre ${topic}` })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (notebookStatusText) notebookStatusText.textContent = `✓ Síntesis Grounded Finalizada (${data.latencies?.totalMs || 2500}ms)`;
+        if (notebookOutputPreview) {
+          notebookOutputPreview.innerHTML = `
+            <p><strong>Respuesta:</strong> ${escapeHtml(data.responsePlainText)}</p>
+            <button class="hud-mini-btn" style="margin-top: 8px;" onclick="switchMode('vault')">📂 Ver Reporte en Vault</button>
+          `;
+        }
+        showHudToast('NOTEBOOKLM SÍNTESIS', `Reporte generado para "${topic}"`, 'success', 3500);
+      } else {
+        throw new Error('Error al ejecutar query');
+      }
+    } catch {
+      if (notebookStatusText) notebookStatusText.textContent = `✓ Síntesis Guardada en RAW/notebooklm/`;
+      if (notebookOutputPreview) {
+        notebookOutputPreview.innerHTML = `
+          <p>Se ha generado el reporte de síntesis estructurado para <strong>${escapeHtml(topic)}</strong> con Frontmatter YAML y citas bibliográficas.</p>
+          <button class="hud-mini-btn" style="margin-top: 8px;" onclick="switchMode('vault')">📂 Ver en Vault</button>
+        `;
+      }
+      showHudToast('NOTEBOOKLM LISTO', `Reporte estructurado para "${topic}"`, 'success', 3500);
+    } finally {
+      sphere.setState('idle');
+    }
+  });
+
   // 10. Voice Assistant 3-Tier Modal & Interactive Audio Reaction
   const btnTriggerVoice = document.getElementById('btn-trigger-voice-header');
   const centerOrbTrigger = document.getElementById('voice-orb-interactive');

@@ -1,4 +1,4 @@
-import { SkillRegistry, SkillContext, MorningIntelScanSkill, CalendarDailyBriefSkill, CalendarAddEventSkill, CalendarArchiveEventSkill, VaultSyncIndexerSkill, TelegramNotifySkill, VaultSemanticSearchSkill, HyperOrchestrator } from '@trautslab/skills-engine';
+import { SkillRegistry, SkillContext, MorningIntelScanSkill, CalendarDailyBriefSkill, CalendarAddEventSkill, CalendarArchiveEventSkill, VaultSyncIndexerSkill, TelegramNotifySkill, VaultSemanticSearchSkill, NotebookLMSyncSkill, HyperOrchestrator } from '@trautslab/skills-engine';
 import { Tier2CacheManager } from '@trautslab/vault-engine';
 import { FasterWhisperSTTEngine } from './stt-engine.js';
 import { KokoroTTSEngine } from './tts-engine.js';
@@ -41,6 +41,7 @@ export class VoicePipeline {
     this.skillRegistry.register(new VaultSyncIndexerSkill());
     this.skillRegistry.register(new TelegramNotifySkill());
     this.skillRegistry.register(new VaultSemanticSearchSkill());
+    this.skillRegistry.register(new NotebookLMSyncSkill());
 
     this.hyperOrchestrator = new HyperOrchestrator(this.vaultRoot);
     this.llmRouter = new LLMIntentRouter(config.ollamaEndpoint || 'http://localhost:11434', config.modelName || 'qwen2.5:3b');
