@@ -226,6 +226,78 @@ sequenceDiagram
     Watcher-->>Usuario_o_Agente: Emite log "✓ Vault re-indexed successfully"
 ```
 
+### 3.5. Flujo de Mensajería y Notas de Voz en Telegram (@TrautsLabBot)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Jhonny as Jhonny Lorenzo (@John)
+    participant TG as Telegram Bot API (@TrautsLabBot)
+    participant Poller as Telegram Poller Daemon
+    participant Transcriber as Whisper Large v3 Turbo (GPU Metal)
+    participant Pipeline as Voice Pipeline (LLM Router)
+    participant Vault as Obsidian Vault
+    participant Notifier as Telegram Notifier
+
+    Jhonny->>TG: Envía Nota de Voz (.oga / Opus)
+    TG-->>Poller: Mensaje detectado en Long-Polling
+    Poller->>TG: Descarga archivo .oga
+    Poller->>Transcriber: Ejecuta FFmpeg (Opus->WAV) y Whisper Metal
+    Note over Transcriber: Transcripción acústica precisa en < 900ms
+    Transcriber-->>Poller: Texto transcrito (ej. "Agendar cena hoy a las 8pm")
+    Poller->>Pipeline: Procesa texto mediante LLM Semantic Router
+    Pipeline->>Vault: Ejecuta Skill calendar-add-event (Escribe Markdown)
+    Pipeline-->>Poller: Confirmación textual y audio TTS
+    Poller->>Notifier: Envía mensaje de confirmación formateado
+    Notifier->>TG: sendMessage / sendVoice
+    TG-->>Jhonny: "✓ He agendado 'Cena hoy' para el 2026-08-18 a las 08:00 PM."
+```
+
+### 3.6. Flujo de Notificación Push y Temporizador Diferido (telegram-notify)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Jhonny as Jhonny Lorenzo
+    participant VoiceEngine as Voice Engine / Web HUD
+    participant LLMRouter as Enrutador Semántico LLM
+    participant Skill as Skill telegram-notify
+    participant Timer as Background Timer (setTimeout)
+    participant TG as Telegram Bot (@TrautsLabBot)
+
+    Jhonny->>VoiceEngine: "¿Puedes mandarme una notificación en 2 minutos para votar la basura?"
+    VoiceEngine->>LLMRouter: Clasificación de intención
+    Note over LLMRouter: Detecta: telegram-notify con delayMinutes=2
+    LLMRouter->>Skill: execute({ delayMinutes: 2, message: "Votar la basura" })
+    Skill->>Timer: Inicia temporizador de 120,000ms en segundo plano
+    Skill-->>VoiceEngine: "✓ Recordatorio programado: te enviaré una notificación en 2 minutos."
+    VoiceEngine-->>Jhonny: Respuesta hablada inmediata
+    
+    Note over Timer: Transcurren 2 minutos...
+    Timer->>TG: sendTelegramNotification("⏰ Recordatorio", "Votar la basura")
+    TG-->>Jhonny: 🔔 Notificación Push en pantalla de bloqueo del teléfono
+```
+
+### 3.7. Flujo Reactivo SSE y Auto-Sincronización en Web HUD
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Jhonny (Telegram / Voz)
+    participant Server as Voice Server (Port 3030)
+    participant Vault as Obsidian Vault
+    participant SSE as Stream SSE (/api/events/live)
+    participant HUD as Frontend Web HUD (Port 3000)
+
+    HUD->>SSE: Conexión persistente abierta al cargar (EventSource)
+    User->>Server: Acción (Agendar, Archivar o Editar)
+    Server->>Vault: Modifica archivo Markdown
+    Server->>SSE: broadcastLiveEvent('SCHEDULE_UPDATED')
+    SSE-->>HUD: data: {"type": "SCHEDULE_UPDATED", "timestamp": ...}
+    Note over HUD: Re-renderiza cronograma en < 100ms sin parpadeos
+    HUD-->>User: Feedback visual inmediato con sonido/toast
+```
+
 ---
 
 ## 4. Diagramas de Actividades

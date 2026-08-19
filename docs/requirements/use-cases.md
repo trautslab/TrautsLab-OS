@@ -226,3 +226,80 @@ graph LR
 | **Urgencia** | Inmediatamente. |
 | **Comentarios** | Elimina por completo la necesidad de que el LLM sintetice texto desde cero para datos conocidos. |
 
+---
+
+### RF-07: Edición en Vivo y Modificación de Compromisos en Markdown
+
+| RF-07 | Edición In-Place de Filas de Agenda en Markdown |
+| :--- | :--- |
+| **Versión** | Versión 1.1 |
+| **Autores** | jlorenzor |
+| **Objetivos Asociados** | OBJ-07: Flexibilidad y Mantenimiento de Agenda sin Pérdida de Estructura |
+| **Requisitos asociados** | RI-07: Endpoint `POST /api/vault/agenda/edit` y Motor de Reemplazo en Markdown |
+| **Descripción** | Permite modificar el título, la hora, la ubicación o el estado de un evento existente en el archivo `daily-agenda-[fecha].md` mediante interfaz visual, llamada a la API HTTP o comando de voz en lenguaje natural. |
+| **Precondición** | Existencia del archivo `daily-agenda-[fecha].md` en el Vault. |
+| **Secuencia normal** | **Paso** \| **Acción**<br>1 \| El usuario pulsa el botón de edición `✏️` en el HUD (o dicta *"Cambia el evento de las 9:30 por Ver Spiderman en Centro Cívico"*).<br>2 \| El sistema localiza la fila correspondiente en la tabla Markdown mediante concordancia semántica o índice de fila.<br>3 \| El sistema reescribe la fila preservando el formato de tabla y frontmatter YAML.<br>4 \| Se actualiza el snapshot JSON en `today-agenda.json`.<br>5 \| Se emite el evento SSE `SCHEDULE_UPDATED` para refrescar todas las vistas en < 100ms. |
+| **Excepciones** | **Paso** \| **Acción**<br>2 \| Si el evento no existe, el sistema ofrece crearlo como nuevo compromiso. |
+| **Postcondición** | La agenda en Markdown y la caché reflejan la versión corregida de inmediato. |
+| **Importancia** | Alta. |
+| **Urgencia** | Alta. |
+| **Comentarios** | Resuelve correcciones fonéticas y cambios de planes cotidianos sin intervención manual en el editor. |
+
+---
+
+### RF-08: Notificaciones Push y Temporizadores Diferidos en Telegram
+
+| RF-08 | Despachador de Alertas Push y Recordatorios con Temporizador |
+| :--- | :--- |
+| **Versión** | Versión 1.1 |
+| **Autores** | jlorenzor |
+| **Objetivos Asociados** | OBJ-08: Comunicación Proactiva y Recordatorios Diarios en Movilidad |
+| **Requisitos asociados** | RI-08: Skill `telegram-notify` y Demonio `@TrautsLabBot` |
+| **Descripción** | Permite el envío inmediato de notificaciones push o la programación de recordatorios diferidos (ej: *"notifícame en 2 minutos para votar la basura"*) directamente al Telegram de Jhonny Lorenzo. |
+| **Precondición** | Demonio de Telegram activo y token configurado en `.env`. |
+| **Secuencia normal** | **Paso** \| **Acción**<br>1 \| El usuario solicita una notificación o recordatorio por voz o texto.<br>2 \| El enrutador LLM clasifica la intención en la skill `telegram-notify` y extrae el mensaje y el tiempo de retraso (`delaySeconds`/`delayMinutes`).<br>3 \| Si tiene temporizador diferido, se inicia un `setTimeout` en segundo plano y se responde inmediatamente por voz confirmando la programación.<br>4 \| Al cumplirse el tiempo, el sistema envía el mensaje push con formato Markdown a Telegram (`@TrautsLabBot`). |
+| **Excepciones** | **Paso** \| **Acción**<br>4 \| Si la API de Telegram no responde, el sistema reintenta con backoff exponencial. |
+| **Postcondición** | El usuario recibe la alerta sonora y visual en su dispositivo móvil. |
+| **Importancia** | Alta. |
+| **Urgencia** | Inmediata. |
+| **Comentarios** | Elimina la necesidad de aplicaciones de alarmas externas para tareas de corto plazo. |
+
+---
+
+### RF-09: Canal Reactivo Server-Sent Events (SSE)
+
+| RF-09 | Transmisión Unidireccional de Eventos en Tiempo Real |
+| :--- | :--- |
+| **Versión** | Versión 1.1 |
+| **Autores** | jlorenzor |
+| **Objetivos Asociados** | OBJ-09: Reactividad Inmediata (< 100ms) sin Sobrecarga de Polling |
+| **Requisitos asociados** | RI-09: Endpoint HTTP `/api/events/live` |
+| **Descripción** | Mantiene una conexión HTTP persistente mediante Server-Sent Events para notificar al Frontend y clientes conectados sobre cambios en la agenda, ejecución de skills o actualizaciones en el Vault. |
+| **Precondición** | Servidor de voz activo en el puerto 3030. |
+| **Secuencia normal** | **Paso** \| **Acción**<br>1 \| El frontend inicializa un objeto `EventSource('/api/events/live')`.<br>2 \| El servidor registra al cliente en la lista de conexiones activas.<br>3 \| Al ocurrir una mutación (`SCHEDULE_UPDATED`, `TASK_ARCHIVED`, `INTEL_UPDATED`), el servidor transmite el evento en formato `data: JSON`.<br>4 \| El frontend recibe el evento y actualiza selectivamente los componentes visuales afectados sin recargar la página. |
+| **Excepciones** | **Paso** \| **Acción**<br>1 \| Si la conexión SSE se interrumpe, el cliente activa un mecanismo de sincronización secundaria pasiva (cada 2.5s) y auto-reconecta. |
+| **Postcondición** | El HUD refleja el estado del sistema en tiempo real con cero esfuerzo del usuario. |
+| **Importancia** | Crítica. |
+| **Urgencia** | Alta. |
+| **Comentarios** | Proporciona una experiencia de aplicación de escritorio ultra-fluida. |
+
+---
+
+### RF-10: Hub de Observabilidad E2E y Registro de Sesiones
+
+| RF-10 | Diagnóstico de Hardware, Trazas de Audio y Ledger de Sesiones |
+| :--- | :--- |
+| **Versión** | Versión 1.1 |
+| **Autores** | jlorenzor |
+| **Objetivos Asociados** | OBJ-10: Transparencia Operativa y Diagnóstico Integral del Sistema |
+| **Requisitos asociados** | RI-10: Endpoints `/api/observability/traces`, `/api/observability/health`, `/api/observability/logs` |
+| **Descripción** | Ofrece un panel de control accesible mediante la tecla `O` que expone métricas de hardware (GPU Metal, RAM, modelos activos), trazas de audio de 5 etapas con latencias milimétricas y un registro consolidado de interacciones que se persiste en el Vault. |
+| **Precondición** | Módulos de telemetría y gestor de sesiones inicializados en el servidor. |
+| **Secuencia normal** | **Paso** \| **Acción**<br>1 \| El usuario presiona la tecla `O` en el dashboard.<br>2 \| El sistema abre el modal de observabilidad de 2 pestañas (*Telemetría de Audio/Hardware* y *Logs & Sesión E2E*).<br>3 \| Se consultan los endpoints de telemetría y se renderizan las etapas de procesamiento con sus latencias exactas.<br>4 \| Al finalizar el día, el gestor de sesiones exporta el diario consolidado a `OUTPUT/reports/session-journal-[fecha].md`. |
+| **Excepciones** | **Paso** \| **Acción**<br>3 \| Si un componente reporta fallo (ej: `whisper-cli` no encontrado), la tarjeta correspondiente se colorea en rojo con el motivo del error. |
+| **Postcondición** | Diagnóstico completo accesible en cualquier momento para auditoría y optimización. |
+| **Importancia** | Alta. |
+| **Urgencia** | Media. |
+| **Comentarios** | Clave para detectar cuellos de botella en modelos de IA y hardware local. |
+
+

@@ -41,20 +41,31 @@ Esta matriz audita exhaustivamente cada funcionalidad concebida en la incepción
 | | **Indexador Jerárquico de Vault** | `packages/vault-engine/src/indexer.ts` | **Completado** | ✅ PASS (Tablas de contenidos) |
 | | **File Watcher en Tiempo Real** | `packages/vault-engine/src/watcher.ts` | **Completado** | ✅ PASS (Debounce 500ms) |
 | | **Linter & Health Check Frontmatter** | `packages/vault-engine/src/health-check.ts` | **Completado** | ✅ PASS (100% conformes) |
-| **Pilar 5: Acceso Remoto Móvil (Fase 6)** | **Progressive Web App (PWA)** | `frontend/manifest.json`, Service Worker | *En Roadmap* | Fase 6 (Próxima) |
-| | **Túnel Seguro (Tailscale/Cloudflare)**| `docs/inception/1-mobile-remote-access-and-costs.md` | *En Roadmap* | Fase 6 (Próxima) |
-| | **Bot de Voz en Telegram** | `packages/telegram-bridge/` | *En Roadmap* | Fase 6 (Próxima) |
+| **Pilar 5: Acceso Remoto Móvil & Telegram** | **Progressive Web App (PWA)** | `frontend/manifest.json`, `sw.js` | **Completado** | ✅ PASS (Chrome Mobile 390px) |
+| | **Túnel Seguro (Tailscale/Cloudflare)**| `docs/deployment/mobile-tunnel-setup.md` | **Completado** | ✅ PASS (Scripts y docs OK) |
+| | **Telegram Assistant Bridge (@TrautsLabBot)** | `packages/telegram-bridge/src/bot.ts`, `poller.ts` | **Completado** | ✅ PASS (Long-polling activo) |
+| | **Whisper Large v3 Turbo (GPU Metal)** | `packages/telegram-bridge/src/audio-transcriber.ts` | **Completado** | ✅ PASS (1.55 GB Metal GPU) |
+| | **Skill `telegram-notify` (Push & Timers)** | `packages/skills-engine/src/skills/telegram-notify.ts` | **Completado** | ✅ PASS (Push & Diferidos OK) |
+| **Pilar 6: Tiempo Real & Observabilidad** | **Canal Reactivo SSE (/api/events/live)** | `packages/voice-engine/src/server.ts`, `frontend/app.js` | **Completado** | ✅ PASS (< 100ms sync) |
+| | **Hub de Observabilidad E2E (Tecla `O`)** | `frontend/app.js`, `packages/voice-engine/src/server.ts` | **Completado** | ✅ PASS (Trazas & Logs) |
+| | **Edición In-Place de Agenda en Markdown** | `packages/voice-engine/src/server.ts`, `frontend/app.js` | **Completado** | ✅ PASS (POST /agenda/edit) |
+| | **Archivado del Día / Tareas en Vivo** | `packages/skills-engine/src/skills/calendar-archive-event.ts` | **Completado** | ✅ PASS (POST /agenda/archive) |
+| **Pilar 7: Gobernanza & Arquitectura** | **6 ADRs de Arquitectura y Escalabilidad** | `docs/architecture/adr/` (ADR-001 a ADR-006) | **Completado** | ✅ PASS (ADRs formales) |
+| | **10 Casos de Uso Formales (UC-01 a UC-10)** | `docs/requirements/use-cases.md` | **Completado** | ✅ PASS (Especificaciones OK) |
+| | **7 Diagramas de Secuencia y Actividades** | `docs/architecture/diagrams.md` | **Completado** | ✅ PASS (Mermaid validado) |
 
 ---
 
-## 🎯 2. Síntesis de Estado Global
+## 🎯 2. Síntesis de Estado Global (v1.0.0 Estable)
 
-* **Fases Completadas y Verificadas (100% Funcionales):**
-  * **Fase 1:** Incepción, Análisis Móvil y Prototipo Accesible (`v0.1.0-alpha.1`)
-  * **Fase 2:** Motor de Memoria y Vault Karpathy (`v0.1.0-alpha.2`)
-  * **Fase 3:** Motor de Skills y Automatizaciones Matutinas (`v0.1.0-alpha.3`)
-  * **Fase 4:** Pipeline de Voz Local e Híbrido 3-Tier (`v0.1.0-alpha.4`)
-  * **Fase 5:** Plugin de Obsidian & HUD Cinemático V.A.U.L.T. (`v0.1.0-alpha.5` & `v0.1.0-alpha.6`)
-* **Próximas Fases en el Roadmap:**
-  * **Fase 6:** Acceso Remoto Móvil, PWA y Bot de Telegram.
-  * **Fase 7:** Optimización, Benchmarking y Lanzamiento Estable `v1.0.0`.
+* **Pilares 100% Implementados, Probados y Documentados:**
+  * ✅ **Capa Visual & Web HUD:** Amber Void Cockpit, Esfera 3D interactiva, 4 modos, Lector Karpathy, Terminal Shell y atajos.
+  * ✅ **Pipeline de Voz 3-Tier:** Whisper Large v3 Turbo en GPU Metal, Enrutador Semántico LLM (`qwen2.5:3b`), Kokoro TTS y lecturas de caché < 20ms.
+  * ✅ **Motor de Habilidades (6 Skills):** `morning-intel-scan`, `calendar-daily-brief`, `calendar-add-event`, `calendar-archive-event`, `vault-sync-indexer`, `telegram-notify`.
+  * ✅ **Memoria Karpathy en Obsidian Vault:** `RAW/`, `WIKI/`, `OUTPUT/`, tablas de contenidos maestras y sub-índices por dominio en `PET / UTC-5 - Hora Perú`.
+  * ✅ **Puente de Telegram (@TrautsLabBot):** Notas de voz STT, comandos bidireccionales, notificaciones push y temporizadores diferidos.
+  * ✅ **Canal SSE y Observabilidad:** Eventos reactivos en vivo, diagnóstico de GPU Metal y registro de sesiones.
+* **Ítems en Roadmap para Escalamiento Futuro (Fase de Escalamiento Enterprise):**
+  * 🔄 **Servidor MCP (`@trautslab/mcp-server`):** Exposición de herramientas del Vault para Claude Code / Antigravity via Model Context Protocol (ver `ADR-006`).
+  * 🔄 **Búsqueda Vectorial Híbrida Local:** Integración de embeddings con LanceDB / SQLite-vec para vaults con más de 100,000 notas.
+  * 🔄 **App Nativa Wrapper:** Empaquetado Electron / Tauri para instalación como app de escritorio nativa en macOS.
