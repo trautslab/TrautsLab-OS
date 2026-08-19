@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "category": "daily_agenda",
+  "generated_at": "2026-08-19T18:30:30.544Z",
+  "expires_at": "2026-08-19T23:59:59Z",
+  "quick_summary_tts": "He agendado 'Reunión de Sincronización MCP' para hoy a las 04:30 PM. Tienes 1 compromisos programados.",
+  "data": {
+    "eventsCount": 1,
+    "events": [
+      {
+        "time": "04:30 PM",
+        "title": "Reunión de Sincronización MCP",
+        "priority": "high",
+        "status": "scheduled"
+      }
+    ]
+  }
+}

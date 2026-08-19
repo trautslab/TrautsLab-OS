@@ -1,0 +1,38 @@
+{
+  "name": "@trautslab/mcp-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol (MCP) Server for TrautsLab OS, exposing Obsidian Vault and 3-Tier Skills to external AI agents",
+  "main": "dist/index.js",
+  "bin": {
+    "trautslab-mcp": "dist/cli.js"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "tsx src/cli.ts",
+    "test": "tsx tests/mcp-server.test.ts"
+  },
+  "keywords": [
+    "trautslab",
+    "mcp",
+    "model-context-protocol",
+    "obsidian",
+    "ai-agent",
+    "antigravity",
+    "claude"
+  ],
+  "author": "Jhonny Lorenzo (jlorenzor)",
+  "license": "MIT",
+  "dependencies": {
+    "@trautslab/vault-engine": "file:../vault-engine",
+    "@trautslab/skills-engine": "file:../skills-engine",
+    "@trautslab/voice-engine": "file:../voice-engine",
+    "@trautslab/telegram-bridge": "file:../telegram-bridge",
+    "gray-matter": "^4.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  }
+}
