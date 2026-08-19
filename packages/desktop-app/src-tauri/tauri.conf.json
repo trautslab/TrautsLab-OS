@@ -1,0 +1,51 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-cli/schema.json",
+  "productName": "TrautsLab OS",
+  "version": "1.0.0",
+  "identifier": "com.trautslab.os.desktop",
+  "build": {
+    "frontendDist": "../../../frontend",
+    "devUrl": "http://localhost:3000"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "TrautsLab OS Cockpit",
+        "width": 1280,
+        "height": 840,
+        "minWidth": 900,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": true,
+        "transparent": false
+      }
+    ],
+    "trayIcon": {
+      "iconPath": "icons/icon.png",
+      "tooltip": "TrautsLab OS — Centro de Mando Activo",
+      "showMenuOnLeftClick": true
+    },
+    "security": {
+      "csp": "default-src 'self' 'unsafe-inline' 'unsafe-eval' http: https: ws: wss: data: blob:;"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico",
+      "icons/icon.png"
+    ],
+    "macOS": {
+      "entitlements": null,
+      "frameworks": [],
+      "minimumSystemVersion": "10.15"
+    }
+  }
+}

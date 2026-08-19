@@ -1,0 +1,24 @@
+{
+  "name": "@trautslab/desktop-app",
+  "version": "1.0.0",
+  "description": "Tauri v2 Native Desktop Cockpit and macOS Menu Bar System Tray for TrautsLab OS",
+  "main": "dist/index.js",
+  "scripts": {
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
+  },
+  "keywords": [
+    "trautslab",
+    "tauri",
+    "desktop",
+    "macos",
+    "system-tray",
+    "hud"
+  ],
+  "author": "Jhonny Lorenzo (jlorenzor)",
+  "license": "MIT",
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0"
+  }
+}
