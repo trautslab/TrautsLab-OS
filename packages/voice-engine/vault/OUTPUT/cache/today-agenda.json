@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0",
   "category": "daily_agenda",
-  "generated_at": "2026-08-18T22:34:00.114Z",
-  "expires_at": "2026-08-18T23:59:59Z",
-  "quick_summary_tts": "Has archivado compromisos. Te quedan 2 actividades activas hoy.",
+  "generated_at": "2026-08-19T00:42:13.369Z",
+  "expires_at": "2026-08-19T23:59:59Z",
+  "quick_summary_tts": "He agendado 'Cena hoy' para hoy a las 08:00 PM. Tienes 3 compromisos programados.",
   "data": {
-    "eventsCount": 2,
+    "eventsCount": 3,
     "events": [
       {
         "time": "09:30 PM",
@@ -16,6 +16,12 @@
       {
         "time": "08:00 PM",
         "title": "Cena",
+        "priority": "high",
+        "status": "scheduled"
+      },
+      {
+        "time": "08:00 PM",
+        "title": "Cena hoy",
         "priority": "high",
         "status": "scheduled"
       }

@@ -66,6 +66,7 @@ ${skillsDescription}
 Reglas Semánticas:
 - Si el usuario dice "archivar el día", "archivar todo", "artivar", "completar el día" o variaciones, selecciona "calendar-archive-event" con action "archive_all".
 - Si el usuario menciona ir a un lugar, ver una película, cine, cena, reunión, cita médica, o cualquier compromiso con hora/fecha, selecciona "calendar-add-event" y extrae title, date, time y location.
+- Si pide enviar una notificación, mandar un mensaje a Telegram, avisar por Telegram o enviar un recordatorio push a su celular, selecciona "telegram-notify" y coloca el mensaje en "message" y un título en "title".
 - Si pregunta qué tiene hoy o qué hay en su agenda, selecciona "calendar-daily-brief" o TIER_2_CACHE con target "today-agenda".
 - Si pregunta por noticias o tendencias de IA, selecciona TIER_2_CACHE con target "today-intel" o "morning-intel-scan".
 
@@ -75,7 +76,8 @@ Debes responder ÚNICAMENTE un objeto JSON válido con esta estructura exacta:
   "tier": "TIER_1_SKILL" | "TIER_2_CACHE" | "TIER_3_HEADLESS",
   "confidence": 0.95,
   "parameters": {
-    "title": "Título limpio y descriptivo del evento",
+    "title": "Título limpio y descriptivo del evento o notificación",
+    "message": "Texto o mensaje a enviar si es notificación",
     "date": "YYYY-MM-DD (calculado relativo a hoy ${dateStr})",
     "time": "HH:MM AM/PM (ej: 09:30 PM)",
     "priority": "HIGH" | "NORMAL" | "LOW",
@@ -128,6 +130,9 @@ Debes responder ÚNICAMENTE un objeto JSON válido con esta estructura exacta:
 
       if (parsed.parameters?.action === 'archive_all' || parsed.parameters?.action === 'archive_one' || String(parsed.intent).includes('archive')) {
         canonicalIntent = 'calendar-archive-event';
+        tier = 'TIER_1_SKILL';
+      } else if (String(parsed.intent).includes('telegram') || String(parsed.intent).includes('notify') || String(parsed.intent).includes('notifica') || parsed.parameters?.message) {
+        canonicalIntent = 'telegram-notify';
         tier = 'TIER_1_SKILL';
       } else if (parsed.parameters?.action === 'add' || parsed.parameters?.action === 'modify' || String(parsed.intent).includes('add-event') || String(parsed.intent).includes('schedule')) {
         canonicalIntent = 'calendar-add-event';

@@ -18,6 +18,7 @@ summary: "Agenda diaria para Jhonny Lorenzo (2026-08-19)."
 
 | Hora | Actividad / Compromiso | Ubicación | Prioridad | Estado |
 | :--- | :--- | :--- | :--- | :--- |
+| `08:00 PM` | **Cena hoy** | N/A | `HIGH` | 🟡 Programado |
 | `08:00 PM` | **Cena con amigos** | N/A | `HIGH` | 🟡 Programado |
 
 ---

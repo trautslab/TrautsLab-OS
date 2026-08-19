@@ -8,3 +8,4 @@ export * from './skills/calendar-daily-brief.js';
 export * from './skills/calendar-add-event.js';
 export * from './skills/calendar-archive-event.js';
 export * from './skills/vault-sync-indexer.js';
+export * from './skills/telegram-notify.js';
