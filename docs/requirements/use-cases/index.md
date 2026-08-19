@@ -27,6 +27,7 @@ A continuación se presenta la matriz completa de casos de uso y requisitos func
 | **UC-11** | Servidor Model Context Protocol (MCP) para Agentes | RF-11 | Interoperabilidad | [Ver Especificación](./UC-11-mcp-server-and-agent-interoperability.md) |
 | **UC-12** | Motor de Búsqueda Vectorial Híbrida (BM25+Embeddings) | RF-12 | Búsqueda / AI | [Ver Especificación](./UC-12-hybrid-semantic-vector-search.md) |
 | **UC-13** | Aplicación Nativa de Escritorio con Tauri v2 & Tray | RF-13 | Desktop / macOS | [Ver Especificación](./UC-13-tauri-desktop-app-and-system-tray.md) |
+| **UC-14** | Delegación de Tareas Complejas a Cuadrilla HyperAgent | RF-14 | Agentes / Tier 3 | [Ver Especificación](./UC-14-hyperagent-tier3-multi-role-delegation.md) |
 
 ---
 

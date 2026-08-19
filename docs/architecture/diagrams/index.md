@@ -25,6 +25,7 @@ Este directorio contiene las representaciones arquitectónicas formales del sist
 - [06. Flujo de Notificaciones Push & Temporizadores Diferidos](./sequences/06-seq-telegram-push-and-delayed-timers.md)
 - [07. Flujo Reactivo Server-Sent Events (SSE) y Web HUD](./sequences/07-seq-realtime-sse-live-sync.md)
 - [08. Flujo de Ejecución de Herramientas MCP para Agentes LLM](./sequences/08-seq-mcp-tool-execution.md)
+- [09. Orquestación Multi-Rol HyperAgent (Tier 3)](./sequences/09-seq-hyperagent-multi-role-orchestration.md)
 
 ### ⚙️ 3. Diagramas de Actividades y Estados (`activities/`)
 - [01. Flujo de Decisión del Enrutador Semántico LLM](./activities/01-act-intent-decision-router.md)
