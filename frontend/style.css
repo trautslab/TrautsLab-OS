@@ -1932,6 +1932,52 @@ html, body {
   color: #64748b;
 }
 
+/* Voice Profile Picker in Voice Modal */
+.voice-profile-picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+
+.profile-picker-icon {
+  font-size: 0.85rem;
+}
+
+.voice-profile-select {
+  background: transparent;
+  border: none;
+  color: #38bdf8;
+  font-family: var(--font-hud-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+}
+
+.voice-profile-select option {
+  background: #0d1117;
+  color: #f1f5f9;
+}
+
+.theme-light .voice-profile-picker {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.theme-light .voice-profile-select {
+  color: #0284c7;
+}
+
+.theme-light .voice-profile-select option {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+
 .footer-hint kbd {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);

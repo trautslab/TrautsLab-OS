@@ -208,6 +208,18 @@ async function main() {
     if (!created) throw new Error('Directiva no agregada');
   }, '16_dynamic_directive_created.png');
 
+  // 17. Voice Profile Selector & Fallback Verification
+  await assertStep('17. Selector de Perfil de Voz y Fallback a Kokoro 82M en Voice Modal', async () => {
+    await page.keyboard.press('KeyV');
+    await page.waitForSelector('#voice-modal:not([hidden])');
+    await page.select('#voice-profile-select', 'kokoro_default');
+    await new Promise(r => setTimeout(r, 200));
+    await page.select('#voice-profile-select', 'jhonny_cloned');
+    await new Promise(r => setTimeout(r, 200));
+    await page.click('#btn-close-voice');
+    await page.waitForSelector('#voice-modal[hidden]');
+  }, '17_voice_profile_selected_and_fallback.png');
+
   await browser.close();
 
   console.log('\n========================================================================');

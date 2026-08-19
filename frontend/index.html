@@ -288,8 +288,9 @@
                 <div class="vu-segment"></div><div class="vu-segment"></div>
               </div>
               <div class="audio-engine-meta">
-                <span>STT: <strong>Faster-Whisper</strong></span>
-                <span>TTS: <strong>Kokoro (82M)</strong></span>
+                <span>STT: <strong>Faster-Whisper (Metal)</strong></span>
+                <span>TTS: <strong id="hud-tts-engine-name">Kokoro (82M)</strong></span>
+                <span>VOZ: <strong id="hud-voice-profile-badge" style="color: #38bdf8;">Jhonny Cloned (512-dim)</strong></span>
               </div>
             </section>
           </aside>
@@ -878,6 +879,13 @@ Antes de buscar en todos los archivos, lee siempre el `index.md` del nivel en el
             </button>
           </div>
           <div class="topbar-center">
+            <div class="voice-profile-picker">
+              <span class="profile-picker-icon">🎙️</span>
+              <select id="voice-profile-select" class="voice-profile-select" title="Seleccionar Perfil Vocal de Salida">
+                <option value="jhonny_cloned">Jhonny Lorenzo (Voz Clonada Calibrada)</option>
+                <option value="kokoro_default">Kokoro 82M (Fallback Estándar)</option>
+              </select>
+            </div>
             <span class="sample-rate-badge" id="audio-sample-rate">
               <span class="badge-dot-live"></span> 44.1 kHz • LOW LATENCY
             </span>

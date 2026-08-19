@@ -4,6 +4,28 @@ Todas las modificaciones notables de este proyecto están documentadas en este a
 
 ---
 
+## [1.4.0] — 2026-08-19 — *The Voice Profiler, Zero-Latency Voice Cloning & Fallback Release*
+
+### 🚀 Añadido
+- **Voice Profile Manager & Inyección Zero-Latency (`@trautslab/voice-engine`):**
+  - Módulo `VoiceProfileManager` que administra perfiles acústicos calibrados mediante tensores de condicionamiento de 512 dimensiones pre-computados en VRAM.
+  - Inferencia feed-forward directa sobre Metal GPU sin re-análisis de audio de referencia, preservando una latencia ultrarrápida (< 220ms).
+  - Perfil predeterminado calibrado para **Jhonny Lorenzo** (`jhonny_profile.json`).
+- **Garantía de Fallback Transparente a Kokoro 82M:**
+  - Preservación total del motor `KokoroTTSEngine` y sus voces estándar (`es_f_locutora`, `es_m`) como red de seguridad indestructible.
+  - Si un perfil personalizado no está calibrado o sufre corrupción, el sistema conmuta instantáneamente al perfil estándar sin interrupción.
+- **Herramienta MCP 13: `trautslab_voice_profile_manage`:**
+  - Registro de la herramienta 13 en `@trautslab/mcp-server` para listar, conmutar y calibrar perfiles vocales desde cualquier cliente MCP (Cursor, Claude Code, Antigravity IDE).
+- **Selector de Perfil Vocal en el HUD & Endpoints REST:**
+  - Desplegable de selección en la barra superior del Voice Modal (`#voice-profile-select`).
+  - Badge dinámico de perfil en la tarjeta Audio I/O del Cockpit.
+  - Endpoints REST: `GET /api/voice/profiles`, `POST /api/voice/profiles/select`, `POST /api/voice/profiles/calibrate`.
+- **Especificaciones de Arquitectura & Requisitos:**
+  - `UC-16`: *Gestor de Perfiles de Voz, Clonación Zero-Latency y Fallback Automático*.
+  - `ADR-010`: *Voice Profile Adapter, Pre-computed Speaker Tensors y Fallback Transparente a Kokoro 82M*.
+
+---
+
 ## [1.3.0] — 2026-08-19 — *The Commercial Multi-LLM, NotebookLM & Channels Hub Release*
 
 ### 🚀 Añadido

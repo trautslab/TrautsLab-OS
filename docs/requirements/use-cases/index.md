@@ -29,6 +29,7 @@ A continuación se presenta la matriz completa de casos de uso y requisitos func
 | **UC-13** | Aplicación Nativa de Escritorio con Tauri v2 & Tray | RF-13 | Desktop / macOS | [Ver Especificación](./UC-13-tauri-desktop-app-and-system-tray.md) |
 | **UC-14** | Delegación de Tareas Complejas a Cuadrilla HyperAgent | RF-14 | Agentes / Tier 3 | [Ver Especificación](./UC-14-hyperagent-tier3-multi-role-delegation.md) |
 | **UC-15** | Notificación Multicanal y Sincronización de Calendario | RF-15 | Omnicanal / Sync | [Ver Especificación](./UC-15-multichannel-calendar-notifications-and-sync.md) |
+| **UC-16** | Gestor de Perfiles de Voz y Clonación Zero-Latency | RF-16 | Voz / Personalización | [Ver Especificación](./UC-16-voice-profiler-and-zero-latency-cloning.md) |
 
 ---
 
@@ -54,10 +55,11 @@ graph LR
         UC13(["UC-13: Tauri Desktop Tray"])
         UC14(["UC-14: HyperAgent Tier 3"])
         UC15(["UC-15: Notificación Multicanal"])
+        UC16(["UC-16: Voice Profiler & Fallback"])
     end
 
-    Usuario --> UC01 & UC04 & UC07 & UC08 & UC10 & UC12 & UC13 & UC14 & UC15
-    Agente --> UC03 & UC11 & UC12 & UC15
+    Usuario --> UC01 & UC04 & UC07 & UC08 & UC10 & UC12 & UC13 & UC14 & UC15 & UC16
+    Agente --> UC03 & UC11 & UC12 & UC15 & UC16
     SistemaCron --> UC02
-    UC01 -.->|<<triggers>>| UC07 & UC08 & UC09 & UC15
+    UC01 -.->|<<triggers>>| UC07 & UC08 & UC09 & UC15 & UC16
 ```

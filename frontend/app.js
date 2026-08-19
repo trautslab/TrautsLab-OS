@@ -908,6 +908,52 @@ document.addEventListener('DOMContentLoaded', () => {
   loadChannelsTraffic();
   setInterval(loadChannelsTraffic, 8000);
 
+  // Voice Profile Selection & Fallback Handler
+  const voiceProfileSelect = document.getElementById('voice-profile-select');
+  const hudVoiceProfileBadge = document.getElementById('hud-voice-profile-badge');
+
+  async function loadVoiceProfiles() {
+    try {
+      const res = await fetch('http://localhost:3030/api/voice/profiles');
+      if (res.ok) {
+        const data = await res.json();
+        if (voiceProfileSelect && Array.isArray(data.profiles)) {
+          voiceProfileSelect.innerHTML = data.profiles.map(p => `
+            <option value="${p.id}" ${p.id === data.activeProfile?.id ? 'selected' : ''}>
+              ${p.isDefaultFallback ? '⚡ ' : '🎙️ '}${p.name}
+            </option>
+          `).join('');
+        }
+        if (hudVoiceProfileBadge && data.activeProfile) {
+          hudVoiceProfileBadge.textContent = data.activeProfile.id === 'jhonny_cloned'
+            ? 'Jhonny Cloned (512-dim)'
+            : 'Kokoro 82M (Fallback)';
+        }
+      }
+    } catch {}
+  }
+  loadVoiceProfiles();
+
+  voiceProfileSelect?.addEventListener('change', async () => {
+    const selectedId = voiceProfileSelect.value;
+    try {
+      const res = await fetch('http://localhost:3030/api/voice/profiles/select', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profileId: selectedId })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        showHudToast('PERFIL DE VOZ', data.message || 'Perfil vocal actualizado.', 'info', 2500);
+        if (hudVoiceProfileBadge) {
+          hudVoiceProfileBadge.textContent = selectedId === 'jhonny_cloned'
+            ? 'Jhonny Cloned (512-dim)'
+            : 'Kokoro 82M (Fallback)';
+        }
+      }
+    } catch {}
+  });
+
   // Auto-sync polling every 2.5 seconds (seamless background sync with zero lag)
   setInterval(() => {
     loadScheduleFromVault();

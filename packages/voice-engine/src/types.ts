@@ -35,5 +35,6 @@ export interface STTEngine {
 }
 
 export interface TTSEngine {
-  synthesize(text: string, voice?: string): Promise<{ audioBuffer: Buffer; latencyMs: number }>;
+  synthesize(text: string, voice?: string): Promise<{ audioBuffer: Buffer; latencyMs: number; profileUsed?: string }>;
 }
+

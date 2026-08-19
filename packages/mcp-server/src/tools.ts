@@ -16,6 +16,7 @@ import {
   TelegramNotifySkill,
   VaultSemanticSearchSkill,
   NotebookLMSyncSkill,
+  VoiceProfileManageSkill,
   HyperOrchestrator
 } from '@trautslab/skills-engine';
 import { sendTelegramNotification } from '@trautslab/telegram-bridge';
@@ -39,6 +40,7 @@ export class MCPToolsRegistry {
     this.skillRegistry.register(new TelegramNotifySkill());
     this.skillRegistry.register(new VaultSemanticSearchSkill());
     this.skillRegistry.register(new NotebookLMSyncSkill());
+    this.skillRegistry.register(new VoiceProfileManageSkill());
 
     this.hybridSearch = new HybridSearchEngine(this.vaultRoot);
     this.cacheManager = new Tier2CacheManager(this.vaultRoot);
@@ -276,6 +278,28 @@ export class MCPToolsRegistry {
           },
           required: ['topic']
         }
+      },
+      {
+        name: 'trautslab_voice_profile_manage',
+        description: 'Gestiona perfiles vocales personalizados (voz clonada) e inspecciona el fallback estándar a Kokoro 82M (<200ms de latencia).',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            action: {
+              type: 'string',
+              enum: ['list', 'select', 'calibrate'],
+              description: 'Acción a ejecutar: "list" (listar perfiles), "select" (activar perfil), "calibrate" (calibrar nueva voz).'
+            },
+            profileId: {
+              type: 'string',
+              description: 'ID del perfil de voz (ej: "jhonny_cloned" o "kokoro_default").'
+            },
+            speaker: {
+              type: 'string',
+              description: 'Nombre del hablante si se calibra.'
+            }
+          }
+        }
       }
     ];
   }
@@ -488,6 +512,27 @@ export class MCPToolsRegistry {
               {
                 type: 'text',
                 text: `### 📓 Síntesis NotebookLM Grounded Research\n\n${res.message}\n\n**Artefactos Generados:**\n${(res.artifactsCreated || []).map((a: string) => `- \`${a}\``).join('\n') || '- Ninguno'}`
+              }
+            ]
+          };
+        }
+
+        case 'trautslab_voice_profile_manage': {
+          const res = await this.skillRegistry.execute('voice-profile-manage', {
+            vaultRoot: this.vaultRoot,
+            timestamp: new Date(),
+            args: {
+              action: args.action || 'list',
+              profileId: args.profileId,
+              speaker: args.speaker
+            }
+          });
+          return {
+            isError: !res.success,
+            content: [
+              {
+                type: 'text',
+                text: `### 🎙️ Gestor de Perfiles Vocales & Voice Profiler\n\n${res.message}`
               }
             ]
           };

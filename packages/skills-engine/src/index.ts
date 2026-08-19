@@ -11,6 +11,8 @@ export * from './skills/vault-sync-indexer.js';
 export * from './skills/telegram-notify.js';
 export * from './skills/vault-semantic-search.js';
 export * from './skills/notebooklm-sync.js';
+export * from './skills/voice-profile-manage.js';
 export * from './hyperagent/index.js';
 export * from './llm/index.js';
+
 

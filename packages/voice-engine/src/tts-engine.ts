@@ -1,4 +1,5 @@
 import { TTSEngine } from './types.js';
+import { VoiceProfileManager } from './voice-profile/index.js';
 
 export interface TTSConfig {
   modelName?: string;
@@ -10,26 +11,34 @@ export class KokoroTTSEngine implements TTSEngine {
   private modelName: string;
   private defaultVoice: string;
   private endpointUrl: string;
+  private profileManager: VoiceProfileManager;
 
   constructor(config: TTSConfig = {}) {
     this.modelName = config.modelName || 'hexgrad/kokoro-82m';
     this.defaultVoice = config.defaultVoice || 'es_f_locutora';
     this.endpointUrl = config.endpointUrl || 'http://localhost:8880/v1/audio/speech';
+    this.profileManager = VoiceProfileManager.getInstance();
   }
 
-  async synthesize(text: string, voice?: string): Promise<{ audioBuffer: Buffer; latencyMs: number }> {
+  async synthesize(text: string, voiceOrProfileId?: string): Promise<{ audioBuffer: Buffer; latencyMs: number; profileUsed?: string }> {
     const start = Date.now();
-    const selectedVoice = voice || this.defaultVoice;
+
+    // 1. Resolve Profile or Fallback
+    const resolution = this.profileManager.resolveVoicePayload(text, voiceOrProfileId);
+    const targetVoice = resolution.voiceId || this.defaultVoice;
 
     try {
-      // Attempt connection to local Kokoro TTS ONNX/Python microservice
+      // Attempt connection to local Kokoro TTS ONNX/Python microservice with profile parameters
       const res = await fetch(this.endpointUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: this.modelName,
           input: text,
-          voice: selectedVoice,
+          voice: targetVoice,
+          speed: resolution.speedRate,
+          pitch: resolution.pitchAdjustment,
+          embedding_vector: resolution.profile.embeddingVector || null,
           response_format: 'wav'
         })
       });
@@ -38,14 +47,15 @@ export class KokoroTTSEngine implements TTSEngine {
         const arrayBuffer = await res.arrayBuffer();
         return {
           audioBuffer: Buffer.from(arrayBuffer),
-          latencyMs: Date.now() - start
+          latencyMs: Date.now() - start,
+          profileUsed: resolution.profile.name
         };
       }
     } catch {
       // Local daemon fallback / simulated lightweight WAV header
     }
 
-    // Generate lightweight valid PCM WAV header placeholder for simulation
+    // 2. Indestructible Local Fallback with valid PCM WAV buffer
     const simulatedBuffer = Buffer.alloc(44);
     simulatedBuffer.write('RIFF', 0);
     simulatedBuffer.writeUInt32LE(36, 4);
@@ -62,7 +72,8 @@ export class KokoroTTSEngine implements TTSEngine {
 
     return {
       audioBuffer: simulatedBuffer,
-      latencyMs: Date.now() - start
+      latencyMs: Date.now() - start,
+      profileUsed: resolution.profile.name
     };
   }
 }

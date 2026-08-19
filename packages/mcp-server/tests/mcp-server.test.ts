@@ -46,11 +46,11 @@ async function runMCPTests() {
     (res) => res.protocolVersion === '2024-11-05' && res.capabilities.tools
   );
 
-  // 2. Tools List (12 tools)
+  // 2. Tools List (13 tools)
   await assertReq(
-    '2. Tools Catalog: tools/list (12 tools registradas)',
+    '2. Tools Catalog: tools/list (13 tools registradas)',
     { jsonrpc: '2.0', id: 2, method: 'tools/list' },
-    (res) => Array.isArray(res.tools) && res.tools.length === 12
+    (res) => Array.isArray(res.tools) && res.tools.length === 13
   );
 
   // 3. trautslab_vault_read
@@ -207,6 +207,23 @@ async function runMCPTests() {
       }
     },
     (res) => !res.isError && res.content[0].text.includes('NotebookLM')
+  );
+
+  // 13. trautslab_voice_profile_manage
+  await assertReq(
+    '13. Tool: trautslab_voice_profile_manage (Gestor de Perfiles Vocales y Fallback)',
+    {
+      jsonrpc: '2.0',
+      id: 13,
+      method: 'tools/call',
+      params: {
+        name: 'trautslab_voice_profile_manage',
+        arguments: {
+          action: 'list'
+        }
+      }
+    },
+    (res) => !res.isError && res.content[0].text.includes('Perfiles de voz disponibles')
   );
 
   console.log('\n========================================================');

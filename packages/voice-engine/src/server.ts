@@ -226,6 +226,70 @@ export class VoiceServer {
           return;
         }
 
+        if (url.pathname === '/api/voice/profiles' && req.method === 'GET') {
+          try {
+            const { VoiceProfileManager } = await import('./voice-profile/index.js');
+            const mgr = VoiceProfileManager.getInstance();
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+              activeProfile: mgr.getActiveProfile(),
+              profiles: mgr.getProfiles()
+            }));
+          } catch (err: any) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          }
+          return;
+        }
+
+        if (url.pathname === '/api/voice/profiles/select' && req.method === 'POST') {
+          let body = '';
+          req.on('data', chunk => { body += chunk; });
+          req.on('end', async () => {
+            try {
+              const payload = JSON.parse(body || '{}');
+              const { VoiceProfileManager } = await import('./voice-profile/index.js');
+              const mgr = VoiceProfileManager.getInstance();
+              const success = mgr.setActiveProfile(payload.profileId);
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({
+                success,
+                activeProfile: mgr.getActiveProfile(),
+                message: success ? `Perfil de voz cambiado a '${mgr.getActiveProfile().name}'.` : 'Perfil no encontrado.'
+              }));
+            } catch (err: any) {
+              res.writeHead(500, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: err.message }));
+            }
+          });
+          return;
+        }
+
+        if (url.pathname === '/api/voice/profiles/calibrate' && req.method === 'POST') {
+          let body = '';
+          req.on('data', chunk => { body += chunk; });
+          req.on('end', async () => {
+            try {
+              const payload = JSON.parse(body || '{}');
+              const { VoiceProfileManager } = await import('./voice-profile/index.js');
+              const mgr = VoiceProfileManager.getInstance();
+              const result = await mgr.calibrateProfile({
+                name: payload.name || 'Mi Voz Clonada',
+                speaker: payload.speaker || 'Usuario',
+                pitchAdjustment: payload.pitchAdjustment || 1.0,
+                speedRate: payload.speedRate || 1.0,
+                audioFilePath: payload.audioFilePath
+              });
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify(result));
+            } catch (err: any) {
+              res.writeHead(500, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: err.message }));
+            }
+          });
+          return;
+        }
+
         if (url.pathname === '/api/channels/status' && req.method === 'GET') {
           try {
             const hasTelegram = Boolean(process.env.TELEGRAM_BOT_TOKEN);
