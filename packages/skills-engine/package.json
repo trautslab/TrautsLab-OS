@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "node -e 'fs.rmSync(\"dist\",{recursive:true,force:true})' && tsc",
-    "test": "tsx src/cli.ts list",
+    "test": "tsx src/cli.ts list && tsx --test tests/hyperagent.test.ts",
+    "test:hyperagent": "tsx --test tests/hyperagent.test.ts",
     "run:skill": "tsx src/cli.ts run",
     "list": "tsx src/cli.ts list",
     "cron": "tsx src/cli.ts cron",
