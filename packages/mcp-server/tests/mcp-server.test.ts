@@ -46,11 +46,11 @@ async function runMCPTests() {
     (res) => res.protocolVersion === '2024-11-05' && res.capabilities.tools
   );
 
-  // 2. Tools List (10 tools)
+  // 2. Tools List (11 tools)
   await assertReq(
-    '2. Tools Catalog: tools/list (10 tools registradas)',
+    '2. Tools Catalog: tools/list (11 tools registradas)',
     { jsonrpc: '2.0', id: 2, method: 'tools/list' },
-    (res) => Array.isArray(res.tools) && res.tools.length === 10
+    (res) => Array.isArray(res.tools) && res.tools.length === 11
   );
 
   // 3. trautslab_vault_read
@@ -171,6 +171,23 @@ async function runMCPTests() {
       }
     },
     (res) => !res.isError && res.content[0].text.includes('enviado la notificación')
+  );
+
+  // 11. trautslab_hyperagent_run_task
+  await assertReq(
+    '11. Tool: trautslab_hyperagent_run_task (Ejecución multi-rol HyperAgent)',
+    {
+      jsonrpc: '2.0',
+      id: 11,
+      method: 'tools/call',
+      params: {
+        name: 'trautslab_hyperagent_run_task',
+        arguments: {
+          goal: 'Investigar arquitecturas de indexación en Obsidian'
+        }
+      }
+    },
+    (res) => !res.isError && res.content[0].text.includes('Ejecución HyperAgent')
   );
 
   console.log('\n========================================================');

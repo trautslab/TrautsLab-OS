@@ -1,4 +1,4 @@
-import { SkillRegistry, SkillContext, MorningIntelScanSkill, CalendarDailyBriefSkill, CalendarAddEventSkill, CalendarArchiveEventSkill, VaultSyncIndexerSkill, TelegramNotifySkill, VaultSemanticSearchSkill } from '@trautslab/skills-engine';
+import { SkillRegistry, SkillContext, MorningIntelScanSkill, CalendarDailyBriefSkill, CalendarAddEventSkill, CalendarArchiveEventSkill, VaultSyncIndexerSkill, TelegramNotifySkill, VaultSemanticSearchSkill, HyperOrchestrator } from '@trautslab/skills-engine';
 import { Tier2CacheManager } from '@trautslab/vault-engine';
 import { FasterWhisperSTTEngine } from './stt-engine.js';
 import { KokoroTTSEngine } from './tts-engine.js';
@@ -25,6 +25,7 @@ export class VoicePipeline {
   private llmRouter: LLMIntentRouter;
   private cacheMgr: Tier2CacheManager;
   private skillRegistry: SkillRegistry;
+  private hyperOrchestrator: HyperOrchestrator;
   private llm: LLMEngine;
 
   constructor(config: VoicePipelineConfig) {
@@ -41,6 +42,7 @@ export class VoicePipeline {
     this.skillRegistry.register(new TelegramNotifySkill());
     this.skillRegistry.register(new VaultSemanticSearchSkill());
 
+    this.hyperOrchestrator = new HyperOrchestrator(this.vaultRoot);
     this.llmRouter = new LLMIntentRouter(config.ollamaEndpoint || 'http://localhost:11434', config.modelName || 'qwen2.5:3b');
     this.router = new VoiceIntentRouter(this.skillRegistry, this.llmRouter);
     this.cacheMgr = new Tier2CacheManager(this.vaultRoot);
@@ -120,11 +122,20 @@ export class VoicePipeline {
 
       case 'TIER_3_HEADLESS': {
         const prompt = classification.target || transcription;
-        console.log(`[VoicePipeline] 🤖 Ejecutando Razonamiento Conversacional LLM (Ollama/Qwen): "${prompt}"`);
-        const llmReply = await this.llm.generateResponse(transcription);
+        console.log(`[VoicePipeline] 🤖 Despachando Tarea Compleja a Cuadrilla HyperAgent (Tier 3): "${prompt}"`);
+        
+        // Execute through 4-Role HyperAgent Quad (Planner, Navigator, Editor, Executor)
+        const hyperResult = await this.hyperOrchestrator.runTask(prompt, (evt) => {
+          try {
+            import('./server.js').then(({ broadcastLiveEvent }) => {
+              broadcastLiveEvent('HYPERAGENT_UPDATE', evt);
+            });
+          } catch {}
+        });
+
         actionMs = Date.now() - actionStart;
-        responsePlainText = llmReply;
-        responsePhoneticTts = sanitizeTextForSpeech(llmReply);
+        responsePlainText = hyperResult.finalSummary;
+        responsePhoneticTts = sanitizeTextForSpeech(hyperResult.finalSummary);
         break;
       }
     }

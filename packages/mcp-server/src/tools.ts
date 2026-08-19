@@ -14,7 +14,8 @@ import {
   CalendarArchiveEventSkill,
   VaultSyncIndexerSkill,
   TelegramNotifySkill,
-  VaultSemanticSearchSkill
+  VaultSemanticSearchSkill,
+  HyperOrchestrator
 } from '@trautslab/skills-engine';
 import { sendTelegramNotification } from '@trautslab/telegram-bridge';
 import { MCPToolDefinition, MCPToolResult } from './types.js';
@@ -24,6 +25,7 @@ export class MCPToolsRegistry {
   private skillRegistry: SkillRegistry;
   private hybridSearch: HybridSearchEngine;
   private cacheManager: Tier2CacheManager;
+  private hyperOrchestrator: HyperOrchestrator;
 
   constructor(vaultRoot: string) {
     this.vaultRoot = vaultRoot;
@@ -38,6 +40,7 @@ export class MCPToolsRegistry {
 
     this.hybridSearch = new HybridSearchEngine(this.vaultRoot);
     this.cacheManager = new Tier2CacheManager(this.vaultRoot);
+    this.hyperOrchestrator = new HyperOrchestrator(this.vaultRoot);
   }
 
   /**
@@ -234,6 +237,20 @@ export class MCPToolsRegistry {
           },
           required: ['message']
         }
+      },
+      {
+        name: 'trautslab_hyperagent_run_task',
+        description: 'Delega una tarea compleja de investigación, creación de notas o desarrollo a la cuadrilla de 4 roles HyperAgent (Planner, Navigator, Editor, Executor) con auto-reparación e indexación automática.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            goal: {
+              type: 'string',
+              description: 'Objetivo o meta compleja a cumplir (ej: "Investigar arquitecturas de voz local y generar reporte en WIKI").'
+            }
+          },
+          required: ['goal']
+        }
       }
     ];
   }
@@ -402,6 +419,31 @@ export class MCPToolsRegistry {
           });
           return {
             content: [{ type: 'text', text: res.message }]
+          };
+        }
+
+        case 'trautslab_hyperagent_run_task': {
+          const goal = String(args.goal || '').trim();
+          if (!goal) {
+            return {
+              isError: true,
+              content: [{ type: 'text', text: 'Error: El parámetro "goal" es obligatorio para HyperAgent.' }]
+            };
+          }
+
+          const result = await this.hyperOrchestrator.runTask(goal);
+          const report = `# 🚀 Ejecución HyperAgent: "${result.goal}"\n\n` +
+            `- **Estado:** ${result.success ? '✅ Éxito' : '⚠️ Advertencia'}\n` +
+            `- **Tiempo Total:** ${result.totalTimeMs}ms\n` +
+            `- **Pasos Ejecutados:** ${result.plan.tasks.length}\n` +
+            `- **Resumen:** ${result.finalSummary}\n\n` +
+            `### 📑 Desglose de Pasos:\n` +
+            result.plan.tasks.map(t => `${t.stepNumber}. **[${t.role}]** ${t.title}: ${t.status === 'SUCCESS' ? '✓' : '✗'} ${t.result || t.error}`).join('\n') +
+            `\n\n### 📦 Artefactos Creados / Actualizados:\n` +
+            (result.artifactsCreated.length > 0 ? result.artifactsCreated.map(a => `- \`${a}\``).join('\n') : '- Ninguno');
+
+          return {
+            content: [{ type: 'text', text: report }]
           };
         }
 
