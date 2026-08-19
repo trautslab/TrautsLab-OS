@@ -43,3 +43,11 @@ Thumbs.db
 *.swo
 models/*.bin
 packages/voice-engine/models/*.bin
+
+# Rust / Tauri
+target/
+src-tauri/target/
+packages/desktop-app/src-tauri/target/
+*.app/
+packages/desktop-app/*.app/
+

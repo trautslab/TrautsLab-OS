@@ -57,6 +57,9 @@
         <button class="hud-mode-btn" id="mode-changelog" data-mode="changelog" role="tab" aria-selected="false" title="Historial de Versiones SemVer (Tecla 7)">
           <span class="mode-num">7</span> CHANGELOG
         </button>
+        <button class="hud-mode-btn" id="mode-integrations" data-mode="integrations" role="tab" aria-selected="false" title="Integraciones y Canales Bidireccionales (Tecla 8)">
+          <span class="mode-num">8</span> CHANNELS
+        </button>
       </nav>
 
       <!-- Node Status Indicators -->
@@ -160,7 +163,7 @@
             <section class="hud-card directives-card">
               <div class="card-title-bar">
                 <span class="card-tag">DIRECTIVES</span>
-                <span class="card-subtag">TOP.3</span>
+                <span class="card-subtag">TOP.3 • LIVE</span>
               </div>
               <div class="directives-list" id="directives-list">
                 <label class="directive-item completed" id="lbl-task-1">
@@ -179,6 +182,10 @@
                   <span class="directive-text">Grabación de Demo: Asistente de Voz 3-Tier (03:30 PM)</span>
                 </label>
               </div>
+              <form id="form-new-directive" class="directive-input-form" onsubmit="event.preventDefault();">
+                <input type="text" id="input-new-directive" placeholder="Añadir directiva rápida..." autocomplete="off">
+                <button type="submit" id="btn-add-directive" title="Agregar directiva">+</button>
+              </form>
             </section>
 
             <!-- DOCUMENTS INBOX TRAIL -->
@@ -679,6 +686,138 @@ Antes de buscar en todos los archivos, lee siempre el `index.md` del nivel en el
                 </div>
               </div>
             </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8. VIEW: CHANNELS & INTEGRATIONS HUB -->
+      <section id="view-integrations" class="hud-view-panel" role="tabpanel" aria-labelledby="mode-integrations">
+        <div class="doc-view-container">
+          <header class="doc-view-header">
+            <div class="doc-badge">🌐 CONECTIVIDAD MULTICANAL</div>
+            <h2 class="doc-view-title">Integraciones y Enrutamiento Bidireccional de Canales</h2>
+            <p class="doc-view-subtitle">Monitorea los canales de entrada/salida activos. Toda solicitud recibida es procesada y respondida simétricamente por su mismo canal de origen con notificación en vivo.</p>
+          </header>
+
+          <!-- Channels Status Grid -->
+          <div class="channels-status-grid" id="channels-status-container">
+            <div class="channel-card-hud active">
+              <div class="ch-head">
+                <span class="ch-icon">✈️</span>
+                <span class="ch-title">Telegram Bot</span>
+                <span class="ch-badge online">ONLINE</span>
+              </div>
+              <p class="ch-desc">Notas de voz Opus procesadas con Whisper Metal GPU y respuestas push automáticas.</p>
+              <div class="ch-meta"><span>Handle:</span> <code>@TrautsLabBot</code> • <span>Latencia:</span> <strong>180ms</strong></div>
+            </div>
+
+            <div class="channel-card-hud active">
+              <div class="ch-head">
+                <span class="ch-icon">🎙️</span>
+                <span class="ch-title">Voice Link 3-Tier</span>
+                <span class="ch-badge online">ONLINE</span>
+              </div>
+              <p class="ch-desc">Captura con micrófono local, modulación 3D en tiempo real y locución Kokoro TTS.</p>
+              <div class="ch-meta"><span>Protocolo:</span> <code>WebSocket / AudioContext</code> • <span>Latencia:</span> <strong>12ms</strong></div>
+            </div>
+
+            <div class="channel-card-hud active">
+              <div class="ch-head">
+                <span class="ch-icon">💻</span>
+                <span class="ch-title">Desktop App (Tauri)</span>
+                <span class="ch-badge online">ONLINE</span>
+              </div>
+              <p class="ch-desc">Shell nativa en Rust, System Tray persistente y atajo global Cmd+Shift+Space.</p>
+              <div class="ch-meta"><span>Memoria:</span> <strong>14.2 MB RAM</strong> • <span>IPC:</span> <code>Native WebKit</code></div>
+            </div>
+
+            <div class="channel-card-hud active">
+              <div class="ch-head">
+                <span class="ch-icon">🤖</span>
+                <span class="ch-title">MCP Server (12 Tools)</span>
+                <span class="ch-badge online">ONLINE</span>
+              </div>
+              <p class="ch-desc">Protocolo Model Context Protocol listo para Antigravity IDE, Claude Code, Cursor y Cline.</p>
+              <div class="ch-meta"><span>Transporte:</span> <code>JSON-RPC stdio/SSE</code> • <span>Herramientas:</span> <strong>12 registradas</strong></div>
+            </div>
+
+            <div class="channel-card-hud active">
+              <div class="ch-head">
+                <span class="ch-icon">🍎</span>
+                <span class="ch-title">macOS Notifications</span>
+                <span class="ch-badge online">ONLINE</span>
+              </div>
+              <p class="ch-desc">Alertas nativas instantáneas del Centro de Notificaciones del sistema operativo.</p>
+              <div class="ch-meta"><span>Transporte:</span> <code>NSUserNotificationCenter</code> • <span>Latencia:</span> <strong>2ms</strong></div>
+            </div>
+
+            <div class="channel-card-hud ready">
+              <div class="ch-head">
+                <span class="ch-icon">📅</span>
+                <span class="ch-title">Google Calendar</span>
+                <span class="ch-badge ready">CONFIGURADO</span>
+              </div>
+              <p class="ch-desc">Sincronización CalDAV bidireccional entre la agenda del Vault y calendarios corporativos.</p>
+              <div class="ch-meta"><span>Protocolo:</span> <code>CalDAV / REST API</code> • <span>Filtro:</span> <code>Solo eventos confirmados</code></div>
+            </div>
+
+            <div class="channel-card-hud ready">
+              <div class="ch-head">
+                <span class="ch-icon">💬</span>
+                <span class="ch-title">Slack / Discord</span>
+                <span class="ch-badge ready">CONFIGURADO</span>
+              </div>
+              <p class="ch-desc">Envío de resúmenes de inteligencia matutinos e incidencias operativas a canales de equipo.</p>
+              <div class="ch-meta"><span>Protocolo:</span> <code>Incoming Webhooks</code></div>
+            </div>
+          </div>
+
+          <!-- Live Influx & Symmetrical Dispatcher Monitor -->
+          <div class="traffic-monitor-section">
+            <div class="traffic-header">
+              <h3 class="traffic-title">📡 Monitor de Tráfico en Vivo & Despacho Simétrico</h3>
+              <div class="traffic-live-indicator"><span class="pulse-dot"></span> STREAM SSE ACTIVO</div>
+            </div>
+            <div class="traffic-table-wrap">
+              <table class="traffic-table">
+                <thead>
+                  <tr>
+                    <th>Hora</th>
+                    <th>Canal de Entrada</th>
+                    <th>Consulta / Transacción</th>
+                    <th>Motor LLM</th>
+                    <th>Canal de Salida (Simétrico)</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="traffic-table-body">
+                  <tr>
+                    <td><code>14:39:52</code></td>
+                    <td><span class="ch-pill mcp">MCP_CLIENT</span></td>
+                    <td>Consulta NotebookLM Grounded Research</td>
+                    <td><code>Ollama (qwen2.5:3b)</code></td>
+                    <td><span class="ch-pill mcp">JSON-RPC Result</span></td>
+                    <td><span class="status-ok">✓ Éxito (26s)</span></td>
+                  </tr>
+                  <tr>
+                    <td><code>14:33:31</code></td>
+                    <td><span class="ch-pill voice">VOICE_HUD</span></td>
+                    <td>"agendar cena para hoy a las 8:00 pm"</td>
+                    <td><code>Skills Engine Tier 1</code></td>
+                    <td><span class="ch-pill voice">Kokoro TTS + Toast</span></td>
+                    <td><span class="status-ok">✓ Éxito (704ms)</span></td>
+                  </tr>
+                  <tr>
+                    <td><code>14:33:27</code></td>
+                    <td><span class="ch-pill telegram">TELEGRAM</span></td>
+                    <td>"ejecuta morning-intel-scan"</td>
+                    <td><code>Skills Engine Tier 1</code></td>
+                    <td><span class="ch-pill telegram">Push Telegram Bot</span></td>
+                    <td><span class="status-ok">✓ Éxito (1.6s)</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>

@@ -46,11 +46,11 @@ async function runMCPTests() {
     (res) => res.protocolVersion === '2024-11-05' && res.capabilities.tools
   );
 
-  // 2. Tools List (11 tools)
+  // 2. Tools List (12 tools)
   await assertReq(
-    '2. Tools Catalog: tools/list (11 tools registradas)',
+    '2. Tools Catalog: tools/list (12 tools registradas)',
     { jsonrpc: '2.0', id: 2, method: 'tools/list' },
-    (res) => Array.isArray(res.tools) && res.tools.length === 11
+    (res) => Array.isArray(res.tools) && res.tools.length === 12
   );
 
   // 3. trautslab_vault_read
@@ -188,6 +188,25 @@ async function runMCPTests() {
       }
     },
     (res) => !res.isError && res.content[0].text.includes('Ejecución HyperAgent')
+  );
+
+  // 12. trautslab_notebooklm_query
+  await assertReq(
+    '12. Tool: trautslab_notebooklm_query (Grounded Research & Síntesis de Libretas)',
+    {
+      jsonrpc: '2.0',
+      id: 12,
+      method: 'tools/call',
+      params: {
+        name: 'trautslab_notebooklm_query',
+        arguments: {
+          topic: 'Modelos de Razonamiento y Grounding en Sistemas Multi-Agente',
+          notebookId: 'ai-agents-research-2026',
+          depth: 'detailed'
+        }
+      }
+    },
+    (res) => !res.isError && res.content[0].text.includes('NotebookLM')
   );
 
   console.log('\n========================================================');

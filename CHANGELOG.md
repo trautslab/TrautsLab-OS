@@ -4,6 +4,28 @@ Todas las modificaciones notables de este proyecto están documentadas en este a
 
 ---
 
+## [1.3.0] — 2026-08-19 — *The Commercial Multi-LLM, NotebookLM & Channels Hub Release*
+
+### 🚀 Añadido
+- **Google NotebookLM Grounded Research & MCP Tool 12:**
+  - Habilidad `NotebookLMSyncSkill` en `@trautslab/skills-engine` para sintetizar libretas y notas de investigación en `RAW/notebooklm/[date]-[slug].md` con Frontmatter YAML estructurado.
+  - Registrada la **Herramienta 12: `trautslab_notebooklm_query`** en el catálogo de `@trautslab/mcp-server`.
+- **Abstracción Multi-LLM para Escalamiento Comercial (`@trautslab/skills-engine`):**
+  - Módulo de proveedores `LLMProvider` con soporte nativo para **Google Gemini 2.0 Flash / 1.5 Pro**, **OpenAI GPT-4o / o3-mini**, **Anthropic Claude 3.5 Sonnet** y **Ollama Local**.
+  - `LLMProviderFactory` para resolución dinámica de proveedores y fallback automático en cascada.
+  - Especificado en `ADR-008: Abstracción de Proveedores Multi-LLM`.
+- **Hub de Canales e Integraciones & Enrutamiento Bidireccional Simétrico:**
+  - Módulo `ChannelDispatcher` en `@trautslab/voice-engine` que garantiza que toda interacción entrante se responda simétricamente por el mismo medio de origen (Telegram, Voice Link, MCP, Desktop App, Slack, macOS Notifications).
+  - Pestaña interactiva **Modo 8: CHANNELS** en el HUD con monitor de tráfico en vivo mediante Server-Sent Events (`CHANNEL_TRAFFIC`).
+  - Especificado en `ADR-009: Enrutamiento Simétrico y Monitoreo de Canales Bidireccionales`.
+- **Eliminación Total de Datos Hardcodeados & Sistema de Diseño UI:**
+  - AI Wire Ticker dinámico conectado a `/api/intel/latest`.
+  - Lector Markdown del Vault conectado a `/api/vault/file?path=...`.
+  - Creador dinámico de directivas en el Cockpit con persistencia y sincronización.
+  - Especificación oficial de paleta de colores y variables CSS en `docs/design-system/tokens.md`.
+
+---
+
 ## [1.2.0] — 2026-08-19 — *The Autonomous Multi-Agent & Scaling Release*
 
 ### 🚀 Añadido

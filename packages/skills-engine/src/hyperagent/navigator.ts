@@ -19,7 +19,7 @@ export class HyperNavigator {
     const matchedFiles = searchResults.map((r) => ({
       path: r.relativePath,
       score: r.score,
-      summary: r.summary || (r.contentSnippet ? r.contentSnippet.slice(0, 150) : '')
+      summary: r.summary || r.excerpt || ''
     }));
 
     const contextSummary = matchedFiles.length > 0

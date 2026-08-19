@@ -3152,12 +3152,273 @@ html, body {
   color: #334155;
 }
 
+/* ==========================================================================
+   15. DYNAMIC DIRECTIVES & CHANNELS HUB STYLES
+   ========================================================================== */
+
+.directive-input-form {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.directive-input-form input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 0.76rem;
+  color: #f1f5f9;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.directive-input-form input:focus {
+  border-color: var(--amber-glow);
+}
+
+.theme-light .directive-input-form input {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.directive-input-form button {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid var(--amber-border);
+  color: var(--amber-glow);
+  font-weight: 800;
+  padding: 0 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.directive-input-form button:hover {
+  background: var(--amber-glow);
+  color: #000;
+}
+
+/* CHANNELS GRID */
+.channels-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.channel-card-hud {
+  background: rgba(18, 22, 28, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  backdrop-filter: blur(12px);
+  transition: all 0.2s ease;
+}
+
+.channel-card-hud:hover {
+  border-color: rgba(245, 158, 11, 0.35);
+  transform: translateY(-2px);
+}
+
+.theme-light .channel-card-hud {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.ch-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ch-icon {
+  font-size: 1.15rem;
+}
+
+.ch-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f8fafc;
+  flex: 1;
+}
+
+.theme-light .ch-title {
+  color: #0f172a;
+}
+
+.ch-badge {
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+}
+
+.ch-badge.online {
+  background: rgba(52, 211, 153, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.4);
+}
+
+.ch-badge.ready {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.ch-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.ch-meta {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  padding-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ch-meta code {
+  color: #38bdf8;
+}
+
+.ch-meta strong {
+  color: #34d399;
+}
+
+/* TRAFFIC MONITOR TABLE */
+.traffic-monitor-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.traffic-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.traffic-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0;
+}
+
+.theme-light .traffic-title {
+  color: #0f172a;
+}
+
+.traffic-live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.12);
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 6px #34d399;
+  animation: pulse-glow 1.5s infinite;
+}
+
+.traffic-table-wrap {
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(18, 22, 28, 0.7);
+}
+
+.theme-light .traffic-table-wrap {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+.traffic-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  text-align: left;
+}
+
+.traffic-table th {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 12px 14px;
+  font-weight: 700;
+  color: var(--amber-glow);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.theme-light .traffic-table th {
+  background: #f8fafc;
+  color: #92400e;
+  border-bottom-color: #cbd5e1;
+}
+
+.traffic-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+}
+
+.theme-light .traffic-table td {
+  border-bottom-color: #f1f5f9;
+  color: #334155;
+}
+
+.traffic-table tr:hover td {
+  background: rgba(245, 158, 11, 0.04);
+}
+
+.ch-pill {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.ch-pill.telegram { background: rgba(14, 165, 233, 0.18); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.3); }
+.ch-pill.voice, .ch-pill.voice_hud { background: rgba(168, 85, 247, 0.18); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+.ch-pill.mcp, .ch-pill.mcp_client { background: rgba(52, 211, 153, 0.18); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); }
+.ch-pill.desktop_app { background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+.status-ok {
+  color: #34d399;
+  font-weight: 600;
+}
+
 @media (max-width: 768px) {
   .quickstart-grid,
   .q-features-columns {
     grid-template-columns: 1fr;
   }
 }
+
 
 
 

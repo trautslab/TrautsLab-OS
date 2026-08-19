@@ -139,6 +139,56 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Dynamic Add Directive Form
+  const formNewDirective = document.getElementById('form-new-directive');
+  const inputNewDirective = document.getElementById('input-new-directive');
+
+  formNewDirective?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = (inputNewDirective?.value || '').trim();
+    if (!text) return;
+
+    const newIndex = directivesList?.children.length || 0;
+    const newLabel = document.createElement('label');
+    newLabel.className = 'directive-item active';
+    newLabel.id = `lbl-task-${newIndex + 1}`;
+    newLabel.innerHTML = `
+      <input type="checkbox" id="chk-task-${newIndex + 1}">
+      <span class="directive-box"></span>
+      <span class="directive-text">${escapeHtml(text)}</span>
+    `;
+
+    const chk = newLabel.querySelector('input');
+    chk.addEventListener('change', () => {
+      localStorage.setItem(`trautslab-directive-${newIndex}`, chk.checked);
+      newLabel.classList.toggle('completed', chk.checked);
+      appendTerminalLog(`Directiva: ${text} &rarr; ${chk.checked ? 'COMPLETADA' : 'PENDIENTE'}`, 'prompt');
+    });
+
+    directivesList?.appendChild(newLabel);
+    if (inputNewDirective) inputNewDirective.value = '';
+    showHudToast('DIRECTIVA AÑADIDA', text, 'success', 2500);
+    appendTerminalLog(`✓ Nueva directiva registrada: <strong>${text}</strong>`, 'success');
+  });
+
+  // Dynamic AI Wire Live Ticker Loader
+  const wireTickerContent = document.getElementById('wire-ticker-content');
+  async function loadLiveTicker() {
+    try {
+      const res = await fetch('http://localhost:3030/api/intel/latest');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.items) && data.items.length > 0 && wireTickerContent) {
+          wireTickerContent.innerHTML = data.items
+            .map(item => `<span>• <strong>[${escapeHtml(item.tag)}]</strong> ${escapeHtml(item.title)}</span>`)
+            .join(' ');
+        }
+      }
+    } catch {}
+  }
+  loadLiveTicker();
+  setInterval(loadLiveTicker, 30000);
+
   // --- TELEGRAM PUSH NOTIFIER & LINK ENGINE ---
   const btnTelegramStatus = document.getElementById('btn-telegram-status');
   const telegramIcon = document.getElementById('telegram-icon');
@@ -208,26 +258,42 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check Telegram on boot
   checkTelegramStatus();
 
-  // 8. Documents Inbox Trail & Vault Tree Interactive Reader
-  const docVaultMap = {
-    'AGENTS.md': `# AGENTS.md: Vault Navigation Map\n\nEste archivo indica a cualquier agente cómo navegar este repositorio:\n1. **RAW/**: Datos crudos descargados de internet.\n2. **WIKI/**: Artículos sintetizados con index.md.\n3. **OUTPUT/**: Entregables y caché Tier 2.\n\n## Regla de Oro\nConsulta siempre el index.md más cercano para no saturar tu ventana de contexto.`,
-    'WIKI/index.md': `# WIKI Master Table of Contents\n\n- [[ai-systems]]: Arquitecturas de Agentes y Modelos de Voz\n- [[productivity]]: Codificación de Habilidades y Automatizaciones\n- [[development]]: Convenciones Semánticas y Git Flow\n- [[operations]]: Mantenimiento y Monitor de Salud`,
-    'WIKI/ai-systems/2026-08-17-morning-intel.md': `# Resumen de Inteligencia Matutino (2026-08-17)\n\n## Tendencias GitHub\n- **NousResearch/hermes-agent**: Liderando herramientas de agentes autónomos.\n- **hexgrad/kokoro**: Motor TTS de 82M parámetros para síntesis local.\n\n## Hacker News\n- **Apple App Tracking Transparency**: Debates antitrust y métricas publicitarias.`,
-    'WIKI/productivity/skills-codification.md': `# Codificación de Habilidades (Skills)\n\nGuía para convertir rutinas repetitivas en código TypeScript determinista con registro en SkillRegistry.`,
-    'OUTPUT/cache/today-agenda.json': `{\n  "date": "2026-08-17",\n  "events_count": 3,\n  "quick_summary_tts": "Tu compromiso principal hoy es la Revisión de Arquitectura TrautsLab OS a las 11:00 AM."\n}`
-  };
-
+  // 8. Documents Inbox Trail & Vault Tree Interactive Reader (Dynamic API fetch)
   const docTitleEl = document.getElementById('vault-doc-title');
   const readerContentEl = document.getElementById('markdown-reader-content');
 
-  function openDocumentPreview(docPath) {
+  async function openDocumentPreview(docPath) {
     switchMode('vault');
-    if (docTitleEl) docTitleEl.textContent = `${docPath.toUpperCase()} — VISTA PREVIA`;
+    if (docTitleEl) docTitleEl.textContent = `${docPath.toUpperCase()} — VISTA EN VIVO`;
     if (readerContentEl) {
-      const content = docVaultMap[docPath] || `# ${docPath}\n\nDocumento cargado desde el Vault.`;
-      readerContentEl.innerHTML = `<pre><code>${content}</code></pre>`;
+      readerContentEl.innerHTML = `<div class="loading-spinner">Cargando contenido real desde el Vault (${docPath})...</div>`;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:3030/api/vault/file?path=${encodeURIComponent(docPath)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (readerContentEl) {
+          readerContentEl.innerHTML = `<pre><code>${escapeHtml(data.content)}</code></pre>`;
+        }
+      } else {
+        const fallback = `# ${docPath}\n\nNota cargada desde el Vault (Modo Local).`;
+        if (readerContentEl) readerContentEl.innerHTML = `<pre><code>${escapeHtml(fallback)}</code></pre>`;
+      }
+    } catch {
+      const fallback = `# ${docPath}\n\nNota cargada desde el Vault (Modo Local).`;
+      if (readerContentEl) readerContentEl.innerHTML = `<pre><code>${escapeHtml(fallback)}</code></pre>`;
     }
     appendTerminalLog(`Lector de Vault: Visualizando <strong>${docPath}</strong>`, 'info');
+  }
+
+  function escapeHtml(str) {
+    return (str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
   const docItems = document.querySelectorAll('.doc-trail-item');
@@ -731,6 +797,14 @@ document.addEventListener('DOMContentLoaded', () => {
         await loadScheduleFromVault();
       });
 
+      evtSource.addEventListener('CHANNEL_TRAFFIC', (e) => {
+        console.log('⚡ [SSE] Evento recibido: CHANNEL_TRAFFIC', e.data);
+        try {
+          const entry = JSON.parse(e.data);
+          appendTrafficRow(entry);
+        } catch {}
+      });
+
       evtSource.onerror = () => {
         evtSource.close();
         setTimeout(initLiveSSEStream, 4000);
@@ -739,6 +813,49 @@ document.addEventListener('DOMContentLoaded', () => {
       console.warn('[SSE] Error inicializando SSE:', err);
     }
   }
+
+  // Channel Traffic Monitor functions
+  const trafficTableBody = document.getElementById('traffic-table-body');
+
+  function appendTrafficRow(t) {
+    if (!trafficTableBody) return;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><code>${escapeHtml(t.timestamp || new Date().toLocaleTimeString('es-ES'))}</code></td>
+      <td><span class="ch-pill ${(t.channel || 'VOICE').toLowerCase()}">${escapeHtml(t.channel || 'VOICE')}</span></td>
+      <td>${escapeHtml(t.userQuery || '')}</td>
+      <td><code>${escapeHtml(t.providerUsed || 'Ollama')}</code></td>
+      <td><span class="ch-pill ${(t.channel || 'VOICE').toLowerCase()}">${escapeHtml((t.responseText || '').slice(0, 45))}...</span></td>
+      <td><span class="status-ok">✓ ${escapeHtml(t.status || 'SUCCESS')} (${t.durationMs || 0}ms)</span></td>
+    `;
+    trafficTableBody.insertBefore(tr, trafficTableBody.firstChild);
+    while (trafficTableBody.children.length > 50) {
+      trafficTableBody.removeChild(trafficTableBody.lastChild);
+    }
+  }
+
+  async function loadChannelsTraffic() {
+    try {
+      const res = await fetch('http://localhost:3030/api/channels/traffic');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.traffic) && data.traffic.length > 0 && trafficTableBody) {
+          trafficTableBody.innerHTML = data.traffic.map(t => `
+            <tr>
+              <td><code>${escapeHtml(t.timestamp)}</code></td>
+              <td><span class="ch-pill ${(t.channel || '').toLowerCase()}">${escapeHtml(t.channel)}</span></td>
+              <td>${escapeHtml(t.userQuery)}</td>
+              <td><code>${escapeHtml(t.providerUsed)}</code></td>
+              <td><span class="ch-pill ${(t.channel || '').toLowerCase()}">${escapeHtml((t.responseText || '').slice(0, 45))}...</span></td>
+              <td><span class="status-ok">✓ ${escapeHtml(t.status)} (${t.durationMs}ms)</span></td>
+            </tr>
+          `).join('');
+        }
+      }
+    } catch {}
+  }
+  loadChannelsTraffic();
+  setInterval(loadChannelsTraffic, 8000);
 
   // Auto-sync polling every 2.5 seconds (seamless background sync with zero lag)
   setInterval(() => {
@@ -1002,7 +1119,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', (e) => {
     if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
 
-    // Keys 1 to 7 -> Switch HUD View Modes
+    // Keys 1 to 8 -> Switch HUD View Modes
     if (e.key === '1') switchMode('cockpit');
     if (e.key === '2') switchMode('intel');
     if (e.key === '3') switchMode('vault');
@@ -1010,6 +1127,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === '5') switchMode('quickstart');
     if (e.key === '6') switchMode('docs');
     if (e.key === '7') switchMode('changelog');
+    if (e.key === '8') switchMode('integrations');
 
     // 'L' -> Theme Toggle
     if (e.key.toLowerCase() === 'l') {

@@ -15,6 +15,7 @@ import {
   VaultSyncIndexerSkill,
   TelegramNotifySkill,
   VaultSemanticSearchSkill,
+  NotebookLMSyncSkill,
   HyperOrchestrator
 } from '@trautslab/skills-engine';
 import { sendTelegramNotification } from '@trautslab/telegram-bridge';
@@ -37,6 +38,7 @@ export class MCPToolsRegistry {
     this.skillRegistry.register(new VaultSyncIndexerSkill());
     this.skillRegistry.register(new TelegramNotifySkill());
     this.skillRegistry.register(new VaultSemanticSearchSkill());
+    this.skillRegistry.register(new NotebookLMSyncSkill());
 
     this.hybridSearch = new HybridSearchEngine(this.vaultRoot);
     this.cacheManager = new Tier2CacheManager(this.vaultRoot);
@@ -251,6 +253,29 @@ export class MCPToolsRegistry {
           },
           required: ['goal']
         }
+      },
+      {
+        name: 'trautslab_notebooklm_query',
+        description: 'Consulta y sintetiza conocimiento fundamentado (Grounded Research) desde libretas de Google NotebookLM e ingesta notas en RAW/notebooklm/ y WIKI/.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            topic: {
+              type: 'string',
+              description: 'Tema o pregunta de investigación a consultar en NotebookLM.'
+            },
+            notebookId: {
+              type: 'string',
+              description: 'ID o nombre de la libreta de investigación (opcional).'
+            },
+            depth: {
+              type: 'string',
+              enum: ['brief', 'detailed', 'deep_dive'],
+              description: 'Profundidad de la síntesis generada.'
+            }
+          },
+          required: ['topic']
+        }
       }
     ];
   }
@@ -444,6 +469,27 @@ export class MCPToolsRegistry {
 
           return {
             content: [{ type: 'text', text: report }]
+          };
+        }
+
+        case 'trautslab_notebooklm_query': {
+          const res = await this.skillRegistry.execute('notebooklm-sync', {
+            vaultRoot: this.vaultRoot,
+            timestamp: new Date(),
+            args: {
+              topic: args.topic,
+              notebookId: args.notebookId,
+              depth: args.depth
+            }
+          });
+          return {
+            isError: !res.success,
+            content: [
+              {
+                type: 'text',
+                text: `### 📓 Síntesis NotebookLM Grounded Research\n\n${res.message}\n\n**Artefactos Generados:**\n${(res.artifactsCreated || []).map((a: string) => `- \`${a}\``).join('\n') || '- Ninguno'}`
+              }
+            ]
           };
         }
 

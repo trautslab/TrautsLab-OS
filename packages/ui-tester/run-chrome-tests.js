@@ -188,6 +188,26 @@ async function main() {
     if (!version.includes('v1.2.0')) throw new Error('Versión v1.2.0 no encontrada');
   }, '14_hud_changelog_view.png');
 
+  // 15. Modo 8: Channels & Integrations Hub
+  await assertStep('15. Modo 8: Hub de Integraciones y Monitor de Tráfico en Vivo', async () => {
+    await page.keyboard.press('Digit8');
+    await page.waitForSelector('#view-integrations.active');
+    const title = await page.$eval('#view-integrations .doc-view-title', el => el.textContent);
+    if (!title.includes('Integraciones')) throw new Error('Título de Integraciones incorrecto');
+  }, '15_hud_integrations_channels_view.png');
+
+  // 16. Creación dinámica de Directiva en el Cockpit
+  await assertStep('16. Inserción dinámica de Directiva en el Cockpit', async () => {
+    await page.keyboard.press('Digit1');
+    await page.waitForSelector('#view-cockpit.active');
+    await page.type('#input-new-directive', 'Revisión final de NotebookLM y Canales');
+    await page.click('#btn-add-directive');
+    await new Promise(r => setTimeout(r, 200));
+    const items = await page.$$eval('.directive-item', els => els.map(e => e.textContent));
+    const created = items.some(t => t.includes('NotebookLM'));
+    if (!created) throw new Error('Directiva no agregada');
+  }, '16_dynamic_directive_created.png');
+
   await browser.close();
 
   console.log('\n========================================================================');
