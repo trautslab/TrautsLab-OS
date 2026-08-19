@@ -9,3 +9,4 @@ export * from './skills/calendar-add-event.js';
 export * from './skills/calendar-archive-event.js';
 export * from './skills/vault-sync-indexer.js';
 export * from './skills/telegram-notify.js';
+export * from './skills/vault-semantic-search.js';
