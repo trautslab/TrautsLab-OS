@@ -1,0 +1,27 @@
+{
+  "name": "trautslab-os",
+  "version": "1.2.0",
+  "description": "TrautsLab OS — Autonomous 3-Tier Operating System with Obsidian Vault Memory",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "desktop": "node scripts/launch-desktop.js",
+    "desktop:tauri": "cd packages/desktop-app && npm run tauri:dev",
+    "desktop:build": "cd packages/desktop-app && npm run tauri:build",
+    "start:frontend": "python3 -m http.server 3000 --directory frontend",
+    "start:voice": "cd packages/voice-engine && npx tsx src/cli.ts server",
+    "start:telegram": "cd packages/telegram-bridge && npx tsx src/cli.ts",
+    "test:all": "cd packages/mcp-server && npm test && cd ../vault-engine && npm test && cd ../skills-engine && npm test && cd ../voice-engine && npm test && cd ../ui-tester && npm test && npm run test:mobile"
+  },
+  "keywords": [
+    "trautslab",
+    "os",
+    "ai-assistant",
+    "obsidian",
+    "voice-engine",
+    "mcp",
+    "tauri"
+  ],
+  "author": "Jhonny Lorenzo (jlorenzor)",
+  "license": "MIT"
+}
