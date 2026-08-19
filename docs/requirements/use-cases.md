@@ -302,4 +302,62 @@ graph LR
 | **Urgencia** | Media. |
 | **Comentarios** | Clave para detectar cuellos de botella en modelos de IA y hardware local. |
 
+---
+
+### RF-11: Servidor Model Context Protocol (MCP) e Interoperabilidad con Agentes
+
+| RF-11 | Exposición de Herramientas Estándar sobre Protocolo MCP |
+| :--- | :--- |
+| **Versión** | Versión 1.2 |
+| **Autores** | jlorenzor |
+| **Objetivos Asociados** | OBJ-11: Interoperabilidad Nativa con Agentes CLI y Entornos de Desarrollo |
+| **Requisitos asociados** | RI-11: Paquete `@trautslab/mcp-server` y Protocolo JSON-RPC 2.0 |
+| **Descripción** | Permite a clientes externos de IA (Antigravity, Claude Code, Cursor, Cline) descubrir y ejecutar las 10 herramientas estándar del sistema sobre canales `stdio` y `SSE`. |
+| **Precondición** | Servidor MCP configurado en el archivo de configuración del cliente LLM (`mcp_config.json`). |
+| **Secuencia normal** | **Paso** \| **Acción**<br>1 \| El cliente LLM inicia el proceso `npx tsx packages/mcp-server/src/cli.ts`.<br>2 \| El servidor responde al handshake `initialize` con el listado de capacidades.<br>3 \| El cliente invoca `tools/list` para descubrir los esquemas y descripciones de las 10 herramientas.<br>4 \| El cliente ejecuta `tools/call` con los parámetros validados.<br>5 \| El servidor ejecuta la habilidad correspondiente y retorna el resultado en Markdown estructurado. |
+| **Excepciones** | **Paso** \| **Acción**<br>4 \| Si los argumentos no cumplen el esquema JSON, se retorna un error estándar `-32602`. |
+| **Postcondición** | El agente de IA manipula el Obsidian Vault y el calendario sin salir de su entorno de desarrollo. |
+| **Importancia** | Crítica. |
+| **Urgencia** | Inmediata. |
+| **Comentarios** | Convierte a TrautsLab OS en una plataforma abierta para cualquier modelo de lenguaje. |
+
+---
+
+### RF-12: Motor de Búsqueda Vectorial Híbrida (BM25 + Embeddings)
+
+| RF-12 | Recuperación de Información Híbrida Léxica y Semántica |
+| :--- | :--- |
+| **Versión** | Versión 1.2 |
+| **Autores** | jlorenzor |
+| **Objetivos Asociados** | OBJ-12: Descubrimiento Semántico Cruzado sin Alteración de Archivos Markdown |
+| **Requisitos asociados** | RI-12: Módulo `HybridSearchEngine` y Endpoint Ollama `/api/embeddings` |
+| **Descripción** | Permite buscar notas y conceptos en el Vault combinando concordancia léxica (BM25) con similitud coseno de embeddings vectoriales generados localmente. |
+| **Precondición** | Notas estructuradas en el Obsidian Vault y servidor Ollama activo. |
+| **Secuencia normal** | **Paso** \| **Acción**<br>1 \| El usuario o agente envía una consulta semántica (ej: *"modelos de voz con aceleración en GPU"*).<br>2 \| El motor genera el vector embedding de la consulta mediante Ollama.<br>3 \| Se calcula el score BM25 léxico y la similitud coseno contra cada documento del Vault.<br>4 \| Se combinan los puntajes con ponderación $\alpha = 0.5$.<br>5 \| Se retorna el Top-K de notas más relevantes con extractos limpios y porcentajes de coincidencia. |
+| **Excepciones** | **Paso** \| **Acción**<br>2 \| Si Ollama no está disponible, el sistema recurre a BM25 puro como fallback transparente. |
+| **Postcondición** | El usuario encuentra notas conceptuales aunque no recuerde las palabras exactas del título. |
+| **Importancia** | Alta. |
+| **Urgencia** | Alta. |
+| **Comentarios** | Complementa de forma no destructiva la navegación jerárquica de Karpathy. |
+
+---
+
+### RF-13: Aplicación Nativa de Escritorio con Tauri v2 y System Tray
+
+| RF-13 | Shell de Escritorio Ultraligera con System Tray y Hotkey Global en macOS |
+| :--- | :--- |
+| **Versión** | Versión 1.2 |
+| **Autores** | jlorenzor |
+| **Objetivos Asociados** | OBJ-13: Experiencia de Escritorio Nativa con Mínimo Consumo de Memoria (< 15MB) |
+| **Requisitos asociados** | RI-13: Paquete `@trautslab/desktop-app` (Tauri v2 + Rust + WebKit) |
+| **Descripción** | Proporciona un ejecutable nativo de escritorio para macOS con icono en la barra de menús (System Tray), control de ventana y atajo de teclado global a nivel de sistema (`Cmd+Shift+Space`). |
+| **Precondición** | Frontend compilado en `frontend/` y backend de voz corriendo localmente. |
+| **Secuencia normal** | **Paso** \| **Acción**<br>1 \| El usuario pulsa `Cmd+Shift+Space` desde cualquier aplicación.<br>2 \| El backend de Rust en Tauri captura el atajo global y enfoca la ventana del Cockpit.<br>3 \| Se invoca automáticamente el modal de captura de voz.<br>4 \| El usuario dicta su comando y la interfaz responde en tiempo real.<br>5 \| Al hacer clic fuera o pulsar `Esc`, la ventana puede ocultarse al System Tray sin cerrarse. |
+| **Excepciones** | **Paso** \| **Acción**<br>1 \| Si el atajo entra en conflicto con otra aplicación, se puede reconfigurar en `tauri.conf.json`. |
+| **Postcondición** | Interacción fluida con TrautsLab OS desde cualquier punto del sistema operativo sin sobrecarga de memoria. |
+| **Importancia** | Alta. |
+| **Urgencia** | Media. |
+| **Comentarios** | Reemplaza a Electron eliminando el consumo excesivo de RAM y los problemas de congelamiento. |
+
+
 
