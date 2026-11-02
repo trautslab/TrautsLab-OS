@@ -23,6 +23,7 @@
     "deploy:lambdas": "node bin/deploy-floci-lambdas.mjs",
     "demo:phase1": "node bin/run-phase1-demo.mjs",
     "demo:phase2": "node bin/run-phase2-demo.mjs",
+    "demo:phase3": "node bin/run-phase3-demo.mjs",
     "demo:collision": "node bin/test-acg-collision-sim.mjs"
   },
   "keywords": [

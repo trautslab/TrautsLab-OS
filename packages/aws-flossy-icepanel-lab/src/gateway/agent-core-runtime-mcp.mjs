@@ -66,6 +66,28 @@ export class AgentCoreRuntimeMCP {
         description: "Discovers active personalized marketing campaigns for a customer.",
         inputSchema: campaignContract.request,
         lambdaTarget: "lmb-io-sale-cust-cpgn-ex-qry_findby-01"
+      },
+      {
+        name: "campaign_design_projection",
+        description: "[NO EXISTE] Calls missing campaign design projection Lambda.",
+        inputSchema: {
+          type: "object",
+          required: ["designId"],
+          properties: { designId: { type: "string" } }
+        },
+        lambdaTarget: "lmb-made-campaign-dsg-pjc_findby-id-01",
+        status: "NON_EXISTENT"
+      },
+      {
+        name: "sale_campaign_planner",
+        description: "[POR CREAR] Planned MCP tool for sale campaign rules.",
+        inputSchema: {
+          type: "object",
+          required: ["campaignType"],
+          properties: { campaignType: { type: "string" } }
+        },
+        lambdaTarget: "lmb-sale-campaign-exec--qry_findby-01",
+        status: "TO_CREATE"
       }
     ];
   }
@@ -85,6 +107,76 @@ export class AgentCoreRuntimeMCP {
     const toolDef = this.tools.find(t => t.name === toolName);
     if (!toolDef) {
       throw new Error(`MCP Tool '${toolName}' not found in runtime registry.`);
+    }
+
+    // 0. Check Tool Status (Edge Cases: TO_CREATE or NON_EXISTENT)
+    if (toolDef.status === "TO_CREATE") {
+      return {
+        tool: toolName,
+        targetLambda: toolDef.lambdaTarget,
+        statusCode: 501,
+        contractValidated: false,
+        roundtripMs: 2,
+        result: {
+          statusCode: 501,
+          error: {
+            code: "CAPABILITY_UNDER_CONSTRUCTION",
+            message: `Tool '${toolName}' is marked as [POR CREAR]. Deployment pending in squad backlog.`,
+            suggestedAlternative: "campaigns_find_eligible"
+          }
+        }
+      };
+    }
+
+    if (toolDef.status === "NON_EXISTENT") {
+      // In a raw system, this would cause a 502/ResourceNotFoundException
+      // Let's attempt invocation or flag it for Circuit Breaker
+      try {
+        await lambda.send(new InvokeCommand({
+          FunctionName: toolDef.lambdaTarget,
+          Payload: Buffer.from(JSON.stringify(params))
+        }));
+      } catch (err) {
+        return {
+          tool: toolName,
+          targetLambda: toolDef.lambdaTarget,
+          statusCode: 502,
+          contractValidated: false,
+          roundtripMs: 5,
+          result: {
+            statusCode: 502,
+            error: {
+              code: "PHANTOM_SERVICE_UNAVAILABLE",
+              message: `Downstream Lambda '${toolDef.lambdaTarget}' DOES NOT EXIST [NO EXISTE]. Triggering 502 collision.`,
+              rawError: err.message
+            }
+          }
+        };
+      }
+    }
+
+    // 1. Strict Contract Validation (Anti-Drift)
+    if (toolName === "coupons_find_by_id") {
+      if (typeof params.couponId !== "string" || !/^CPN-[A-Z0-9-]{4,16}$/.test(params.couponId)) {
+        return {
+          tool: toolName,
+          targetLambda: toolDef.lambdaTarget,
+          statusCode: 400,
+          contractValidated: false,
+          roundtripMs: 1,
+          result: {
+            statusCode: 400,
+            error: {
+              code: "CONTRACT_DRIFT_VALIDATION_FAILED",
+              field: "couponId",
+              expectedType: "string (Regex: ^CPN-[A-Z0-9-]{4,16}$)",
+              actualValue: params.couponId,
+              actualType: typeof params.couponId,
+              message: "Input violates API Contract specification. Please reformulate with valid CPN- prefix."
+            }
+          }
+        };
+      }
     }
 
     // 1. Prepare Lambda Event Payload according to Contract
