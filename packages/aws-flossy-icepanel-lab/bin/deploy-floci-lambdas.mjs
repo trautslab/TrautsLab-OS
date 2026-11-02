@@ -42,6 +42,11 @@ const LAMBDAS = [
     name: "lmb-io-sale-cust-cpgn-ex-qry_findby-01",
     srcDir: path.join(ROOT, "src/lambdas/lmb-sale-cust-cpgn"),
     description: "Customer campaign execution query finder"
+  },
+  {
+    name: "lmb-io-vads-cashback-disb-cmd-01",
+    srcDir: path.join(ROOT, "src/lambdas/lmb-card-cashback-disb"),
+    description: "Card cashback benefit disbursement command handler"
   }
 ];
 

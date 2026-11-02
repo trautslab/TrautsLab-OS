@@ -1,4 +1,4 @@
-# 🏛️ Marco de Gobernanza de Contratos API y Análisis de Colisiones en Topologías Agenticas (ACG -> ACR -> Lambdas -> DynamoDB)
+# 🏛️ Marco de Gobernanza de Contratos API y Análisis de Colisiones en Topologías Agénticas (ACG -> ACR -> Lambdas -> DynamoDB)
 
 > **Destinatarios:** Architecture Review Board (ARB), Principal Architects, Squad Leads & Core Banking Engineers.  
 > **Ámbito:** BIAN v10 Service Domains, Agent Core Gateway (ACG), Agent Core Runtime (ACR MCP) y Microservicios Serverless en AWS / Floci.
@@ -7,15 +7,15 @@
 
 ## 📑 1. Catálogo de Artefactos Documentales Obligatorios en Banca Corporativa
 
-Para defender y sustentar este análisis ante un Comité de Arquitectura Corporativo (ARB / Enterprise Architecture Board), no basta con diagramas estáticos de cajas. Se exige la siguiente **batería formal de 5 artefactos documentales**:
+Para defender y sustentar este análisis ante un Comité de Arquitectura Corporativo (ARB / Enterprise Architecture Board), se requiere la siguiente **batería formal de 5 artefactos documentales**:
 
-| ID | Tipo de Artefacto | Propósito en el Banco | Estándar / Notación |
-| :--- | :--- | :--- | :--- |
-| **ART-01** | **ADR (Architectural Decision Record)** | Documenta decisiones irreversibles, compensaciones (*trade-offs*) y directrices técnicas obligatorias para los squads. | Formato Michael Nygard (Contexto, Decisión, Consecuencias). |
-| **ART-02** | **Catálogo de Contratos API Multinivel** | Especifica los esquemas de entrada y salida entre el Gateway, el Servidor MCP y las Lambdas de dominio. | JSON Schema Draft 2020-12 / OpenAPI 3.1 / OpenRPC. |
-| **ART-03** | **Diagramas de Secuencia Dinámicos** | Modela el comportamiento temporal, transformaciones de carga y códigos de estado en las 4 fases de ejecución. | Mermaid `sequenceDiagram` integrado en Markdown vivo. |
-| **ART-04** | **Matriz de Riesgo de Colisión de Datos** | Cruza microservicios concurrentes contra atributos compartidos en tablas DynamoDB (Single-Table / Multi-Table). | Matriz CRUD Matricial con Nivel de Concurrencia y Aislamiento. |
-| **ART-05** | **Diagrama de Actividad / Máquina de Estados** | Detalla la validación de contratos, manejo de fallbacks y reintentos con backoff exponencial. | Mermaid `stateDiagram-v2` / `flowchart TD`. |
+| ID | Tipo de Artefacto | Propósito en el Banco | Estándar / Notación | Enlace en el Repositorio |
+| :--- | :--- | :--- | :--- | :--- |
+| **ART-01** | **ADRs (Architectural Decision Records)** | Documenta decisiones irreversibles, compensaciones (*trade-offs*) y directrices técnicas obligatorias para los squads. | Formato Michael Nygard (Contexto, Decisión, Consecuencias). | [ADR-001](ADR-001-STRICT-CONTRACTS-ACR-LAMBDA.md), [ADR-002](ADR-002-CURSOR-PAGINATION-AND-DEGRADED-CACHE.md), [ADR-003](ADR-003-CIRCUIT-BREAKER-PHANTOM-SERVICES.md), [ADR-004](ADR-004-OPTIMISTIC-CONCURRENCY-MULTI-LAMBDA-DYNAMO.md) |
+| **ART-02** | **Catálogo de Contratos API Multinivel** | Especifica los esquemas de entrada y salida entre el Gateway, el Servidor MCP y las Lambdas de dominio. | JSON Schema Draft 2020-12 / OpenAPI 3.1 / OpenRPC. | [`src/contracts/`](../../src/contracts/) |
+| **ART-03** | **Diagramas de Secuencia Dinámicos** | Modela el comportamiento temporal, transformaciones de carga y códigos de estado en las 4 fases de ejecución. | Mermaid `sequenceDiagram` integrado en Markdown vivo. | [Sección 4 de esta especificación](#4-diagramas-de-secuencia-canónicos) |
+| **ART-04** | **Matriz de Riesgo de Colisión de Datos** | Cruza microservicios concurrentes contra atributos compartidos en tablas DynamoDB (Single-Table / Multi-Table). | Matriz CRUD Matricial con Nivel de Concurrencia y Aislamiento. | [Sección 3 de esta especificación](#3-matriz-de-riesgo-de-colisión-de-datos-shared-dynamodb-table) |
+| **ART-05** | **Suites de Pruebas Deterministas** | Harnesses de prueba reproducibles que validan cada fase contra el emulador local de AWS (Floci). | Scripts ejecutables Node.js + AWS SDK v3. | `npm run demo:phase1` a `demo:phase4` |
 
 ---
 
@@ -23,9 +23,10 @@ Para defender y sustentar este análisis ante un Comité de Arquitectura Corpora
 
 ```mermaid
 flowchart LR
-    F1["FASE 1: Baseline Happy Path<br/>(Contratos Estrictos & Floci)"] --> F2["FASE 2: Alternative Paths<br/>(Paginación, Caché & Filtros)"]
-    F2 --> F3["FASE 3: Edge Cases & Drift<br/>(Ruptura Esquema & 502 Phantom)"]
-    F3 --> F4["FASE 4: Colisión DynamoDB<br/>(Lost Update vs Concurrencia OCC)"]
+    F1["FASE 1: Baseline Happy Path<br/>(Contratos Estrictos & Floci)<br/>✅ COMPLETADA"] 
+    --> F2["FASE 2: Alternative Paths<br/>(Paginación Cursor, Caché & Filtros)<br/>✅ COMPLETADA"]
+    --> F3["FASE 3: Edge Cases & Drift<br/>(Ruptura Esquema & Circuit Breaker)<br/>✅ COMPLETADA"]
+    --> F4["FASE 4: Colisión DynamoDB<br/>(Lost Update vs Concurrencia OCC)<br/>✅ COMPLETADA"]
 
     style F1 fill:#22c55e,stroke:#15803d,color:#ffffff
     style F2 fill:#3b82f6,stroke:#1d4ed8,color:#ffffff
@@ -33,31 +34,42 @@ flowchart LR
     style F4 fill:#ef4444,stroke:#b91c1c,color:#ffffff
 ```
 
-### 🟢 Fase 1: Baseline Happy Path & Contratos Tipados (COMPLETADA)
+### 🟢 Fase 1: Baseline Happy Path & Contratos Tipados
 * **Objetivo:** Demostrar el flujo limpio de extremo a extremo en Floci (`localhost:4566`).
 * **Comportamiento:** El LLM externo envía una intención limpia (`FIND_COUPON`, `CHECK_POINTS_BALANCE`, `ADD_LOYALTY_POINTS`). El Gateway valida el esquema, el MCP invoca la Lambda correspondiente en Floci y DynamoDB almacena el estado sin fricción.
 * **Comando:** `npm run demo:phase1`
+* **ADR Asociado:** [ADR-001: Contratos Estrictos en ACR y Prevención de Colisiones](ADR-001-STRICT-CONTRACTS-ACR-LAMBDA.md)
 
-### 🔵 Fase 2: Alternative Paths (Respuestas Parciales y Enriquecimiento)
-* **Objetivo:** Manejar escenarios donde los datos existen parcialmente o requieren paginación.
+### 🔵 Fase 2: Alternative Paths (Paginación Cursor-Based y Enriquecimiento)
+* **Objetivo:** Prevenir el *Context Window Bloat* y alucinación del LLM cuando un endpoint devuelve catálogos masivos.
 * **Comportamiento:** 
-  1. *Paginación Cursor-based:* Si una consulta de cupones retorna 500 registros, el MCP no puede volcar 3 MB al LLM (saturaría el context window). Aplica corte a 5 registros y retorna `nextCursor`.
-  2. *Caché Local:* Lecturas de solo lectura consumen réplicas DAX/Redis locales en Floci antes de golpear DynamoDB.
+  1. *Paginación Cursor-based:* Aplica corte a 3 registros y retorna un token base64 opaco `nextCursorToken` con metadatos `totalMatched` y `hasMore`.
+  2. *Filtrado Semántico:* Soporte para filtrado por categoría (`category: "TRAVEL"`, `"RETAIL"`) en el borde antes de la transferencia por red.
+* **Comando:** `npm run demo:phase2`
+* **ADR Asociado:** [ADR-002: Paginación Cursor-Based y Prevención de Context Window Bloat](ADR-002-CURSOR-PAGINATION-AND-DEGRADED-CACHE.md)
 
-### 🟡 Fase 3: Edge Cases & Ruptura de Contrato (Contract Drift)
-* **Objetivo:** Evaluar la resiliencia del sistema ante clientes o servicios rebeldes.
+### 🟡 Fase 3: Edge Cases, Deriva de Contratos y Circuit Breaker
+* **Objetivo:** Proteger el Core Banking ante LLMs rebeldes, esquemas rotos y dependencias no disponibles.
 * **Comportamiento:**
-  1. *Schema Incompatibility:* El cliente envía `couponId: 12345` (número en vez de string bajo regex `^CPN-...`). El ACR intercepta el fallo y devuelve `400 BAD_REQUEST` con descripción semántica para que el LLM se auto-corrija.
-  2. *Dependencia Inexistente:* Invocación a `lmb-(env)-io-made-campaign-dsg-pjc_findby-id-01` (`no existe`). El Gateway activa un *Circuit Breaker* en lugar de propagar un `502 Bad Gateway` opaco.
+  1. *Schema Incompatibility (Anti-Drift):* Rechaza en 1ms entradas con tipos corruptos (ej. `couponId: 98765` numérico en lugar de string regex) con pistas semánticas para auto-corrección.
+  2. *Componentes [POR CREAR]:* Detecta estado en desarrollo y retorna HTTP 501 `CAPABILITY_UNDER_CONSTRUCTION` con alternativas funcionales.
+  3. *Servicios Phantom [NO EXISTE]:* Detecta ausencia de la Lambda `lmb-made-campaign-pjc`, dispara el Circuit Breaker a `OPEN` y devuelve HTTP 503 con degradación elegante, blindando al sistema de caídas en cascada.
+* **Comando:** `npm run demo:phase3`
+* **ADR Asociado:** [ADR-003: Circuit Breaker Semántico y Auto-Recuperación ante Servicios Inexistentes](ADR-003-CIRCUIT-BREAKER-PHANTOM-SERVICES.md)
 
 ### 🔴 Fase 4: Colisión Concurrente en Tabla Compartida de DynamoDB
-* **Objetivo:** Resolver el problema crítico bancario donde múltiples Lambdas independientes tocan la misma tabla DynamoDB (`core-accounts-master-local`).
-* **El Problema del "Lost Update":**
-  - La Lambda `A` (`reward-point-acc`) lee el ítem (Saldo: 4000 pts).
-  - La Lambda `B` (`sale-cust-cpgn`) lee el mismo ítem en paralelo para actualizar campañas.
-  - La Lambda `A` suma 500 pts y escribe Saldo: 4500.
-  - La Lambda `B` escribe su carga sin conocer la suma de `A`, sobreescribiendo el ítem y borrando los 500 puntos (Pérdida financiera).
-* **La Solución Arquitectónica:** *Optimistic Concurrency Control (OCC)* mediante `ConditionExpression: attribute_exists(accountId) AND version = :expVer` y expresiones atómicas `ADD pointsBalance :inc`.
+* **Objetivo:** Resolver el problema crítico donde múltiples Lambdas independientes tocan la misma tabla DynamoDB (`core-accounts-master-local`).
+* **Demostración 4.1 (The Lost Update Disaster):**
+  - Lambda A suma 1,000 puntos (saldo: 6000).
+  - Lambda B concurrente abona $50 de cashback pero con un snapshot desactualizado (5000 pts) sobreescribiendo ciegamente el registro.
+  - **Resultado:** Pérdida silenciosa de 1,000 puntos del cliente.
+* **Demostración 4.2 (La Solución con OCC + Auto-Healing):**
+  - Lambda A escribe con `version = 1`, dejando la tabla en `version = 2`.
+  - Lambda B intenta escribir esperando `version = 1`. Floci dispara `ConditionalCheckFailedException (HTTP 409)`.
+  - Bucle de Auto-Healing de Lambda B: re-lee el ítem fresco con consistencia fuerte (`ConsistentRead: true`), re-evalúa el cálculo encima del saldo nuevo, y consolida la transacción en `version = 3`.
+  - **Resultado:** Cero pérdida de datos (6,000 pts + $150 cashback intactos).
+* **Comando:** `npm run demo:phase4`
+* **ADR Asociado:** [ADR-004: Control de Concurrencia Optimista (OCC) y Prevención de Lost Update](ADR-004-OPTIMISTIC-CONCURRENCY-MULTI-LAMBDA-DYNAMO.md)
 
 ---
 
@@ -68,9 +80,10 @@ Cuando múltiples microservicios comparten la entidad de Cuenta en `core-account
 | Lambda / Microservicio | Operación | Campos que Lee | Campos que Modifica | Riesgo de Colisión | Mecanismo de Mitigación Obligatorio |
 | :--- | :--- | :--- | :--- | :---: | :--- |
 | `lmb-...-reward-point-acc-qry` | Mutation / Query | `accountId`, `pointsBalance`, `version` | `pointsBalance`, `lastAccrualTimestamp`, `version` | 🔴 **ALTO** | **OCC con Token de Versión (`version = :expVer`)** y retry con Jitter. |
+| `lmb-...-card-cashback-disb` | Mutation | `accountId`, `cashbackEarned`, `version` | `cashbackEarned`, `lastAccrualTimestamp`, `version` | 🔴 **ALTO** | **OCC con Token de Versión** y Auto-Healing loop. |
 | `lmb-...-sale-cust-cpgn-ex-qry` | Mutation | `accountId`, `activeCampaigns` | `activeCampaigns`, `lastTouchpoint` | 🟡 **MEDIO** | Expresiones atómicas aisladas (`SET activeCampaigns = :val`). |
 | `lmb-...-findby-id-coupons-qry` | Query (Solo Lectura) | `couponId`, `status`, `rules` | *Ninguno (Read-Only)* | 🟢 **NULO** | Lectura idempotente con consistencia eventual. |
-| `lmb-...-card-cashback-disb` | Mutation | `accountId`, `cashbackEarned`, `version` | `cashbackEarned`, `version` | 🔴 **ALTO** | Transacciones ACID (`TransactWriteItems`) multi-ítem. |
+| `lmb-...-non-expired-coupons-qry` | Query Paginada | `customerId`, `category` | *Ninguno (Read-Only)* | 🟢 **NULO** | Paginación cursor-based con limit y token base64. |
 
 ---
 
@@ -102,23 +115,22 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant WorkerA as Lambda A (Reward Points)
-    participant WorkerB as Lambda B (Cashback Sync)
+    participant WorkerB as Lambda B (Cashback Disb)
     participant DDB as DynamoDB (core-accounts-master-local)
 
     Note over WorkerA, WorkerB: Ambos leen simultáneamente Estado Inicial: Version = 1
-    WorkerA->>DDB: GetItem (ACC-7701) -> Saldo: 4000, Version: 1
-    WorkerB->>DDB: GetItem (ACC-7701) -> Saldo: 4000, Version: 1
+    WorkerA->>DDB: GetItem (ACC-7701) -> Saldo: 5000, Version: 1
+    WorkerB->>DDB: GetItem (ACC-7701) -> Saldo: 5000, Version: 1
 
-    WorkerA->>DDB: UpdateItem (Condition: version == 1, version = 2)
+    WorkerA->>DDB: UpdateItem (Condition: version == 1, version = 2, points = 6000)
     DDB-->>WorkerA: 200 OK (Transacción A confirmada. Estado en BD ahora: Version = 2)
 
-    WorkerB->>DDB: UpdateItem (Condition: version == 1, version = 2)
-    Note over DDB: ¡COLISIÓN DETECTADA! BD tiene Version = 2, pero B esperaba 1.
+    WorkerB->>DDB: UpdateItem (Condition: version == 1, version = 2, cashback = +$50)
+    Note over DDB: ¡COLISIÓN DETECTADA EN FLOCI! BD tiene Version = 2, pero B esperaba 1.
     DDB-->>WorkerB: 409 ConditionalCheckFailedException
 
-    Note over WorkerB: Mecanismo de Auto-Healing: Relee y Reintenta con Backoff
-    WorkerB->>DDB: GetItem (ACC-7701) -> Saldo: 4500, Version: 2
-    WorkerB->>DDB: UpdateItem (Condition: version == 2, version = 3)
+    Note over WorkerB: Bucle de Auto-Healing: Relee y Reintenta con Jitter
+    WorkerB->>DDB: GetItem ConsistentRead -> Saldo: 6000, Cashback: $100, Version: 2
+    WorkerB->>DDB: UpdateItem (Condition: version == 2, version = 3, cashback = $150)
     DDB-->>WorkerB: 200 OK (Transacción B aplicada sin pérdida de datos)
 ```
-

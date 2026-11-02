@@ -39,6 +39,7 @@ export class AgentCoreGateway {
       "LIST_ACTIVE_COUPONS": "coupons_find_non_expired",
       "CHECK_POINTS_BALANCE": "rewards_get_balance",
       "ADD_LOYALTY_POINTS": "rewards_accrue_points",
+      "DISBURSE_CASHBACK": "cashback_disburse_benefit",
       "GET_CUSTOMER_CAMPAIGNS": "campaigns_find_eligible",
       "GET_CAMPAIGN_DESIGN": "campaign_design_projection", // Points to [NO EXISTE]
       "PLAN_SALE_CAMPAIGN": "sale_campaign_planner"        // Points to [POR CREAR]

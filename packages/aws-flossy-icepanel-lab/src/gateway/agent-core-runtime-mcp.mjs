@@ -68,6 +68,21 @@ export class AgentCoreRuntimeMCP {
         lambdaTarget: "lmb-io-sale-cust-cpgn-ex-qry_findby-01"
       },
       {
+        name: "cashback_disburse_benefit",
+        description: "Disburses card cashback benefits to customer account in shared DynamoDB table.",
+        inputSchema: {
+          type: "object",
+          required: ["accountId"],
+          properties: {
+            accountId: { type: "string" },
+            cashbackAmount: { type: "number" },
+            mode: { type: "string" },
+            staleVersion: { type: "integer" }
+          }
+        },
+        lambdaTarget: "lmb-io-vads-cashback-disb-cmd-01"
+      },
+      {
         name: "campaign_design_projection",
         description: "[NO EXISTE] Calls missing campaign design projection Lambda.",
         inputSchema: {
