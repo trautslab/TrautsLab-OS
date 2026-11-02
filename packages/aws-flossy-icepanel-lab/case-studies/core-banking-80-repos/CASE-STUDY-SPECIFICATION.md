@@ -145,3 +145,4 @@ npm run deploy:lambdas
 # 3. Ejecutar las 4 fases del caso de estudio
 npm run demo:all
 ```
+

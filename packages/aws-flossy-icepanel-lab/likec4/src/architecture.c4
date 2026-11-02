@@ -215,6 +215,20 @@ model {
       #active #aws
       description '[ACTIVO] EKS Cluster hosting high-throughput transactional services'
       technology 'Amazon EKS'
+
+      svc_cashback_qry = queryApp 'svc/cashback-qry-svc' {
+        #active #aws
+        description '[ACTIVO] NestJS query microservice (io-vads-cashback-qry-01) exposing OpenSearch endpoints: /getPoints, /search/ia/transactions, /search/ia/summary, /redemptions/:id'
+        technology 'NestJS 11, TypeScript, EKS Pod'
+      }
+
+      opensearch_cluster = datastore 'Amazon OpenSearch Cluster' {
+        #active #aws
+        description 'Managed OpenSearch cluster indexing cashback transactions, merchants, and MCC categorizations'
+        technology 'Amazon OpenSearch Service'
+      }
+
+      svc_cashback_qry -> opensearch_cluster 'High-speed search queries (<25ms)'
     }
   }
 
@@ -235,7 +249,7 @@ model {
   acr_reward_point_ar -> lmb_opse_reward_ar '[POR CREAR] Invokes accrual query'
   acr_made_campaign_dsg -> lmb_made_campaign_pjc 'Invokes projection [NO EXISTE: 502 Collision]'
   acr_vads_cashback -> lmb_card_cashback_disb 'Dispatches cashback benefit'
-  acr_vads_cashback -> eks_cluster 'Dispatches cashback transaction'
+  acr_vads_cashback -> svc_cashback_qry 'HTTP requests to CASHBACK_QRY_SERVICE_URL (/v1/qry/cashback)'
   lmb_acse_reward_acc -> store_db_1 'Updates loyalty points with OCC'
   lmb_card_cashback_disb -> store_db_1 'Updates cashback with OCC'
 
@@ -983,7 +997,12 @@ views {
 
   view view_acg_acr_architecture {
     title 'Agentic Topology: ACG Gateway -> ACR (MCP) -> Lambda / EKS'
-    include external_llm, acg_gateway, subgraph_acr, subgraph_acr.*, subgraph_backend, subgraph_backend.*
+    include external_llm, acg_gateway, subgraph_acr, subgraph_acr.*, subgraph_backend, subgraph_backend.*, eks_cluster.*
+  }
+
+  view view_dozer_loyalty_ecosystem {
+    title 'Squad Dozer: BCP-iO Loyalty & Rewards Agentic Architecture (SDA-16458)'
+    include external_llm, acg_gateway, subgraph_acr, subgraph_acr.*, subgraph_backend, subgraph_backend.*, eks_cluster.*
   }
 
   dynamic view acg_collision_diorama {

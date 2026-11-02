@@ -67,3 +67,4 @@ Para que otro squad o institución aplique el Framework a su propia arquitectura
 3. **Escribir los Handlers Lambda:** Implementar las funciones de cómputo en `src/lambdas/` con el envoltorio de respuesta estándar.
 4. **Registrar las Herramientas en el Gateway:** Mapear las intenciones al runtime en `src/gateway/`.
 5. **Ejecutar la Suite de Pruebas:** Correr el arnés para verificar la ausencia de colisiones y la integridad de contratos.
+
