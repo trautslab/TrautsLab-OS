@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CouponDetailsContract",
+  "description": "API Contract for lmb-matrix-findby-id-coupons-qry-svc-01",
+  "request": {
+    "type": "object",
+    "required": ["couponId"],
+    "additionalProperties": false,
+    "properties": {
+      "couponId": {
+        "type": "string",
+        "pattern": "^CPN-[A-Z0-9-]{4,16}$",
+        "description": "Unique identifier for the coupon (e.g. CPN-LOYALTY-2026)"
+      },
+      "customerId": {
+        "type": "string",
+        "pattern": "^ACC-[A-Z0-9-]+$",
+        "description": "Optional customer identifier to verify individual eligibility"
+      }
+    }
+  },
+  "response": {
+    "type": "object",
+    "required": ["statusCode", "data"],
+    "properties": {
+      "statusCode": {
+        "type": "integer",
+        "enum": [200, 400, 404, 500]
+      },
+      "data": {
+        "type": "object",
+        "required": ["couponId", "title", "discountPercentage", "status", "expirationDate"],
+        "properties": {
+          "couponId": { "type": "string" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "discountPercentage": { "type": "number", "minimum": 0, "maximum": 100 },
+          "category": { "type": "string" },
+          "status": { "type": "string", "enum": ["ACTIVE", "EXPIRED", "REDEEMED"] },
+          "expirationDate": { "type": "string", "format": "date-time" },
+          "merchant": { "type": "string" }
+        }
+      },
+      "metadata": {
+        "type": "object",
+        "properties": {
+          "executionTimeMs": { "type": "number" },
+          "version": { "type": "string" }
+        }
+      }
+    }
+  }
+}
+

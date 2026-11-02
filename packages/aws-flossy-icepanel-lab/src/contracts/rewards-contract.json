@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RewardsAccountContract",
+  "description": "API Contract for lmb-(env)-io-acse-reward-point-acc-qry_findby-01",
+  "request": {
+    "type": "object",
+    "required": ["accountId", "operation"],
+    "additionalProperties": false,
+    "properties": {
+      "accountId": {
+        "type": "string",
+        "pattern": "^ACC-[A-Z0-9-]+$",
+        "description": "Customer Account ID"
+      },
+      "operation": {
+        "type": "string",
+        "enum": ["GET_BALANCE", "ACCRUE_POINTS"],
+        "description": "Action requested by the agent runtime"
+      },
+      "pointsToAdd": {
+        "type": "number",
+        "minimum": 1,
+        "description": "Points to increment (required when operation is ACCRUE_POINTS)"
+      },
+      "expectedVersion": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Optimistic Concurrency Control (OCC) version token to avoid lost updates"
+      }
+    }
+  },
+  "response": {
+    "type": "object",
+    "required": ["statusCode", "data"],
+    "properties": {
+      "statusCode": {
+        "type": "integer",
+        "enum": [200, 400, 404, 409, 500]
+      },
+      "data": {
+        "type": "object",
+        "required": ["accountId", "pointsBalance", "tier", "version"],
+        "properties": {
+          "accountId": { "type": "string" },
+          "pointsBalance": { "type": "number" },
+          "tier": { "type": "string", "enum": ["STANDARD", "SILVER", "GOLD", "PLATINUM"] },
+          "lastAccrualTimestamp": { "type": "string" },
+          "version": { "type": "integer", "description": "OCC Monotonic incrementing state version" }
+        }
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      }
+    }
+  }
+}
+

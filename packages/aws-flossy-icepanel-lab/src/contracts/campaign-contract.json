@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CustomerCampaignExecutionContract",
+  "description": "API Contract for lmb-(env)-io-sale-cust-cpgn-ex-qry_findby-01",
+  "request": {
+    "type": "object",
+    "required": ["customerId"],
+    "additionalProperties": false,
+    "properties": {
+      "customerId": {
+        "type": "string",
+        "description": "Customer Account ID or CIF"
+      },
+      "channel": {
+        "type": "string",
+        "default": "AGENTIC_CHAT",
+        "enum": ["AGENTIC_CHAT", "MOBILE_APP", "WEB_PORTAL", "ATM"]
+      }
+    }
+  },
+  "response": {
+    "type": "object",
+    "required": ["statusCode", "data"],
+    "properties": {
+      "statusCode": {
+        "type": "integer",
+        "enum": [200, 400, 404, 500]
+      },
+      "data": {
+        "type": "object",
+        "required": ["customerId", "campaignsCount", "eligibleCampaigns"],
+        "properties": {
+          "customerId": { "type": "string" },
+          "campaignsCount": { "type": "integer" },
+          "eligibleCampaigns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["campaignId", "name", "discountRate", "status"],
+              "properties": {
+                "campaignId": { "type": "string" },
+                "name": { "type": "string" },
+                "discountRate": { "type": "number" },
+                "targetSegment": { "type": "string" },
+                "status": { "type": "string", "enum": ["ACTIVE", "PENDING", "COMPLETED"] }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

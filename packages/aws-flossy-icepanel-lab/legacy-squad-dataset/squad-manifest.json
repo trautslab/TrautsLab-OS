@@ -1,0 +1,2803 @@
+{
+  "domains": [
+    {
+      "domainIndex": 1,
+      "name": "CURRENT ACCOUNT",
+      "repoCountExpected": 10,
+      "repos": [
+        {
+          "id": "REPO-001",
+          "index": 1,
+          "name": "cmd-current-account-lifecycle",
+          "archetype": "Command",
+          "domain": "CURRENT ACCOUNT",
+          "domainIndex": 1,
+          "description": "Handles opening authorization, state transitions (Active, Frozen, Dormant, Closed). js 20, Lambda, DynamoDB Write Table 'core-accounts-master'.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:current-account",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-002",
+          "index": 2,
+          "name": "cmd-current-account-deposits",
+          "archetype": "Command",
+          "domain": "CURRENT ACCOUNT",
+          "domainIndex": 1,
+          "description": "Ingestion and validation of direct cash/cheque deposits.",
+          "techStack": "TypeScript Lambda, DynamoDB, EventBridge Outbox",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:current-account",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-003",
+          "index": 3,
+          "name": "cmd-current-account-overdraft",
+          "archetype": "Command",
+          "domain": "CURRENT ACCOUNT",
+          "domainIndex": 1,
+          "description": "Evaluates and triggers automated overdraft drawdowns. 22 Lambda.",
+          "techStack": "Go 1",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:current-account",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-004",
+          "index": 4,
+          "name": "qry-current-account-details",
+          "archetype": "Query",
+          "domain": "CURRENT ACCOUNT",
+          "domainIndex": 1,
+          "description": "Sub-10ms query service for account metadata, state, limits. js Lambda, Redis Cache / DynamoDB Read Replica.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:query",
+            "domain:current-account",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-005",
+          "index": 5,
+          "name": "qry-current-account-statements",
+          "archetype": "Query",
+          "domain": "CURRENT ACCOUNT",
+          "domainIndex": 1,
+          "description": "Serves historical PDF and JSON statements.",
+          "techStack": "Python FastAPI Lambda, S3 Glacier/Standard",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:query",
+            "domain:current-account",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-006",
+          "index": 6,
+          "name": "prj-current-account-readmodel",
+          "archetype": "Projection",
+          "domain": "CURRENT ACCOUNT",
+          "domainIndex": 1,
+          "description": "Consumes 'AccountCreated', 'AccountStatusChanged' events from EventBridge; writes to DynamoDB Global Read Table. js Lambda.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:projection",
+            "domain:current-account",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-007",
+          "index": 7,
+          "name": "prj-current-account-analytics",
+          "archetype": "Projection",
+          "domain": "CURRENT ACCOUNT",
+          "domainIndex": 1,
+          "description": "Pushes account status telemetry to OpenSearch and S3 Parquet Lake.",
+          "techStack": "EventBridge Pipes & Firehose",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:projection",
+            "domain:current-account",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-008",
+          "index": 8,
+          "name": "sfn-current-account-closure-saga",
+          "archetype": "Step Function",
+          "domain": "CURRENT ACCOUNT",
+          "domainIndex": 1,
+          "description": "Step Function state machine orchestrating account closure, fee clearance, balance zeroing, and legal release.",
+          "techStack": "AWS Lambda, Node.js",
+          "awsService": "AWS Step Functions",
+          "tags": [
+            "archetype:step-function",
+            "domain:current-account",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-009",
+          "index": 9,
+          "name": "plug-host-mainframe-core-sync",
+          "archetype": "Plug for Integration",
+          "domain": "CURRENT ACCOUNT",
+          "domainIndex": 1,
+          "description": "Bi-directional SNA/TCP connector to IBM Mainframe DB2 Core Banking.",
+          "techStack": "Java 21 Quarkus ECS Fargate container",
+          "awsService": "Amazon ECS Fargate",
+          "tags": [
+            "archetype:plug-for-integration",
+            "domain:current-account",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-010",
+          "index": 10,
+          "name": "alm-current-account-errors",
+          "archetype": "Alarms",
+          "domain": "CURRENT ACCOUNT",
+          "domainIndex": 1,
+          "description": "CloudWatch alarms for 5xx spikes, DB lock timeouts, and DLQ backlogs on account lifecycle events.",
+          "techStack": "AWS Lambda, Node.js",
+          "awsService": "Amazon CloudWatch Alarms",
+          "tags": [
+            "archetype:alarms",
+            "domain:current-account",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        }
+      ]
+    },
+    {
+      "domainIndex": 2,
+      "name": "PAYMENT EXECUTION",
+      "repoCountExpected": 12,
+      "repos": [
+        {
+          "id": "REPO-011",
+          "index": 11,
+          "name": "cmd-payment-execution-initiate",
+          "archetype": "Command",
+          "domain": "PAYMENT EXECUTION",
+          "domainIndex": 2,
+          "description": "Ingests payment orders, validates idempotency key, executes schema validation. js 20 Lambda.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:payment-execution",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-012",
+          "index": 12,
+          "name": "cmd-payment-execution-authorization",
+          "archetype": "Command",
+          "domain": "PAYMENT EXECUTION",
+          "domainIndex": 2,
+          "description": "Enforces authorization rules, multi-factor token signatures.",
+          "techStack": "Go Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:payment-execution",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-013",
+          "index": 13,
+          "name": "cmd-payment-execution-settle",
+          "archetype": "Command",
+          "domain": "PAYMENT EXECUTION",
+          "domainIndex": 2,
+          "description": "Executes final settlement confirmation and releases transaction locks.",
+          "techStack": "TypeScript Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:payment-execution",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-014",
+          "index": 14,
+          "name": "qry-payment-execution-status",
+          "archetype": "Query",
+          "domain": "PAYMENT EXECUTION",
+          "domainIndex": 2,
+          "description": "Read API polling and webhook queries for transfer status. js Lambda, DynamoDB.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:query",
+            "domain:payment-execution",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-015",
+          "index": 15,
+          "name": "qry-payment-execution-limits",
+          "archetype": "Query",
+          "domain": "PAYMENT EXECUTION",
+          "domainIndex": 2,
+          "description": "Calculates remaining daily and per-transaction limits. js Lambda, Redis Cache.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:query",
+            "domain:payment-execution",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-016",
+          "index": 16,
+          "name": "prj-payment-execution-history",
+          "archetype": "Projection",
+          "domain": "PAYMENT EXECUTION",
+          "domainIndex": 2,
+          "description": "Projects all payment lifecycle events into the unified payment timeline store.",
+          "techStack": "Lambda DynamoDB Streams",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:projection",
+            "domain:payment-execution",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-017",
+          "index": 17,
+          "name": "prj-payment-execution-metrics",
+          "archetype": "Projection",
+          "domain": "PAYMENT EXECUTION",
+          "domainIndex": 2,
+          "description": "Emits Prometheus/CloudWatch metrics for transaction throughput, success rate, and latency.",
+          "techStack": "AWS Lambda, Node.js",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:projection",
+            "domain:payment-execution",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-018",
+          "index": 18,
+          "name": "sfn-payment-instant-transfer-saga",
+          "archetype": "Step Function",
+          "domain": "PAYMENT EXECUTION",
+          "domainIndex": 2,
+          "description": "Critical distributed Saga: 1. Hold Funds in Source -> 2. Risk Check -> 3. Credit Target -> 4. Release Hold. Automated compensation on timeout.",
+          "techStack": "AWS Lambda, Node.js",
+          "awsService": "AWS Step Functions",
+          "tags": [
+            "archetype:step-function",
+            "domain:payment-execution",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-019",
+          "index": 19,
+          "name": "sfn-payment-clearing-cce-saga",
+          "archetype": "Step Function",
+          "domain": "PAYMENT EXECUTION",
+          "domainIndex": 2,
+          "description": "Batch and scheduled clearing orchestration with Chamber of Clearing (CCE).",
+          "techStack": "AWS Lambda, Node.js",
+          "awsService": "AWS Step Functions",
+          "tags": [
+            "archetype:step-function",
+            "domain:payment-execution",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-020",
+          "index": 20,
+          "name": "plug-cce-clearing-ingress",
+          "archetype": "Plug for Integration",
+          "domain": "PAYMENT EXECUTION",
+          "domainIndex": 2,
+          "description": "Receives inbound payment batches from domestic clearinghouse via AS2/HTTPS.",
+          "techStack": "ECS Fargate API",
+          "awsService": "Amazon ECS Fargate",
+          "tags": [
+            "archetype:plug-for-integration",
+            "domain:payment-execution",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-021",
+          "index": 21,
+          "name": "plug-swift-iso20022-connector",
+          "archetype": "Plug for Integration",
+          "domain": "PAYMENT EXECUTION",
+          "domainIndex": 2,
+          "description": "Translates ISO 20022 pacs.008, pacs.002 messages to internal JSON domain events.",
+          "techStack": "Java 21 Spring Native",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:plug-for-integration",
+            "domain:payment-execution",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-022",
+          "index": 22,
+          "name": "alm-payment-execution-p99-latency",
+          "archetype": "Alarms",
+          "domain": "PAYMENT EXECUTION",
+          "domainIndex": 2,
+          "description": "Alarms on P99 latency exceeding 250ms, triggering automated incident alert to PagerDuty.",
+          "techStack": "AWS Lambda, Node.js",
+          "awsService": "Amazon CloudWatch Alarms",
+          "tags": [
+            "archetype:alarms",
+            "domain:payment-execution",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        }
+      ]
+    },
+    {
+      "domainIndex": 3,
+      "name": "PARTY ROUTING PROFILE",
+      "repoCountExpected": 6,
+      "repos": [
+        {
+          "id": "REPO-023",
+          "index": 23,
+          "name": "cmd-party-routing-register",
+          "archetype": "Command",
+          "domain": "PARTY ROUTING PROFILE",
+          "domainIndex": 3,
+          "description": "Binds mobile phone number (MSISDN) and email to primary Account Number (CCI). js Lambda.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:party-routing-profile",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-024",
+          "index": 24,
+          "name": "cmd-party-routing-deregister",
+          "archetype": "Command",
+          "domain": "PARTY ROUTING PROFILE",
+          "domainIndex": 3,
+          "description": "Unlinks alias or updates account destination. js Lambda.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:party-routing-profile",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-025",
+          "index": 25,
+          "name": "qry-party-routing-resolve",
+          "archetype": "Query",
+          "domain": "PARTY ROUTING PROFILE",
+          "domainIndex": 3,
+          "description": "Ultra-fast directory lookup (resolves phone number to bank routing and account in <15ms).",
+          "techStack": "Go Lambda, DynamoDB DAX cluster",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:query",
+            "domain:party-routing-profile",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-026",
+          "index": 26,
+          "name": "prj-party-routing-directory",
+          "archetype": "Projection",
+          "domain": "PARTY ROUTING PROFILE",
+          "domainIndex": 3,
+          "description": "Materializes lookup cache across multi-region tables.",
+          "techStack": "Lambda DynamoDB Streams",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:projection",
+            "domain:party-routing-profile",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-027",
+          "index": 27,
+          "name": "plug-directory-federation-bridge",
+          "archetype": "Plug for Integration",
+          "domain": "PARTY ROUTING PROFILE",
+          "domainIndex": 3,
+          "description": "Connects with interbank directory federation (CCE / BCRP rails). js ECS.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:plug-for-integration",
+            "domain:party-routing-profile",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-028",
+          "index": 28,
+          "name": "alm-party-routing-lookup-failures",
+          "archetype": "Alarms",
+          "domain": "PARTY ROUTING PROFILE",
+          "domainIndex": 3,
+          "description": "Monitors resolution failure rates and cache misses.",
+          "techStack": "AWS Lambda, Node.js",
+          "awsService": "Amazon CloudWatch Alarms",
+          "tags": [
+            "archetype:alarms",
+            "domain:party-routing-profile",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        }
+      ]
+    },
+    {
+      "domainIndex": 4,
+      "name": "CUSTOMER OFFER & ONBOARDING",
+      "repoCountExpected": 8,
+      "repos": [
+        {
+          "id": "REPO-029",
+          "index": 29,
+          "name": "cmd-customer-onboarding-initiate",
+          "archetype": "Command",
+          "domain": "CUSTOMER OFFER & ONBOARDING",
+          "domainIndex": 4,
+          "description": "Receives digital prospect application and initiates KYC workflow.",
+          "techStack": "TypeScript Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:customer-offer-&-onboarding",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-030",
+          "index": 30,
+          "name": "cmd-customer-onboarding-biometrics",
+          "archetype": "Command",
+          "domain": "CUSTOMER OFFER & ONBOARDING",
+          "domainIndex": 4,
+          "description": "Ingests facial validation payload and RENIEC biometric token.",
+          "techStack": "Python Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:customer-offer-&-onboarding",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-031",
+          "index": 31,
+          "name": "qry-customer-onboarding-progress",
+          "archetype": "Query",
+          "domain": "CUSTOMER OFFER & ONBOARDING",
+          "domainIndex": 4,
+          "description": "Returns real-time state of applicant progress for mobile app. js Lambda.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:query",
+            "domain:customer-offer-&-onboarding",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-032",
+          "index": 32,
+          "name": "prj-customer-onboarding-funnel",
+          "archetype": "Projection",
+          "domain": "CUSTOMER OFFER & ONBOARDING",
+          "domainIndex": 4,
+          "description": "Projects funnel conversion drop-offs into analytics lake.",
+          "techStack": "EventBridge Pipes",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:projection",
+            "domain:customer-offer-&-onboarding",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-033",
+          "index": 33,
+          "name": "sfn-customer-onboarding-saga",
+          "archetype": "Step Function",
+          "domain": "CUSTOMER OFFER & ONBOARDING",
+          "domainIndex": 4,
+          "description": "Orchestrates KYC -> AML Validation -> Contract Generation -> Account Creation -> Debit Card Provisioning.",
+          "techStack": "AWS Lambda, Node.js",
+          "awsService": "AWS Step Functions",
+          "tags": [
+            "archetype:step-function",
+            "domain:customer-offer-&-onboarding",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-034",
+          "index": 34,
+          "name": "plug-reniec-biometrics-gateway",
+          "archetype": "Plug for Integration",
+          "domain": "CUSTOMER OFFER & ONBOARDING",
+          "domainIndex": 4,
+          "description": "Connects to national identity registry (RENIEC) with TLS mutual auth.",
+          "techStack": "Java Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:plug-for-integration",
+            "domain:customer-offer-&-onboarding",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-035",
+          "index": 35,
+          "name": "plug-experian-credit-score",
+          "archetype": "Plug for Integration",
+          "domain": "CUSTOMER OFFER & ONBOARDING",
+          "domainIndex": 4,
+          "description": "Pulls credit score and risk bureau data.",
+          "techStack": "Python Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:plug-for-integration",
+            "domain:customer-offer-&-onboarding",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-036",
+          "index": 36,
+          "name": "alm-onboarding-kyc-drop-rate",
+          "archetype": "Alarms",
+          "domain": "CUSTOMER OFFER & ONBOARDING",
+          "domainIndex": 4,
+          "description": "Alarms if KYC validation failures exceed 8% threshold.",
+          "techStack": "AWS Lambda, Node.js",
+          "awsService": "Amazon CloudWatch Alarms",
+          "tags": [
+            "archetype:alarms",
+            "domain:customer-offer-&-onboarding",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        }
+      ]
+    },
+    {
+      "domainIndex": 5,
+      "name": "CUSTOMER AGREEMENT & CONTRACT",
+      "repoCountExpected": 6,
+      "repos": [
+        {
+          "id": "REPO-037",
+          "index": 37,
+          "name": "cmd-customer-agreement-sign",
+          "archetype": "Command",
+          "domain": "CUSTOMER AGREEMENT & CONTRACT",
+          "domainIndex": 5,
+          "description": "Records digital signature, cryptographic hash, and legal consent timestamp. js Lambda.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:customer-agreement-&-contract",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-038",
+          "index": 38,
+          "name": "cmd-customer-agreement-amend",
+          "archetype": "Command",
+          "domain": "CUSTOMER AGREEMENT & CONTRACT",
+          "domainIndex": 5,
+          "description": "Applies contractual annexes, interest rate changes, or clause updates.",
+          "techStack": "TypeScript Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:customer-agreement-&-contract",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-039",
+          "index": 39,
+          "name": "qry-customer-agreement-fetch",
+          "archetype": "Query",
+          "domain": "CUSTOMER AGREEMENT & CONTRACT",
+          "domainIndex": 5,
+          "description": "Retrieves signed legal terms and audit certificate. js Lambda, S3 presigned URLs.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:query",
+            "domain:customer-agreement-&-contract",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-040",
+          "index": 40,
+          "name": "prj-customer-agreement-indexer",
+          "archetype": "Projection",
+          "domain": "CUSTOMER AGREEMENT & CONTRACT",
+          "domainIndex": 5,
+          "description": "Indexes contract clauses and consent history into OpenSearch.",
+          "techStack": "Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:projection",
+            "domain:customer-agreement-&-contract",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-041",
+          "index": 41,
+          "name": "plug-docusign-legal-trust-bridge",
+          "archetype": "Plug for Integration",
+          "domain": "CUSTOMER AGREEMENT & CONTRACT",
+          "domainIndex": 5,
+          "description": "Integrates with certified digital signature provider for legal stamping.",
+          "techStack": "TypeScript Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:plug-for-integration",
+            "domain:customer-agreement-&-contract",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-042",
+          "index": 42,
+          "name": "alm-agreement-compliance-gaps",
+          "archetype": "Alarms",
+          "domain": "CUSTOMER AGREEMENT & CONTRACT",
+          "domainIndex": 5,
+          "description": "Tracks missing required terms and condition acceptances.",
+          "techStack": "AWS Lambda, Node.js",
+          "awsService": "Amazon CloudWatch Alarms",
+          "tags": [
+            "archetype:alarms",
+            "domain:customer-agreement-&-contract",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        }
+      ]
+    },
+    {
+      "domainIndex": 6,
+      "name": "POSITION KEEPING & BALANCES",
+      "repoCountExpected": 8,
+      "repos": [
+        {
+          "id": "REPO-043",
+          "index": 43,
+          "name": "cmd-position-keeping-reserve",
+          "archetype": "Command",
+          "domain": "POSITION KEEPING & BALANCES",
+          "domainIndex": 6,
+          "description": "Places temporary authorization holds on balances for card swipe or pending transfer.",
+          "techStack": "Go Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:position-keeping-&-balances",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-044",
+          "index": 44,
+          "name": "cmd-position-keeping-release",
+          "archetype": "Command",
+          "domain": "POSITION KEEPING & BALANCES",
+          "domainIndex": 6,
+          "description": "Releases or commits hold into settled balance.",
+          "techStack": "Go Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:position-keeping-&-balances",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-045",
+          "index": 45,
+          "name": "qry-position-keeping-realtime-balance",
+          "archetype": "Query",
+          "domain": "POSITION KEEPING & BALANCES",
+          "domainIndex": 6,
+          "description": "Provides instantaneous available, ledger, and hold balances.",
+          "techStack": "Rust Lambda, Redis / DynamoDB DAX",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:query",
+            "domain:position-keeping-&-balances",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-046",
+          "index": 46,
+          "name": "qry-position-keeping-movements",
+          "archetype": "Query",
+          "domain": "POSITION KEEPING & BALANCES",
+          "domainIndex": 6,
+          "description": "Returns paginated transaction movements and timestamps. js Lambda.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:query",
+            "domain:position-keeping-&-balances",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-047",
+          "index": 47,
+          "name": "prj-position-keeping-ledger-view",
+          "archetype": "Projection",
+          "domain": "POSITION KEEPING & BALANCES",
+          "domainIndex": 6,
+          "description": "Listens to debit/credit posted events to maintain continuous balance snapshots.",
+          "techStack": "Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:projection",
+            "domain:position-keeping-&-balances",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-048",
+          "index": 48,
+          "name": "prj-position-keeping-audit-balance",
+          "archetype": "Projection",
+          "domain": "POSITION KEEPING & BALANCES",
+          "domainIndex": 6,
+          "description": "Daily balance delta projection against core mainframe reports.",
+          "techStack": "Python Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:projection",
+            "domain:position-keeping-&-balances",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-049",
+          "index": 49,
+          "name": "plug-atm-switch-pos-gateway",
+          "archetype": "Plug for Integration",
+          "domain": "POSITION KEEPING & BALANCES",
+          "domainIndex": 6,
+          "description": "ISO 8583 translator for ATM switches and POS debit authorizations.",
+          "techStack": "C++/Rust ECS Fargate",
+          "awsService": "Amazon ECS Fargate",
+          "tags": [
+            "archetype:plug-for-integration",
+            "domain:position-keeping-&-balances",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-050",
+          "index": 50,
+          "name": "alm-position-keeping-balance-discrepancy",
+          "archetype": "Alarms",
+          "domain": "POSITION KEEPING & BALANCES",
+          "domainIndex": 6,
+          "description": "Critical P0 Alarm: triggers on any ledger vs available balance mathematical mismatch.",
+          "techStack": "AWS Lambda, Node.js",
+          "awsService": "Amazon CloudWatch Alarms",
+          "tags": [
+            "archetype:alarms",
+            "domain:position-keeping-&-balances",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        }
+      ]
+    },
+    {
+      "domainIndex": 7,
+      "name": "FINANCIAL ACCOUNTING & GENERAL LEDGER",
+      "repoCountExpected": 7,
+      "repos": [
+        {
+          "id": "REPO-051",
+          "index": 51,
+          "name": "cmd-financial-accounting-voucher",
+          "archetype": "Command",
+          "domain": "FINANCIAL ACCOUNTING & GENERAL LEDGER",
+          "domainIndex": 7,
+          "description": "Creates double-entry debits and credits ledger vouchers.",
+          "techStack": "TypeScript Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:financial-accounting-&-general-ledger",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-052",
+          "index": 52,
+          "name": "qry-financial-accounting-trail",
+          "archetype": "Query",
+          "domain": "FINANCIAL ACCOUNTING & GENERAL LEDGER",
+          "domainIndex": 7,
+          "description": "Inquires chart of accounts balances and journal entries. js Lambda.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:query",
+            "domain:financial-accounting-&-general-ledger",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-053",
+          "index": 53,
+          "name": "prj-financial-accounting-journal",
+          "archetype": "Projection",
+          "domain": "FINANCIAL ACCOUNTING & GENERAL LEDGER",
+          "domainIndex": 7,
+          "description": "Stream-aggregates all financial transaction events into the general ledger journal.",
+          "techStack": "Lambda EventBridge",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:projection",
+            "domain:financial-accounting-&-general-ledger",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-054",
+          "index": 54,
+          "name": "prj-financial-accounting-eod-balance",
+          "archetype": "Projection",
+          "domain": "FINANCIAL ACCOUNTING & GENERAL LEDGER",
+          "domainIndex": 7,
+          "description": "Compiles End-of-Day balance totals per currency (PEN, USD).",
+          "techStack": "Python Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:projection",
+            "domain:financial-accounting-&-general-ledger",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-055",
+          "index": 55,
+          "name": "sfn-financial-accounting-eod-reconciliation",
+          "archetype": "Step Function",
+          "domain": "FINANCIAL ACCOUNTING & GENERAL LEDGER",
+          "domainIndex": 7,
+          "description": "Step Function running at 23:59:00 to lock daily balances, reconcile with central ledger, and produce balance sheet vouchers.",
+          "techStack": "AWS Lambda, Node.js",
+          "awsService": "AWS Step Functions",
+          "tags": [
+            "archetype:step-function",
+            "domain:financial-accounting-&-general-ledger",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-056",
+          "index": 56,
+          "name": "plug-sap-erp-general-ledger-adapter",
+          "archetype": "Plug for Integration",
+          "domain": "FINANCIAL ACCOUNTING & GENERAL LEDGER",
+          "domainIndex": 7,
+          "description": "Transmits daily accounting journals into SAP S/4HANA via RFC/OData.",
+          "techStack": "Java ECS",
+          "awsService": "Amazon ECS Fargate",
+          "tags": [
+            "archetype:plug-for-integration",
+            "domain:financial-accounting-&-general-ledger",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-057",
+          "index": 57,
+          "name": "alm-general-ledger-unbalanced-voucher",
+          "archetype": "Alarms",
+          "domain": "FINANCIAL ACCOUNTING & GENERAL LEDGER",
+          "domainIndex": 7,
+          "description": "High-priority alarm triggered if Total Debits != Total Credits.",
+          "techStack": "AWS Lambda, Node.js",
+          "awsService": "Amazon CloudWatch Alarms",
+          "tags": [
+            "archetype:alarms",
+            "domain:financial-accounting-&-general-ledger",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        }
+      ]
+    },
+    {
+      "domainIndex": 8,
+      "name": "COLLATERAL ALLOCATION & GUARANTEES",
+      "repoCountExpected": 5,
+      "repos": [
+        {
+          "id": "REPO-058",
+          "index": 58,
+          "name": "cmd-collateral-allocation-pledge",
+          "archetype": "Command",
+          "domain": "COLLATERAL ALLOCATION & GUARANTEES",
+          "domainIndex": 8,
+          "description": "Pledges term deposits or accounts as collateral against lines of credit. js Lambda.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:collateral-allocation-&-guarantees",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-059",
+          "index": 59,
+          "name": "cmd-collateral-allocation-release",
+          "archetype": "Command",
+          "domain": "COLLATERAL ALLOCATION & GUARANTEES",
+          "domainIndex": 8,
+          "description": "Releases collateral hold upon loan discharge.",
+          "techStack": "TypeScript Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:collateral-allocation-&-guarantees",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-060",
+          "index": 60,
+          "name": "qry-collateral-allocation-status",
+          "archetype": "Query",
+          "domain": "COLLATERAL ALLOCATION & GUARANTEES",
+          "domainIndex": 8,
+          "description": "Checks collateral coverage ratio and pledged assets. js Lambda.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:query",
+            "domain:collateral-allocation-&-guarantees",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-061",
+          "index": 61,
+          "name": "prj-collateral-allocation-exposure",
+          "archetype": "Projection",
+          "domain": "COLLATERAL ALLOCATION & GUARANTEES",
+          "domainIndex": 8,
+          "description": "Projects real-time risk exposure of linked credit lines.",
+          "techStack": "Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:projection",
+            "domain:collateral-allocation-&-guarantees",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-062",
+          "index": 62,
+          "name": "alm-collateral-under-coverage-warning",
+          "archetype": "Alarms",
+          "domain": "COLLATERAL ALLOCATION & GUARANTEES",
+          "domainIndex": 8,
+          "description": "Alarms when collateral value falls below loan margin ratio.",
+          "techStack": "AWS Lambda, Node.js",
+          "awsService": "Amazon CloudWatch Alarms",
+          "tags": [
+            "archetype:alarms",
+            "domain:collateral-allocation-&-guarantees",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        }
+      ]
+    },
+    {
+      "domainIndex": 9,
+      "name": "FRAUD DETECTION & RISK SCORING",
+      "repoCountExpected": 8,
+      "repos": [
+        {
+          "id": "REPO-063",
+          "index": 63,
+          "name": "cmd-fraud-detection-evaluate-tx",
+          "archetype": "Command",
+          "domain": "FRAUD DETECTION & RISK SCORING",
+          "domainIndex": 9,
+          "description": "Evaluates transaction risk score in real time using rules engine and ML model.",
+          "techStack": "Go/C++ Lambda, <40ms SLA",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:fraud-detection-&-risk-scoring",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-064",
+          "index": 64,
+          "name": "cmd-fraud-detection-lockout",
+          "archetype": "Command",
+          "domain": "FRAUD DETECTION & RISK SCORING",
+          "domainIndex": 9,
+          "description": "Executes preventative security freeze on compromised cards and accounts. js Lambda.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:fraud-detection-&-risk-scoring",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-065",
+          "index": 65,
+          "name": "qry-fraud-detection-risk-profile",
+          "archetype": "Query",
+          "domain": "FRAUD DETECTION & RISK SCORING",
+          "domainIndex": 9,
+          "description": "Reads customer behavioral risk indicators, device fingerprint history.",
+          "techStack": "Python Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:query",
+            "domain:fraud-detection-&-risk-scoring",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-066",
+          "index": 66,
+          "name": "prj-fraud-detection-blacklists",
+          "archetype": "Projection",
+          "domain": "FRAUD DETECTION & RISK SCORING",
+          "domainIndex": 9,
+          "description": "Synchronizes international OFAC, PEP, and suspicious account blacklists.",
+          "techStack": "Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:projection",
+            "domain:fraud-detection-&-risk-scoring",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-067",
+          "index": 67,
+          "name": "sfn-fraud-suspicious-alert-investigation",
+          "archetype": "Step Function",
+          "domain": "FRAUD DETECTION & RISK SCORING",
+          "domainIndex": 9,
+          "description": "Escalates high-risk transaction cases to fraud operations squad, alerts user, and monitors feedback.",
+          "techStack": "AWS Lambda, Node.js",
+          "awsService": "AWS Step Functions",
+          "tags": [
+            "archetype:step-function",
+            "domain:fraud-detection-&-risk-scoring",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-068",
+          "index": 68,
+          "name": "plug-device-fingerprint-threatmetrix",
+          "archetype": "Plug for Integration",
+          "domain": "FRAUD DETECTION & RISK SCORING",
+          "domainIndex": 9,
+          "description": "Ingests device telemetry, IP reputation, and biometrics signals from LexisNexis/ThreatMetrix. js Lambda.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:plug-for-integration",
+            "domain:fraud-detection-&-risk-scoring",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-069",
+          "index": 69,
+          "name": "plug-biocatch-behavioral-engine",
+          "archetype": "Plug for Integration",
+          "domain": "FRAUD DETECTION & RISK SCORING",
+          "domainIndex": 9,
+          "description": "Ingests mobile screen interaction dynamics and behavioral telemetry.",
+          "techStack": "TypeScript Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:plug-for-integration",
+            "domain:fraud-detection-&-risk-scoring",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-070",
+          "index": 70,
+          "name": "alm-fraud-high-risk-spike-alarm",
+          "archetype": "Alarms",
+          "domain": "FRAUD DETECTION & RISK SCORING",
+          "domainIndex": 9,
+          "description": "Alarms on sudden surges of high-risk transactions in specific BIN or geography.",
+          "techStack": "AWS Lambda, Node.js",
+          "awsService": "Amazon CloudWatch Alarms",
+          "tags": [
+            "archetype:alarms",
+            "domain:fraud-detection-&-risk-scoring",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        }
+      ]
+    },
+    {
+      "domainIndex": 10,
+      "name": "CUSTOMER ALERT & NOTIFICATION",
+      "repoCountExpected": 5,
+      "repos": [
+        {
+          "id": "REPO-071",
+          "index": 71,
+          "name": "cmd-customer-alert-dispatch",
+          "archetype": "Command",
+          "domain": "CUSTOMER ALERT & NOTIFICATION",
+          "domainIndex": 10,
+          "description": "Routes transactional notifications according to customer channel preferences. js Lambda.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:customer-alert-&-notification",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-072",
+          "index": 72,
+          "name": "qry-customer-alert-delivery-status",
+          "archetype": "Query",
+          "domain": "CUSTOMER ALERT & NOTIFICATION",
+          "domainIndex": 10,
+          "description": "Inquires delivery status, open rates, and push delivery receipts.",
+          "techStack": "TypeScript Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:query",
+            "domain:customer-alert-&-notification",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-073",
+          "index": 73,
+          "name": "prj-customer-alert-audit-log",
+          "archetype": "Projection",
+          "domain": "CUSTOMER ALERT & NOTIFICATION",
+          "domainIndex": 10,
+          "description": "Records notification compliance records (timestamp, recipient, payload hash).",
+          "techStack": "Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:projection",
+            "domain:customer-alert-&-notification",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-074",
+          "index": 74,
+          "name": "plug-fcm-apns-push-gateway",
+          "archetype": "Plug for Integration",
+          "domain": "CUSTOMER ALERT & NOTIFICATION",
+          "domainIndex": 10,
+          "description": "Apple APNS & Google FCM mobile push connector.",
+          "techStack": "Go Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:plug-for-integration",
+            "domain:customer-alert-&-notification",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-075",
+          "index": 75,
+          "name": "plug-twilio-infobip-sms-gateway",
+          "archetype": "Plug for Integration",
+          "domain": "CUSTOMER ALERT & NOTIFICATION",
+          "domainIndex": 10,
+          "description": "High-throughput SMS and WhatsApp business API gateway. js ECS.",
+          "techStack": "Node",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:plug-for-integration",
+            "domain:customer-alert-&-notification",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        }
+      ]
+    },
+    {
+      "domainIndex": 11,
+      "name": "AUDIT, LOGGING & REGULATORY COMPLIANCE",
+      "repoCountExpected": 5,
+      "repos": [
+        {
+          "id": "REPO-076",
+          "index": 76,
+          "name": "cmd-audit-log-immutable-record",
+          "archetype": "Command",
+          "domain": "AUDIT, LOGGING & REGULATORY COMPLIANCE",
+          "domainIndex": 11,
+          "description": "Encrypts and writes WORM (Write-Once-Read-Many) audit events into AWS KMS/S3 Object Lock.",
+          "techStack": "Rust Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:command",
+            "domain:audit,-logging-&-regulatory-compliance",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-077",
+          "index": 77,
+          "name": "qry-audit-log-trace-inspector",
+          "archetype": "Query",
+          "domain": "AUDIT, LOGGING & REGULATORY COMPLIANCE",
+          "domainIndex": 11,
+          "description": "Search interface for compliance officers, auditors, and security investigators.",
+          "techStack": "Python Lambda, OpenSearch",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:query",
+            "domain:audit,-logging-&-regulatory-compliance",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-078",
+          "index": 78,
+          "name": "prj-audit-log-compliance-views",
+          "archetype": "Projection",
+          "domain": "AUDIT, LOGGING & REGULATORY COMPLIANCE",
+          "domainIndex": 11,
+          "description": "Materializes daily AML (Anti-Money Laundering) aggregation views for transactions > $10,000 USD.",
+          "techStack": "Lambda",
+          "awsService": "AWS Lambda",
+          "tags": [
+            "archetype:projection",
+            "domain:audit,-logging-&-regulatory-compliance",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-079",
+          "index": 79,
+          "name": "plug-sbs-regulatory-reporting-export",
+          "archetype": "Plug for Integration",
+          "domain": "AUDIT, LOGGING & REGULATORY COMPLIANCE",
+          "domainIndex": 11,
+          "description": "Generates periodic regulatory compliance files for SBS (Superintendencia de Banca y Seguros).",
+          "techStack": "Python ECS",
+          "awsService": "Amazon ECS Fargate",
+          "tags": [
+            "archetype:plug-for-integration",
+            "domain:audit,-logging-&-regulatory-compliance",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        },
+        {
+          "id": "REPO-080",
+          "index": 80,
+          "name": "alm-audit-tampering-security-alarm",
+          "archetype": "Alarms",
+          "domain": "AUDIT, LOGGING & REGULATORY COMPLIANCE",
+          "domainIndex": 11,
+          "description": "Critical security alarm triggered on any unauthorized attempt to alter audit archives or KMS keys.",
+          "techStack": "AWS Lambda, Node.js",
+          "awsService": "Amazon CloudWatch Alarms",
+          "tags": [
+            "archetype:alarms",
+            "domain:audit,-logging-&-regulatory-compliance",
+            "cloud:aws",
+            "squad:core-banking"
+          ]
+        }
+      ]
+    }
+  ],
+  "repositories": [
+    {
+      "id": "REPO-001",
+      "index": 1,
+      "name": "cmd-current-account-lifecycle",
+      "archetype": "Command",
+      "domain": "CURRENT ACCOUNT",
+      "domainIndex": 1,
+      "description": "Handles opening authorization, state transitions (Active, Frozen, Dormant, Closed). js 20, Lambda, DynamoDB Write Table 'core-accounts-master'.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:current-account",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-002",
+      "index": 2,
+      "name": "cmd-current-account-deposits",
+      "archetype": "Command",
+      "domain": "CURRENT ACCOUNT",
+      "domainIndex": 1,
+      "description": "Ingestion and validation of direct cash/cheque deposits.",
+      "techStack": "TypeScript Lambda, DynamoDB, EventBridge Outbox",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:current-account",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-003",
+      "index": 3,
+      "name": "cmd-current-account-overdraft",
+      "archetype": "Command",
+      "domain": "CURRENT ACCOUNT",
+      "domainIndex": 1,
+      "description": "Evaluates and triggers automated overdraft drawdowns. 22 Lambda.",
+      "techStack": "Go 1",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:current-account",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-004",
+      "index": 4,
+      "name": "qry-current-account-details",
+      "archetype": "Query",
+      "domain": "CURRENT ACCOUNT",
+      "domainIndex": 1,
+      "description": "Sub-10ms query service for account metadata, state, limits. js Lambda, Redis Cache / DynamoDB Read Replica.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:query",
+        "domain:current-account",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-005",
+      "index": 5,
+      "name": "qry-current-account-statements",
+      "archetype": "Query",
+      "domain": "CURRENT ACCOUNT",
+      "domainIndex": 1,
+      "description": "Serves historical PDF and JSON statements.",
+      "techStack": "Python FastAPI Lambda, S3 Glacier/Standard",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:query",
+        "domain:current-account",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-006",
+      "index": 6,
+      "name": "prj-current-account-readmodel",
+      "archetype": "Projection",
+      "domain": "CURRENT ACCOUNT",
+      "domainIndex": 1,
+      "description": "Consumes 'AccountCreated', 'AccountStatusChanged' events from EventBridge; writes to DynamoDB Global Read Table. js Lambda.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:projection",
+        "domain:current-account",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-007",
+      "index": 7,
+      "name": "prj-current-account-analytics",
+      "archetype": "Projection",
+      "domain": "CURRENT ACCOUNT",
+      "domainIndex": 1,
+      "description": "Pushes account status telemetry to OpenSearch and S3 Parquet Lake.",
+      "techStack": "EventBridge Pipes & Firehose",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:projection",
+        "domain:current-account",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-008",
+      "index": 8,
+      "name": "sfn-current-account-closure-saga",
+      "archetype": "Step Function",
+      "domain": "CURRENT ACCOUNT",
+      "domainIndex": 1,
+      "description": "Step Function state machine orchestrating account closure, fee clearance, balance zeroing, and legal release.",
+      "techStack": "AWS Lambda, Node.js",
+      "awsService": "AWS Step Functions",
+      "tags": [
+        "archetype:step-function",
+        "domain:current-account",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-009",
+      "index": 9,
+      "name": "plug-host-mainframe-core-sync",
+      "archetype": "Plug for Integration",
+      "domain": "CURRENT ACCOUNT",
+      "domainIndex": 1,
+      "description": "Bi-directional SNA/TCP connector to IBM Mainframe DB2 Core Banking.",
+      "techStack": "Java 21 Quarkus ECS Fargate container",
+      "awsService": "Amazon ECS Fargate",
+      "tags": [
+        "archetype:plug-for-integration",
+        "domain:current-account",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-010",
+      "index": 10,
+      "name": "alm-current-account-errors",
+      "archetype": "Alarms",
+      "domain": "CURRENT ACCOUNT",
+      "domainIndex": 1,
+      "description": "CloudWatch alarms for 5xx spikes, DB lock timeouts, and DLQ backlogs on account lifecycle events.",
+      "techStack": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "tags": [
+        "archetype:alarms",
+        "domain:current-account",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-011",
+      "index": 11,
+      "name": "cmd-payment-execution-initiate",
+      "archetype": "Command",
+      "domain": "PAYMENT EXECUTION",
+      "domainIndex": 2,
+      "description": "Ingests payment orders, validates idempotency key, executes schema validation. js 20 Lambda.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:payment-execution",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-012",
+      "index": 12,
+      "name": "cmd-payment-execution-authorization",
+      "archetype": "Command",
+      "domain": "PAYMENT EXECUTION",
+      "domainIndex": 2,
+      "description": "Enforces authorization rules, multi-factor token signatures.",
+      "techStack": "Go Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:payment-execution",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-013",
+      "index": 13,
+      "name": "cmd-payment-execution-settle",
+      "archetype": "Command",
+      "domain": "PAYMENT EXECUTION",
+      "domainIndex": 2,
+      "description": "Executes final settlement confirmation and releases transaction locks.",
+      "techStack": "TypeScript Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:payment-execution",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-014",
+      "index": 14,
+      "name": "qry-payment-execution-status",
+      "archetype": "Query",
+      "domain": "PAYMENT EXECUTION",
+      "domainIndex": 2,
+      "description": "Read API polling and webhook queries for transfer status. js Lambda, DynamoDB.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:query",
+        "domain:payment-execution",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-015",
+      "index": 15,
+      "name": "qry-payment-execution-limits",
+      "archetype": "Query",
+      "domain": "PAYMENT EXECUTION",
+      "domainIndex": 2,
+      "description": "Calculates remaining daily and per-transaction limits. js Lambda, Redis Cache.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:query",
+        "domain:payment-execution",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-016",
+      "index": 16,
+      "name": "prj-payment-execution-history",
+      "archetype": "Projection",
+      "domain": "PAYMENT EXECUTION",
+      "domainIndex": 2,
+      "description": "Projects all payment lifecycle events into the unified payment timeline store.",
+      "techStack": "Lambda DynamoDB Streams",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:projection",
+        "domain:payment-execution",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-017",
+      "index": 17,
+      "name": "prj-payment-execution-metrics",
+      "archetype": "Projection",
+      "domain": "PAYMENT EXECUTION",
+      "domainIndex": 2,
+      "description": "Emits Prometheus/CloudWatch metrics for transaction throughput, success rate, and latency.",
+      "techStack": "AWS Lambda, Node.js",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:projection",
+        "domain:payment-execution",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-018",
+      "index": 18,
+      "name": "sfn-payment-instant-transfer-saga",
+      "archetype": "Step Function",
+      "domain": "PAYMENT EXECUTION",
+      "domainIndex": 2,
+      "description": "Critical distributed Saga: 1. Hold Funds in Source -> 2. Risk Check -> 3. Credit Target -> 4. Release Hold. Automated compensation on timeout.",
+      "techStack": "AWS Lambda, Node.js",
+      "awsService": "AWS Step Functions",
+      "tags": [
+        "archetype:step-function",
+        "domain:payment-execution",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-019",
+      "index": 19,
+      "name": "sfn-payment-clearing-cce-saga",
+      "archetype": "Step Function",
+      "domain": "PAYMENT EXECUTION",
+      "domainIndex": 2,
+      "description": "Batch and scheduled clearing orchestration with Chamber of Clearing (CCE).",
+      "techStack": "AWS Lambda, Node.js",
+      "awsService": "AWS Step Functions",
+      "tags": [
+        "archetype:step-function",
+        "domain:payment-execution",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-020",
+      "index": 20,
+      "name": "plug-cce-clearing-ingress",
+      "archetype": "Plug for Integration",
+      "domain": "PAYMENT EXECUTION",
+      "domainIndex": 2,
+      "description": "Receives inbound payment batches from domestic clearinghouse via AS2/HTTPS.",
+      "techStack": "ECS Fargate API",
+      "awsService": "Amazon ECS Fargate",
+      "tags": [
+        "archetype:plug-for-integration",
+        "domain:payment-execution",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-021",
+      "index": 21,
+      "name": "plug-swift-iso20022-connector",
+      "archetype": "Plug for Integration",
+      "domain": "PAYMENT EXECUTION",
+      "domainIndex": 2,
+      "description": "Translates ISO 20022 pacs.008, pacs.002 messages to internal JSON domain events.",
+      "techStack": "Java 21 Spring Native",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:plug-for-integration",
+        "domain:payment-execution",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-022",
+      "index": 22,
+      "name": "alm-payment-execution-p99-latency",
+      "archetype": "Alarms",
+      "domain": "PAYMENT EXECUTION",
+      "domainIndex": 2,
+      "description": "Alarms on P99 latency exceeding 250ms, triggering automated incident alert to PagerDuty.",
+      "techStack": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "tags": [
+        "archetype:alarms",
+        "domain:payment-execution",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-023",
+      "index": 23,
+      "name": "cmd-party-routing-register",
+      "archetype": "Command",
+      "domain": "PARTY ROUTING PROFILE",
+      "domainIndex": 3,
+      "description": "Binds mobile phone number (MSISDN) and email to primary Account Number (CCI). js Lambda.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:party-routing-profile",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-024",
+      "index": 24,
+      "name": "cmd-party-routing-deregister",
+      "archetype": "Command",
+      "domain": "PARTY ROUTING PROFILE",
+      "domainIndex": 3,
+      "description": "Unlinks alias or updates account destination. js Lambda.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:party-routing-profile",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-025",
+      "index": 25,
+      "name": "qry-party-routing-resolve",
+      "archetype": "Query",
+      "domain": "PARTY ROUTING PROFILE",
+      "domainIndex": 3,
+      "description": "Ultra-fast directory lookup (resolves phone number to bank routing and account in <15ms).",
+      "techStack": "Go Lambda, DynamoDB DAX cluster",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:query",
+        "domain:party-routing-profile",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-026",
+      "index": 26,
+      "name": "prj-party-routing-directory",
+      "archetype": "Projection",
+      "domain": "PARTY ROUTING PROFILE",
+      "domainIndex": 3,
+      "description": "Materializes lookup cache across multi-region tables.",
+      "techStack": "Lambda DynamoDB Streams",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:projection",
+        "domain:party-routing-profile",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-027",
+      "index": 27,
+      "name": "plug-directory-federation-bridge",
+      "archetype": "Plug for Integration",
+      "domain": "PARTY ROUTING PROFILE",
+      "domainIndex": 3,
+      "description": "Connects with interbank directory federation (CCE / BCRP rails). js ECS.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:plug-for-integration",
+        "domain:party-routing-profile",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-028",
+      "index": 28,
+      "name": "alm-party-routing-lookup-failures",
+      "archetype": "Alarms",
+      "domain": "PARTY ROUTING PROFILE",
+      "domainIndex": 3,
+      "description": "Monitors resolution failure rates and cache misses.",
+      "techStack": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "tags": [
+        "archetype:alarms",
+        "domain:party-routing-profile",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-029",
+      "index": 29,
+      "name": "cmd-customer-onboarding-initiate",
+      "archetype": "Command",
+      "domain": "CUSTOMER OFFER & ONBOARDING",
+      "domainIndex": 4,
+      "description": "Receives digital prospect application and initiates KYC workflow.",
+      "techStack": "TypeScript Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:customer-offer-&-onboarding",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-030",
+      "index": 30,
+      "name": "cmd-customer-onboarding-biometrics",
+      "archetype": "Command",
+      "domain": "CUSTOMER OFFER & ONBOARDING",
+      "domainIndex": 4,
+      "description": "Ingests facial validation payload and RENIEC biometric token.",
+      "techStack": "Python Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:customer-offer-&-onboarding",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-031",
+      "index": 31,
+      "name": "qry-customer-onboarding-progress",
+      "archetype": "Query",
+      "domain": "CUSTOMER OFFER & ONBOARDING",
+      "domainIndex": 4,
+      "description": "Returns real-time state of applicant progress for mobile app. js Lambda.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:query",
+        "domain:customer-offer-&-onboarding",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-032",
+      "index": 32,
+      "name": "prj-customer-onboarding-funnel",
+      "archetype": "Projection",
+      "domain": "CUSTOMER OFFER & ONBOARDING",
+      "domainIndex": 4,
+      "description": "Projects funnel conversion drop-offs into analytics lake.",
+      "techStack": "EventBridge Pipes",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:projection",
+        "domain:customer-offer-&-onboarding",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-033",
+      "index": 33,
+      "name": "sfn-customer-onboarding-saga",
+      "archetype": "Step Function",
+      "domain": "CUSTOMER OFFER & ONBOARDING",
+      "domainIndex": 4,
+      "description": "Orchestrates KYC -> AML Validation -> Contract Generation -> Account Creation -> Debit Card Provisioning.",
+      "techStack": "AWS Lambda, Node.js",
+      "awsService": "AWS Step Functions",
+      "tags": [
+        "archetype:step-function",
+        "domain:customer-offer-&-onboarding",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-034",
+      "index": 34,
+      "name": "plug-reniec-biometrics-gateway",
+      "archetype": "Plug for Integration",
+      "domain": "CUSTOMER OFFER & ONBOARDING",
+      "domainIndex": 4,
+      "description": "Connects to national identity registry (RENIEC) with TLS mutual auth.",
+      "techStack": "Java Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:plug-for-integration",
+        "domain:customer-offer-&-onboarding",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-035",
+      "index": 35,
+      "name": "plug-experian-credit-score",
+      "archetype": "Plug for Integration",
+      "domain": "CUSTOMER OFFER & ONBOARDING",
+      "domainIndex": 4,
+      "description": "Pulls credit score and risk bureau data.",
+      "techStack": "Python Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:plug-for-integration",
+        "domain:customer-offer-&-onboarding",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-036",
+      "index": 36,
+      "name": "alm-onboarding-kyc-drop-rate",
+      "archetype": "Alarms",
+      "domain": "CUSTOMER OFFER & ONBOARDING",
+      "domainIndex": 4,
+      "description": "Alarms if KYC validation failures exceed 8% threshold.",
+      "techStack": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "tags": [
+        "archetype:alarms",
+        "domain:customer-offer-&-onboarding",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-037",
+      "index": 37,
+      "name": "cmd-customer-agreement-sign",
+      "archetype": "Command",
+      "domain": "CUSTOMER AGREEMENT & CONTRACT",
+      "domainIndex": 5,
+      "description": "Records digital signature, cryptographic hash, and legal consent timestamp. js Lambda.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:customer-agreement-&-contract",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-038",
+      "index": 38,
+      "name": "cmd-customer-agreement-amend",
+      "archetype": "Command",
+      "domain": "CUSTOMER AGREEMENT & CONTRACT",
+      "domainIndex": 5,
+      "description": "Applies contractual annexes, interest rate changes, or clause updates.",
+      "techStack": "TypeScript Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:customer-agreement-&-contract",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-039",
+      "index": 39,
+      "name": "qry-customer-agreement-fetch",
+      "archetype": "Query",
+      "domain": "CUSTOMER AGREEMENT & CONTRACT",
+      "domainIndex": 5,
+      "description": "Retrieves signed legal terms and audit certificate. js Lambda, S3 presigned URLs.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:query",
+        "domain:customer-agreement-&-contract",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-040",
+      "index": 40,
+      "name": "prj-customer-agreement-indexer",
+      "archetype": "Projection",
+      "domain": "CUSTOMER AGREEMENT & CONTRACT",
+      "domainIndex": 5,
+      "description": "Indexes contract clauses and consent history into OpenSearch.",
+      "techStack": "Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:projection",
+        "domain:customer-agreement-&-contract",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-041",
+      "index": 41,
+      "name": "plug-docusign-legal-trust-bridge",
+      "archetype": "Plug for Integration",
+      "domain": "CUSTOMER AGREEMENT & CONTRACT",
+      "domainIndex": 5,
+      "description": "Integrates with certified digital signature provider for legal stamping.",
+      "techStack": "TypeScript Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:plug-for-integration",
+        "domain:customer-agreement-&-contract",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-042",
+      "index": 42,
+      "name": "alm-agreement-compliance-gaps",
+      "archetype": "Alarms",
+      "domain": "CUSTOMER AGREEMENT & CONTRACT",
+      "domainIndex": 5,
+      "description": "Tracks missing required terms and condition acceptances.",
+      "techStack": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "tags": [
+        "archetype:alarms",
+        "domain:customer-agreement-&-contract",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-043",
+      "index": 43,
+      "name": "cmd-position-keeping-reserve",
+      "archetype": "Command",
+      "domain": "POSITION KEEPING & BALANCES",
+      "domainIndex": 6,
+      "description": "Places temporary authorization holds on balances for card swipe or pending transfer.",
+      "techStack": "Go Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:position-keeping-&-balances",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-044",
+      "index": 44,
+      "name": "cmd-position-keeping-release",
+      "archetype": "Command",
+      "domain": "POSITION KEEPING & BALANCES",
+      "domainIndex": 6,
+      "description": "Releases or commits hold into settled balance.",
+      "techStack": "Go Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:position-keeping-&-balances",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-045",
+      "index": 45,
+      "name": "qry-position-keeping-realtime-balance",
+      "archetype": "Query",
+      "domain": "POSITION KEEPING & BALANCES",
+      "domainIndex": 6,
+      "description": "Provides instantaneous available, ledger, and hold balances.",
+      "techStack": "Rust Lambda, Redis / DynamoDB DAX",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:query",
+        "domain:position-keeping-&-balances",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-046",
+      "index": 46,
+      "name": "qry-position-keeping-movements",
+      "archetype": "Query",
+      "domain": "POSITION KEEPING & BALANCES",
+      "domainIndex": 6,
+      "description": "Returns paginated transaction movements and timestamps. js Lambda.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:query",
+        "domain:position-keeping-&-balances",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-047",
+      "index": 47,
+      "name": "prj-position-keeping-ledger-view",
+      "archetype": "Projection",
+      "domain": "POSITION KEEPING & BALANCES",
+      "domainIndex": 6,
+      "description": "Listens to debit/credit posted events to maintain continuous balance snapshots.",
+      "techStack": "Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:projection",
+        "domain:position-keeping-&-balances",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-048",
+      "index": 48,
+      "name": "prj-position-keeping-audit-balance",
+      "archetype": "Projection",
+      "domain": "POSITION KEEPING & BALANCES",
+      "domainIndex": 6,
+      "description": "Daily balance delta projection against core mainframe reports.",
+      "techStack": "Python Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:projection",
+        "domain:position-keeping-&-balances",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-049",
+      "index": 49,
+      "name": "plug-atm-switch-pos-gateway",
+      "archetype": "Plug for Integration",
+      "domain": "POSITION KEEPING & BALANCES",
+      "domainIndex": 6,
+      "description": "ISO 8583 translator for ATM switches and POS debit authorizations.",
+      "techStack": "C++/Rust ECS Fargate",
+      "awsService": "Amazon ECS Fargate",
+      "tags": [
+        "archetype:plug-for-integration",
+        "domain:position-keeping-&-balances",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-050",
+      "index": 50,
+      "name": "alm-position-keeping-balance-discrepancy",
+      "archetype": "Alarms",
+      "domain": "POSITION KEEPING & BALANCES",
+      "domainIndex": 6,
+      "description": "Critical P0 Alarm: triggers on any ledger vs available balance mathematical mismatch.",
+      "techStack": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "tags": [
+        "archetype:alarms",
+        "domain:position-keeping-&-balances",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-051",
+      "index": 51,
+      "name": "cmd-financial-accounting-voucher",
+      "archetype": "Command",
+      "domain": "FINANCIAL ACCOUNTING & GENERAL LEDGER",
+      "domainIndex": 7,
+      "description": "Creates double-entry debits and credits ledger vouchers.",
+      "techStack": "TypeScript Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:financial-accounting-&-general-ledger",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-052",
+      "index": 52,
+      "name": "qry-financial-accounting-trail",
+      "archetype": "Query",
+      "domain": "FINANCIAL ACCOUNTING & GENERAL LEDGER",
+      "domainIndex": 7,
+      "description": "Inquires chart of accounts balances and journal entries. js Lambda.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:query",
+        "domain:financial-accounting-&-general-ledger",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-053",
+      "index": 53,
+      "name": "prj-financial-accounting-journal",
+      "archetype": "Projection",
+      "domain": "FINANCIAL ACCOUNTING & GENERAL LEDGER",
+      "domainIndex": 7,
+      "description": "Stream-aggregates all financial transaction events into the general ledger journal.",
+      "techStack": "Lambda EventBridge",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:projection",
+        "domain:financial-accounting-&-general-ledger",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-054",
+      "index": 54,
+      "name": "prj-financial-accounting-eod-balance",
+      "archetype": "Projection",
+      "domain": "FINANCIAL ACCOUNTING & GENERAL LEDGER",
+      "domainIndex": 7,
+      "description": "Compiles End-of-Day balance totals per currency (PEN, USD).",
+      "techStack": "Python Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:projection",
+        "domain:financial-accounting-&-general-ledger",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-055",
+      "index": 55,
+      "name": "sfn-financial-accounting-eod-reconciliation",
+      "archetype": "Step Function",
+      "domain": "FINANCIAL ACCOUNTING & GENERAL LEDGER",
+      "domainIndex": 7,
+      "description": "Step Function running at 23:59:00 to lock daily balances, reconcile with central ledger, and produce balance sheet vouchers.",
+      "techStack": "AWS Lambda, Node.js",
+      "awsService": "AWS Step Functions",
+      "tags": [
+        "archetype:step-function",
+        "domain:financial-accounting-&-general-ledger",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-056",
+      "index": 56,
+      "name": "plug-sap-erp-general-ledger-adapter",
+      "archetype": "Plug for Integration",
+      "domain": "FINANCIAL ACCOUNTING & GENERAL LEDGER",
+      "domainIndex": 7,
+      "description": "Transmits daily accounting journals into SAP S/4HANA via RFC/OData.",
+      "techStack": "Java ECS",
+      "awsService": "Amazon ECS Fargate",
+      "tags": [
+        "archetype:plug-for-integration",
+        "domain:financial-accounting-&-general-ledger",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-057",
+      "index": 57,
+      "name": "alm-general-ledger-unbalanced-voucher",
+      "archetype": "Alarms",
+      "domain": "FINANCIAL ACCOUNTING & GENERAL LEDGER",
+      "domainIndex": 7,
+      "description": "High-priority alarm triggered if Total Debits != Total Credits.",
+      "techStack": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "tags": [
+        "archetype:alarms",
+        "domain:financial-accounting-&-general-ledger",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-058",
+      "index": 58,
+      "name": "cmd-collateral-allocation-pledge",
+      "archetype": "Command",
+      "domain": "COLLATERAL ALLOCATION & GUARANTEES",
+      "domainIndex": 8,
+      "description": "Pledges term deposits or accounts as collateral against lines of credit. js Lambda.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:collateral-allocation-&-guarantees",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-059",
+      "index": 59,
+      "name": "cmd-collateral-allocation-release",
+      "archetype": "Command",
+      "domain": "COLLATERAL ALLOCATION & GUARANTEES",
+      "domainIndex": 8,
+      "description": "Releases collateral hold upon loan discharge.",
+      "techStack": "TypeScript Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:collateral-allocation-&-guarantees",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-060",
+      "index": 60,
+      "name": "qry-collateral-allocation-status",
+      "archetype": "Query",
+      "domain": "COLLATERAL ALLOCATION & GUARANTEES",
+      "domainIndex": 8,
+      "description": "Checks collateral coverage ratio and pledged assets. js Lambda.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:query",
+        "domain:collateral-allocation-&-guarantees",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-061",
+      "index": 61,
+      "name": "prj-collateral-allocation-exposure",
+      "archetype": "Projection",
+      "domain": "COLLATERAL ALLOCATION & GUARANTEES",
+      "domainIndex": 8,
+      "description": "Projects real-time risk exposure of linked credit lines.",
+      "techStack": "Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:projection",
+        "domain:collateral-allocation-&-guarantees",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-062",
+      "index": 62,
+      "name": "alm-collateral-under-coverage-warning",
+      "archetype": "Alarms",
+      "domain": "COLLATERAL ALLOCATION & GUARANTEES",
+      "domainIndex": 8,
+      "description": "Alarms when collateral value falls below loan margin ratio.",
+      "techStack": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "tags": [
+        "archetype:alarms",
+        "domain:collateral-allocation-&-guarantees",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-063",
+      "index": 63,
+      "name": "cmd-fraud-detection-evaluate-tx",
+      "archetype": "Command",
+      "domain": "FRAUD DETECTION & RISK SCORING",
+      "domainIndex": 9,
+      "description": "Evaluates transaction risk score in real time using rules engine and ML model.",
+      "techStack": "Go/C++ Lambda, <40ms SLA",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:fraud-detection-&-risk-scoring",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-064",
+      "index": 64,
+      "name": "cmd-fraud-detection-lockout",
+      "archetype": "Command",
+      "domain": "FRAUD DETECTION & RISK SCORING",
+      "domainIndex": 9,
+      "description": "Executes preventative security freeze on compromised cards and accounts. js Lambda.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:fraud-detection-&-risk-scoring",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-065",
+      "index": 65,
+      "name": "qry-fraud-detection-risk-profile",
+      "archetype": "Query",
+      "domain": "FRAUD DETECTION & RISK SCORING",
+      "domainIndex": 9,
+      "description": "Reads customer behavioral risk indicators, device fingerprint history.",
+      "techStack": "Python Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:query",
+        "domain:fraud-detection-&-risk-scoring",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-066",
+      "index": 66,
+      "name": "prj-fraud-detection-blacklists",
+      "archetype": "Projection",
+      "domain": "FRAUD DETECTION & RISK SCORING",
+      "domainIndex": 9,
+      "description": "Synchronizes international OFAC, PEP, and suspicious account blacklists.",
+      "techStack": "Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:projection",
+        "domain:fraud-detection-&-risk-scoring",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-067",
+      "index": 67,
+      "name": "sfn-fraud-suspicious-alert-investigation",
+      "archetype": "Step Function",
+      "domain": "FRAUD DETECTION & RISK SCORING",
+      "domainIndex": 9,
+      "description": "Escalates high-risk transaction cases to fraud operations squad, alerts user, and monitors feedback.",
+      "techStack": "AWS Lambda, Node.js",
+      "awsService": "AWS Step Functions",
+      "tags": [
+        "archetype:step-function",
+        "domain:fraud-detection-&-risk-scoring",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-068",
+      "index": 68,
+      "name": "plug-device-fingerprint-threatmetrix",
+      "archetype": "Plug for Integration",
+      "domain": "FRAUD DETECTION & RISK SCORING",
+      "domainIndex": 9,
+      "description": "Ingests device telemetry, IP reputation, and biometrics signals from LexisNexis/ThreatMetrix. js Lambda.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:plug-for-integration",
+        "domain:fraud-detection-&-risk-scoring",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-069",
+      "index": 69,
+      "name": "plug-biocatch-behavioral-engine",
+      "archetype": "Plug for Integration",
+      "domain": "FRAUD DETECTION & RISK SCORING",
+      "domainIndex": 9,
+      "description": "Ingests mobile screen interaction dynamics and behavioral telemetry.",
+      "techStack": "TypeScript Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:plug-for-integration",
+        "domain:fraud-detection-&-risk-scoring",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-070",
+      "index": 70,
+      "name": "alm-fraud-high-risk-spike-alarm",
+      "archetype": "Alarms",
+      "domain": "FRAUD DETECTION & RISK SCORING",
+      "domainIndex": 9,
+      "description": "Alarms on sudden surges of high-risk transactions in specific BIN or geography.",
+      "techStack": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "tags": [
+        "archetype:alarms",
+        "domain:fraud-detection-&-risk-scoring",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-071",
+      "index": 71,
+      "name": "cmd-customer-alert-dispatch",
+      "archetype": "Command",
+      "domain": "CUSTOMER ALERT & NOTIFICATION",
+      "domainIndex": 10,
+      "description": "Routes transactional notifications according to customer channel preferences. js Lambda.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:customer-alert-&-notification",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-072",
+      "index": 72,
+      "name": "qry-customer-alert-delivery-status",
+      "archetype": "Query",
+      "domain": "CUSTOMER ALERT & NOTIFICATION",
+      "domainIndex": 10,
+      "description": "Inquires delivery status, open rates, and push delivery receipts.",
+      "techStack": "TypeScript Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:query",
+        "domain:customer-alert-&-notification",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-073",
+      "index": 73,
+      "name": "prj-customer-alert-audit-log",
+      "archetype": "Projection",
+      "domain": "CUSTOMER ALERT & NOTIFICATION",
+      "domainIndex": 10,
+      "description": "Records notification compliance records (timestamp, recipient, payload hash).",
+      "techStack": "Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:projection",
+        "domain:customer-alert-&-notification",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-074",
+      "index": 74,
+      "name": "plug-fcm-apns-push-gateway",
+      "archetype": "Plug for Integration",
+      "domain": "CUSTOMER ALERT & NOTIFICATION",
+      "domainIndex": 10,
+      "description": "Apple APNS & Google FCM mobile push connector.",
+      "techStack": "Go Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:plug-for-integration",
+        "domain:customer-alert-&-notification",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-075",
+      "index": 75,
+      "name": "plug-twilio-infobip-sms-gateway",
+      "archetype": "Plug for Integration",
+      "domain": "CUSTOMER ALERT & NOTIFICATION",
+      "domainIndex": 10,
+      "description": "High-throughput SMS and WhatsApp business API gateway. js ECS.",
+      "techStack": "Node",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:plug-for-integration",
+        "domain:customer-alert-&-notification",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-076",
+      "index": 76,
+      "name": "cmd-audit-log-immutable-record",
+      "archetype": "Command",
+      "domain": "AUDIT, LOGGING & REGULATORY COMPLIANCE",
+      "domainIndex": 11,
+      "description": "Encrypts and writes WORM (Write-Once-Read-Many) audit events into AWS KMS/S3 Object Lock.",
+      "techStack": "Rust Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:command",
+        "domain:audit,-logging-&-regulatory-compliance",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-077",
+      "index": 77,
+      "name": "qry-audit-log-trace-inspector",
+      "archetype": "Query",
+      "domain": "AUDIT, LOGGING & REGULATORY COMPLIANCE",
+      "domainIndex": 11,
+      "description": "Search interface for compliance officers, auditors, and security investigators.",
+      "techStack": "Python Lambda, OpenSearch",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:query",
+        "domain:audit,-logging-&-regulatory-compliance",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-078",
+      "index": 78,
+      "name": "prj-audit-log-compliance-views",
+      "archetype": "Projection",
+      "domain": "AUDIT, LOGGING & REGULATORY COMPLIANCE",
+      "domainIndex": 11,
+      "description": "Materializes daily AML (Anti-Money Laundering) aggregation views for transactions > $10,000 USD.",
+      "techStack": "Lambda",
+      "awsService": "AWS Lambda",
+      "tags": [
+        "archetype:projection",
+        "domain:audit,-logging-&-regulatory-compliance",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-079",
+      "index": 79,
+      "name": "plug-sbs-regulatory-reporting-export",
+      "archetype": "Plug for Integration",
+      "domain": "AUDIT, LOGGING & REGULATORY COMPLIANCE",
+      "domainIndex": 11,
+      "description": "Generates periodic regulatory compliance files for SBS (Superintendencia de Banca y Seguros).",
+      "techStack": "Python ECS",
+      "awsService": "Amazon ECS Fargate",
+      "tags": [
+        "archetype:plug-for-integration",
+        "domain:audit,-logging-&-regulatory-compliance",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    },
+    {
+      "id": "REPO-080",
+      "index": 80,
+      "name": "alm-audit-tampering-security-alarm",
+      "archetype": "Alarms",
+      "domain": "AUDIT, LOGGING & REGULATORY COMPLIANCE",
+      "domainIndex": 11,
+      "description": "Critical security alarm triggered on any unauthorized attempt to alter audit archives or KMS keys.",
+      "techStack": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "tags": [
+        "archetype:alarms",
+        "domain:audit,-logging-&-regulatory-compliance",
+        "cloud:aws",
+        "squad:core-banking"
+      ]
+    }
+  ]
+}

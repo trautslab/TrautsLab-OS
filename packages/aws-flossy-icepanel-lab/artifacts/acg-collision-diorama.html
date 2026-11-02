@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Diorama de Colisiones: Agent Core Gateway (ACG) & Runtimes</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --active: #10b981;
+      --to-create: #f59e0b;
+      --non-existent: #ef4444;
+      --gateway: #6366f1;
+      --llm: #8b5cf6;
+    }
+    body {
+      margin: 0;
+      padding: 24px;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    header {
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+    h1 {
+      margin: 0 0 8px 0;
+      font-size: 24px;
+      color: #38bdf8;
+    }
+    .legend {
+      display: flex;
+      gap: 16px;
+      margin-top: 12px;
+      font-size: 13px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .badge-active { background: rgba(16, 185, 129, 0.15); color: var(--active); border: 1px solid var(--active); }
+    .badge-to-create { background: rgba(245, 158, 11, 0.15); color: var(--to-create); border: 1px dashed var(--to-create); }
+    .badge-non-existent { background: rgba(239, 68, 68, 0.15); color: var(--non-existent); border: 1px solid var(--non-existent); text-decoration: line-through; }
+
+    .diorama-container {
+      display: grid;
+      grid-template-columns: 240px 100px 320px 100px 380px;
+      align-items: center;
+      gap: 12px;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      overflow-x: auto;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .col-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      text-align: center;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 13px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+    .card-title {
+      font-family: monospace;
+      font-weight: 700;
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .card-active { border-left: 4px solid var(--active); }
+    .card-to-create { border-left: 4px dashed var(--to-create); border: 1px dashed var(--to-create); }
+    .card-non-existent { border-left: 4px solid var(--non-existent); border: 1px solid var(--non-existent); background: rgba(239, 68, 68, 0.05); }
+
+    .collision-alert {
+      margin-top: 8px;
+      font-size: 11px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .alert-ambiguity { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; }
+    .alert-ghost { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
+    .alert-race { background: rgba(236, 72, 153, 0.2); color: #f472b6; border: 1px solid #ec4899; }
+
+    .arrow-col {
+      text-align: center;
+      color: #64748b;
+      font-size: 20px;
+    }
+
+    .collision-summary-panel {
+      margin-top: 24px;
+      background: #1e293b;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🏛️ Diorama de Arquitectura y Puntos de Colisión</h1>
+    <div style="color: var(--text-muted); font-size: 14px;">
+      Flujo: <b>External LLMs</b> &rarr; <b>Agent Core Gateway (ACG)</b> &rarr; <b>Agent Core Runtime (ACR - MCP)</b> &rarr; <b>Lambdas / EKS</b>
+    </div>
+    <div class="legend">
+      <span class="badge badge-active">● ACTIVO / EXISTENTE (8 componentes)</span>
+      <span class="badge badge-to-create">◖ POR CREAR / PLANIFICADO (4 componentes)</span>
+      <span class="badge badge-non-existent">✕ NO EXISTE / FANTASMA (1 componente)</span>
+    </div>
+  </header>
+
+  <div class="diorama-container">
+    <!-- COL 1: External LLMs -->
+    <div class="column">
+      <div class="col-title">1. LLMs Externos</div>
+      <div class="card" style="border-left: 4px solid var(--llm);">
+        <div class="card-title">Copilot Mobile Agent</div>
+        <div class="card-subtitle">Consultas en lenguaje natural difusas</div>
+      </div>
+      <div class="card" style="border-left: 4px solid var(--llm);">
+        <div class="card-title">Batch Loyalty Agent</div>
+        <div class="card-subtitle">Ráfagas masivas sin filtro</div>
+      </div>
+      <div class="card" style="border-left: 4px solid var(--llm);">
+        <div class="card-title">Checkout Agents A & B</div>
+        <div class="card-subtitle">Mutación concurrente simultánea</div>
+      </div>
+    </div>
+
+    <!-- Arrow 1 -->
+    <div class="arrow-col">&rarr;<br>&rarr;<br>&rarr;</div>
+
+    <!-- COL 2: ACG Gateway -->
+    <div class="column">
+      <div class="col-title">2. Agent Core Gateway</div>
+      <div class="card" style="border-left: 4px solid var(--gateway); min-height: 280px; display: flex; flex-direction: column; justify-content: center;">
+        <div class="card-title" style="color: #a5b4fc;">acg-{env}-io-semantic-router-01</div>
+        <div class="card-subtitle" style="margin-top: 8px;">
+          • Ingress Auth & Rate Limiter<br>
+          • Semantic Router<br>
+          • MCP Protocol Negotiator<br>
+          • Distributed Redis Locks
+        </div>
+        <div class="collision-alert alert-ambiguity" style="margin-top: 14px;">
+          💥 Colisión 1: Ambigüedad Semántica
+        </div>
+        <div class="collision-alert alert-race" style="margin-top: 6px;">
+          💥 Colisión 2: Carrera de Estado
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow 2 -->
+    <div class="arrow-col">&rarr;<br>&rarr;<br>&rarr;<br>&rarr;<br>&rarr;</div>
+
+    <!-- COL 3: ACR (MCP Servers) -->
+    <div class="column">
+      <div class="col-title">3. Agent Core Runtime (MCP)</div>
+      
+      <div class="card card-active">
+        <div class="card-title">acr_{env}_io_vads_coupons_mcp_01</div>
+        <div class="card-subtitle">[ACTIVO] MCP Server Cupones</div>
+      </div>
+
+      <div class="card card-active">
+        <div class="card-title">acr_{env}_io_vads_cashback_mcp_01</div>
+        <div class="card-subtitle">[ACTIVO] MCP Server Cashback</div>
+      </div>
+
+      <div class="card card-to-create">
+        <div class="card-title" style="color: var(--to-create);">acr-io-sale-campaign-mcp-01</div>
+        <div class="card-subtitle">[POR CREAR] MCP Campañas Comerciales</div>
+        <div class="collision-alert alert-ambiguity">Solapa con coupons_mcp</div>
+      </div>
+
+      <div class="card card-active">
+        <div class="card-title">acr_{env}_io_acse_reward_point_acc_mcp_01</div>
+        <div class="card-subtitle">[ACTIVO] MCP Puntos y Balances</div>
+      </div>
+
+      <div class="card card-to-create">
+        <div class="card-title" style="color: var(--to-create);">acr_{env}_io_opse_reward_point_ar_mcp_01</div>
+        <div class="card-subtitle">[POR CREAR] MCP Operaciones de Canje</div>
+      </div>
+
+      <div class="card card-active">
+        <div class="card-title">acr_{env}_io_made_campaign_dsg_mcp_01</div>
+        <div class="card-subtitle">[ACTIVO] MCP Reglas de Diseño</div>
+      </div>
+    </div>
+
+    <!-- Arrow 3 -->
+    <div class="arrow-col">&rarr;<br>&rarr;<br>&rarr;<br>&rarr;<br>&rarr;<br>&rarr;</div>
+
+    <!-- COL 4: Lambdas & Containers -->
+    <div class="column">
+      <div class="col-title">4. Microservicios Backend (LMB / EKS)</div>
+
+      <div class="card card-active">
+        <div class="card-title">lmb-matrix-findby-non-expired-coupons-qry-svc-01</div>
+        <div class="card-subtitle">[ACTIVO] Finder cupones vigentes (Riesgo 3MB Bloat)</div>
+      </div>
+
+      <div class="card card-active">
+        <div class="card-title">lmb-matrix-findby-id-coupons-qry-svc-01</div>
+        <div class="card-subtitle">[ACTIVO] Finder cupones por ID</div>
+      </div>
+
+      <div class="card card-active">
+        <div class="card-title">lmb-matrix-findby-dep-coupons-qry-svc-01</div>
+        <div class="card-subtitle">[ACTIVO] Finder cupones por departamento</div>
+      </div>
+
+      <div class="card card-active">
+        <div class="card-title">lmb-(env)-io-sale-cust-cpgn-ex-qry_findby-01</div>
+        <div class="card-subtitle">[ACTIVO] Finder campañas de clientes</div>
+      </div>
+
+      <div class="card card-to-create">
+        <div class="card-title" style="color: var(--to-create);">lmb-{env}-io-sale-campaign-exec--qry_findby-01</div>
+        <div class="card-subtitle">[POR CREAR] Query ejecución de campañas</div>
+      </div>
+
+      <div class="card card-to-create">
+        <div class="card-title" style="color: var(--to-create);">lmb-{env}-io-opse-reward-point-ar-qry-01</div>
+        <div class="card-subtitle">[POR CREAR] Query operaciones de recompensa</div>
+      </div>
+
+      <div class="card card-active">
+        <div class="card-title">lmb-(env)-io-acse-reward-point-acc-qry_findby-01</div>
+        <div class="card-subtitle">[ACTIVO] Query balances de puntos (Punto de contención)</div>
+      </div>
+
+      <div class="card card-non-existent">
+        <div class="card-title" style="color: var(--non-existent);">lmb-(env)-io-made-campaign-dsg-pjc_findby-id-01</div>
+        <div class="card-subtitle">[NO EXISTE] Dependencia Fantasma</div>
+        <div class="collision-alert alert-ghost">💥 Error 502 Bad Gateway al invocar</div>
+      </div>
+
+      <div class="card card-active">
+        <div class="card-title">eks-{env}-io-01</div>
+        <div class="card-subtitle">[ACTIVO] Clúster EKS para transacciones cashback</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="collision-summary-panel">
+    <h3 style="margin: 0 0 8px 0; color: #38bdf8;">📌 ¿Qué demuestra este Diorama?</h3>
+    <ul style="margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.6; color: var(--text-muted);">
+      <li><b>Componentes "Por Crear":</b> Están señalizados en <span style="color: var(--to-create); font-weight: bold;">ámbar punteado</span>. Si un LLM intenta invocarlos antes de su despliegue, el ACG responde con <code>HTTP 501 Not Implemented</code>.</li>
+      <li><b>Componente "No Existe" (Fantasma):</b> Señalizado en <span style="color: var(--non-existent); font-weight: bold;">rojo tachado</span>. Si el ACR <code>acr_made_campaign_dsg</code> intenta resolverlo, colisiona con <code>HTTP 502 Bad Gateway</code>.</li>
+      <li><b>Ambigüedad de Enrutamiento:</b> Ocurre entre <code>acr_vads_coupons</code> y <code>acr_sale_campaign</code> cuando el LLM solicita cupones de campaña en lenguaje natural.</li>
+      <li><b>Condición de Carrera:</b> Ocurre en <code>lmb_acse_reward_point_acc</code> ante ráfagas paralelas si el ACG no aplica candado distribuido por cliente en Redis.</li>
+    </ul>
+  </div>
+
+</body>
+</html>
+

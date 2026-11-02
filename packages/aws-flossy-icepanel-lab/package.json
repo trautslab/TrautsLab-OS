@@ -1,0 +1,50 @@
+{
+  "name": "aws-flossy-icepanel-bian-lab",
+  "version": "1.0.0",
+  "description": "Exploration Lab: Local AWS with Flossy (Floci), Terraform, IcePanel MCP & BIAN Core Banking Architecture",
+  "main": "agent-engine/index.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "node agent-engine/index.mjs",
+    "ingest": "node agent-engine/index.mjs",
+    "mcp:serve": "node icepanel-mcp/src/server.js",
+    "mcp:test": "make mcp-test",
+    "flossy:up": "./bin/flossy.sh up",
+    "flossy:down": "./bin/flossy.sh down",
+    "flossy:status": "./bin/flossy.sh status",
+    "tf:init": "./bin/tf-local.sh init",
+    "tf:plan": "./bin/tf-local.sh plan -var-file=local.tfvars",
+    "tf:apply": "./bin/tf-local.sh apply -auto-approve -var-file=local.tfvars",
+    "simulate:floci": "node bin/simulate-floci-flow.mjs",
+    "likec4:start": "./bin/likec4.sh start",
+    "likec4:build": "./bin/likec4.sh build",
+    "likec4:mcp": "./bin/likec4.sh mcp",
+    "likec4:check": "./bin/likec4.sh check",
+    "deploy:lambdas": "node bin/deploy-floci-lambdas.mjs",
+    "demo:phase1": "node bin/run-phase1-demo.mjs",
+    "demo:collision": "node bin/test-acg-collision-sim.mjs"
+  },
+  "keywords": [
+    "aws",
+    "flossy",
+    "floci",
+    "terraform",
+    "icepanel",
+    "mcp",
+    "bian",
+    "core-banking",
+    "c4-model",
+    "trautslab"
+  ],
+  "author": "TrautsLab OS",
+  "license": "MIT",
+  "devDependencies": {
+    "@aws-sdk/client-cloudwatch": "^3.1161.0",
+    "@aws-sdk/client-dynamodb": "^3.1161.0",
+    "@aws-sdk/client-eventbridge": "^3.1161.0",
+    "@aws-sdk/client-lambda": "^3.1161.0",
+    "@aws-sdk/client-sfn": "^3.1161.0",
+    "@aws-sdk/client-sqs": "^3.1161.0",
+    "archiver": "^8.0.0"
+  }
+}

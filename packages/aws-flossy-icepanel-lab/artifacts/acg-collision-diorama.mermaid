@@ -1,0 +1,66 @@
+%% ==============================================================================
+%% Mermaid Diorama: ACG Gateway -> ACR (MCP) -> Backend (LMB / EKS)
+%% Illustrating Lifecycle States: [ACTIVO], [POR CREAR], [NO EXISTE]
+%% ==============================================================================
+flowchart LR
+    classDef activeStyle fill:#1e293b,stroke:#10b981,stroke-width:2px,color:#f8fafc;
+    classDef plannedStyle fill:#1e293b,stroke:#f59e0b,stroke-width:2px,stroke-dasharray: 5 5,color:#fbbf24;
+    classDef brokenStyle fill:#450a0a,stroke:#ef4444,stroke-width:2px,stroke-dasharray: 3 3,color:#f87171;
+    classDef gatewayStyle fill:#312e81,stroke:#6366f1,stroke-width:3px,color:#ffffff;
+    classDef llmStyle fill:#3b0764,stroke:#a855f7,stroke-width:2px,color:#ffffff;
+
+    subgraph External["🌐 LLMs Externos"]
+        LLM1["🧠 Copilot Mobile"]:::llmStyle
+        LLM2["🧠 Batch Loyalty"]:::llmStyle
+        LLM3["🧠 Checkout Agents"]:::llmStyle
+    end
+
+    subgraph Gateway["🛡️ Gateway de Enrutamiento"]
+        ACG["🚪 acg-{env}-io-semantic-router-01<br/><i>(Agent Core Gateway)</i>"]:::gatewayStyle
+    end
+
+    subgraph ACR_Cluster["⚡ Agent Core Runtime (MCP Servers)"]
+        ACR_CPN["acr_{env}_io_vads_coupons_mcp_01<br/><b>[ACTIVO]</b>"]:::activeStyle
+        ACR_CSH["acr_{env}_io_vads_cashback_mcp_01<br/><b>[ACTIVO]</b>"]:::activeStyle
+        ACR_SALE["acr-io-sale-campaign-mcp-01<br/><b>[POR CREAR]</b>"]:::plannedStyle
+        ACR_REW_ACC["acr_{env}_io_acse_reward_point_acc_mcp_01<br/><b>[ACTIVO]</b>"]:::activeStyle
+        ACR_REW_AR["acr_{env}_io_opse_reward_point_ar_mcp_01<br/><b>[POR CREAR]</b>"]:::plannedStyle
+        ACR_DSG["acr_{env}_io_made_campaign_dsg_mcp_01<br/><b>[ACTIVO]</b>"]:::activeStyle
+    end
+
+    subgraph Backend_Cluster["⚙️ Microservicios Backend (LMB / EKS)"]
+        LMB_CPN1["lmb-matrix-findby-non-expired-coupons-qry-svc-01<br/><b>[ACTIVO]</b>"]:::activeStyle
+        LMB_CPN2["lmb-matrix-findby-id-coupons-qry-svc-01<br/><b>[ACTIVO]</b>"]:::activeStyle
+        LMB_CPN3["lmb-matrix-findby-dep-coupons-qry-svc-01<br/><b>[ACTIVO]</b>"]:::activeStyle
+        LMB_CPN4["lmb-(env)-matrix-findby-id-coupons-qry-svc-01<br/><b>[ACTIVO]</b>"]:::activeStyle
+        LMB_SALE1["lmb-(env)-io-sale-cust-cpgn-ex-qry_findby-01<br/><b>[ACTIVO]</b>"]:::activeStyle
+        LMB_SALE2["lmb-{env}-io-sale-campaign-exec--qry_findby-01<br/><b>[POR CREAR]</b>"]:::plannedStyle
+        LMB_REW_AR["lmb-{env}-io-opse-reward-point-ar-qry-01<br/><b>[POR CREAR]</b>"]:::plannedStyle
+        LMB_REW_ACC["lmb-(env)-io-acse-reward-point-acc-qry_findby-01<br/><b>[ACTIVO]</b>"]:::activeStyle
+        LMB_GHOST["lmb-(env)-io-made-campaign-dsg-pjc_findby-id-01<br/><b>[NO EXISTE] 💥 Error 502</b>"]:::brokenStyle
+        EKS_IO["eks-{env}-io-01<br/><b>[ACTIVO]</b>"]:::activeStyle
+    end
+
+    External -->|1. Ráfagas Concurrentes| ACG
+    
+    ACG -->|coupons.*| ACR_CPN
+    ACG -->|cashback.*| ACR_CSH
+    ACG -.->|💥 Colisión 1: Ambigüedad| ACR_SALE
+    ACG -->|points.* (💥 Colisión 3: Race Cond)| ACR_REW_ACC
+    ACG -.->|accrual.* [POR CREAR]| ACR_REW_AR
+    ACG -->|design.*| ACR_DSG
+
+    ACR_CPN -->|Query (💥 Colisión 4: 3MB Bloat)| LMB_CPN1
+    ACR_CPN --> LMB_CPN2
+    ACR_CPN --> LMB_CPN3
+    ACR_CPN --> LMB_CPN4
+
+    ACR_CSH --> EKS_IO
+    ACR_SALE -.-> LMB_SALE2
+    ACR_SALE --> LMB_SALE1
+
+    ACR_REW_ACC --> LMB_REW_ACC
+    ACR_REW_AR -.-> LMB_REW_AR
+
+    ACR_DSG ==>|💥 Colisión 2: Dependencia Rota| LMB_GHOST
+

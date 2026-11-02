@@ -1,0 +1,107 @@
+{
+  "standard": "BIAN v10.0 / v11.0 Core Banking Semantic Architecture",
+  "organization": "Banking Industry Architecture Network",
+  "version": "1.0.0",
+  "domains": [
+    {
+      "id": "SD-01",
+      "bianName": "Current Account",
+      "businessDomain": "Core Banking / Deposits",
+      "controlRecord": "Current Account Agreement",
+      "description": "Fulfills standard current account servicing, balances, transactions, deposits, and debit management.",
+      "serviceOperations": ["Initiate", "Execute", "Update", "Retrieve", "Request"],
+      "primaryArchetypes": ["Command", "Query", "Projection"]
+    },
+    {
+      "id": "SD-02",
+      "bianName": "Payment Execution",
+      "businessDomain": "Payments & Clearing",
+      "controlRecord": "Payment Order Procedure",
+      "description": "Orchestrates outbound and inbound funds transfers, domestic clearing (CCE), instant P2P transfers, and rails routing.",
+      "serviceOperations": ["Initiate", "Execute", "Update", "Retrieve"],
+      "primaryArchetypes": ["Step Function", "Command", "Plug for Integration"]
+    },
+    {
+      "id": "SD-03",
+      "bianName": "Party Routing Profile",
+      "businessDomain": "Customer Identity & Directory",
+      "controlRecord": "Party Directory Entry",
+      "description": "Maintains customer identity aliases, phone/email-to-account mappings for instant P2P payments (e.g. Yape/Plin), and channel profiles.",
+      "serviceOperations": ["Retrieve", "Update", "Evaluate"],
+      "primaryArchetypes": ["Query", "Command", "Projection"]
+    },
+    {
+      "id": "SD-04",
+      "bianName": "Customer Offer & Onboarding",
+      "businessDomain": "Sales & Relationship Management",
+      "controlRecord": "Customer Onboarding Procedure",
+      "description": "Manages customer digital acquisition, biometric KYC verification, pre-approved credit lines, and account origination.",
+      "serviceOperations": ["Initiate", "Evaluate", "Execute", "Update"],
+      "primaryArchetypes": ["Step Function", "Plug for Integration", "Command"]
+    },
+    {
+      "id": "SD-05",
+      "bianName": "Customer Agreement & Contract",
+      "businessDomain": "Legal & Terms",
+      "controlRecord": "Customer Agreement Specification",
+      "description": "Maintains contractual terms, digital signatures, legal disclosures, fees agreements, and product conditions.",
+      "serviceOperations": ["Initiate", "Update", "Retrieve"],
+      "primaryArchetypes": ["Command", "Query"]
+    },
+    {
+      "id": "SD-06",
+      "bianName": "Position Keeping & Balances",
+      "businessDomain": "Ledger & Balances",
+      "controlRecord": "Position Keeping Ledger Log",
+      "description": "Maintains real-time authorized, ledger, available, and hold balances with microsecond latency.",
+      "serviceOperations": ["Update", "Retrieve", "Evaluate"],
+      "primaryArchetypes": ["Projection", "Query", "Command"]
+    },
+    {
+      "id": "SD-07",
+      "bianName": "Financial Accounting & General Ledger",
+      "businessDomain": "Accounting & Finance",
+      "controlRecord": "Financial Accounting Journal",
+      "description": "Generates double-entry accounting bookings, chart of accounts journal vouchers, and end-of-day reconciliation balances.",
+      "serviceOperations": ["Execute", "Retrieve"],
+      "primaryArchetypes": ["Projection", "Plug for Integration", "Alarms"]
+    },
+    {
+      "id": "SD-08",
+      "bianName": "Collateral Allocation & Guarantees",
+      "businessDomain": "Credit Risk & Assets",
+      "controlRecord": "Collateral Asset Allocation",
+      "description": "Monitors collateralized guarantees, lien holds, escrow reserves, and asset-backed credit ceilings.",
+      "serviceOperations": ["Evaluate", "Update", "Retrieve"],
+      "primaryArchetypes": ["Command", "Query"]
+    },
+    {
+      "id": "SD-09",
+      "bianName": "Fraud Detection & Risk Scoring",
+      "businessDomain": "Security & Risk Operations",
+      "controlRecord": "Fraud Evaluation Assessment",
+      "description": "Evaluates transactional risk in real time (<50ms), flags anomaly patterns, calculates device risk scores, and triggers security lockouts.",
+      "serviceOperations": ["Evaluate", "Execute", "Request"],
+      "primaryArchetypes": ["Plug for Integration", "Alarms", "Command"]
+    },
+    {
+      "id": "SD-10",
+      "bianName": "Customer Alert & Notification",
+      "businessDomain": "Channel Management",
+      "controlRecord": "Customer Notification Campaign",
+      "description": "Multi-channel transactional alert dispatch (Push notifications, SMS, Email, WhatsApp) with preference routing and delivery tracking.",
+      "serviceOperations": ["Execute", "Update"],
+      "primaryArchetypes": ["Plug for Integration", "Projection"]
+    },
+    {
+      "id": "SD-11",
+      "bianName": "Audit, Logging & Regulatory Compliance",
+      "businessDomain": "Governance & Compliance",
+      "controlRecord": "Audit Regulatory Record",
+      "description": "Immutable audit trails, AML (Anti-Money Laundering) transaction tracking, regulatory reporting (SBS/UIF), and compliance alarms.",
+      "serviceOperations": ["Execute", "Retrieve"],
+      "primaryArchetypes": ["Alarms", "Projection", "Plug for Integration"]
+    }
+  ]
+}
+

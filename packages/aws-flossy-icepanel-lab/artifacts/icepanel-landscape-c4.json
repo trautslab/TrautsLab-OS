@@ -1,0 +1,3040 @@
+{
+  "version": "1.0.0",
+  "landscape": {
+    "name": "Retail Core Banking & Transactional Rails (BIAN Architecture)",
+    "description": "Squad Cuentas & Rieles Transaccionales: 11 BIAN Service Domains, 80 Repositories, 20 Flows on AWS",
+    "organization": "TrautsLab OS / Retail Banking"
+  },
+  "tags": [
+    {
+      "id": "tag-aws",
+      "name": "AWS Cloud",
+      "color": "#FF9900"
+    },
+    {
+      "id": "tag-bian",
+      "name": "BIAN v10",
+      "color": "#006699"
+    },
+    {
+      "id": "tag-cmd",
+      "name": "Command (Write)",
+      "color": "#D9534F"
+    },
+    {
+      "id": "tag-qry",
+      "name": "Query (Read)",
+      "color": "#5CB85C"
+    },
+    {
+      "id": "tag-prj",
+      "name": "Projection",
+      "color": "#5BC0DE"
+    },
+    {
+      "id": "tag-plug",
+      "name": "Plug Integration",
+      "color": "#F0AD4E"
+    },
+    {
+      "id": "tag-sfn",
+      "name": "Step Function Saga",
+      "color": "#9B59B6"
+    },
+    {
+      "id": "tag-alm",
+      "name": "Alarms & SLO",
+      "color": "#E74C3C"
+    },
+    {
+      "id": "tag-evb",
+      "name": "EventBridge Bus",
+      "color": "#34495E"
+    }
+  ],
+  "systems": [
+    {
+      "id": "sys-domain-1",
+      "name": "SD-01: CURRENT ACCOUNT",
+      "description": "Fulfills standard current account servicing, balances, transactions, deposits, and debit management.",
+      "controlRecord": "Current Account Agreement",
+      "tags": [
+        "tag-bian"
+      ]
+    },
+    {
+      "id": "sys-domain-2",
+      "name": "SD-02: PAYMENT EXECUTION",
+      "description": "Orchestrates outbound and inbound funds transfers, domestic clearing (CCE), instant P2P transfers, and rails routing.",
+      "controlRecord": "Payment Order Procedure",
+      "tags": [
+        "tag-bian"
+      ]
+    },
+    {
+      "id": "sys-domain-3",
+      "name": "SD-03: PARTY ROUTING PROFILE",
+      "description": "Maintains customer identity aliases, phone/email-to-account mappings for instant P2P payments (e.g. Yape/Plin), and channel profiles.",
+      "controlRecord": "Party Directory Entry",
+      "tags": [
+        "tag-bian"
+      ]
+    },
+    {
+      "id": "sys-domain-4",
+      "name": "SD-04: CUSTOMER OFFER & ONBOARDING",
+      "description": "Manages customer digital acquisition, biometric KYC verification, pre-approved credit lines, and account origination.",
+      "controlRecord": "Customer Onboarding Procedure",
+      "tags": [
+        "tag-bian"
+      ]
+    },
+    {
+      "id": "sys-domain-5",
+      "name": "SD-05: CUSTOMER AGREEMENT & CONTRACT",
+      "description": "Maintains contractual terms, digital signatures, legal disclosures, fees agreements, and product conditions.",
+      "controlRecord": "Customer Agreement Specification",
+      "tags": [
+        "tag-bian"
+      ]
+    },
+    {
+      "id": "sys-domain-6",
+      "name": "SD-06: POSITION KEEPING & BALANCES",
+      "description": "Maintains real-time authorized, ledger, available, and hold balances with microsecond latency.",
+      "controlRecord": "Position Keeping Ledger Log",
+      "tags": [
+        "tag-bian"
+      ]
+    },
+    {
+      "id": "sys-domain-7",
+      "name": "SD-07: FINANCIAL ACCOUNTING & GENERAL LEDGER",
+      "description": "Generates double-entry accounting bookings, chart of accounts journal vouchers, and end-of-day reconciliation balances.",
+      "controlRecord": "Financial Accounting Journal",
+      "tags": [
+        "tag-bian"
+      ]
+    },
+    {
+      "id": "sys-domain-8",
+      "name": "SD-08: COLLATERAL ALLOCATION & GUARANTEES",
+      "description": "Monitors collateralized guarantees, lien holds, escrow reserves, and asset-backed credit ceilings.",
+      "controlRecord": "Collateral Asset Allocation",
+      "tags": [
+        "tag-bian"
+      ]
+    },
+    {
+      "id": "sys-domain-9",
+      "name": "SD-09: FRAUD DETECTION & RISK SCORING",
+      "description": "Evaluates transactional risk in real time (<50ms), flags anomaly patterns, calculates device risk scores, and triggers security lockouts.",
+      "controlRecord": "Fraud Evaluation Assessment",
+      "tags": [
+        "tag-bian"
+      ]
+    },
+    {
+      "id": "sys-domain-10",
+      "name": "SD-10: CUSTOMER ALERT & NOTIFICATION",
+      "description": "Multi-channel transactional alert dispatch (Push notifications, SMS, Email, WhatsApp) with preference routing and delivery tracking.",
+      "controlRecord": "Customer Notification Campaign",
+      "tags": [
+        "tag-bian"
+      ]
+    },
+    {
+      "id": "sys-domain-11",
+      "name": "SD-11: AUDIT, LOGGING & REGULATORY COMPLIANCE",
+      "description": "Immutable audit trails, AML (Anti-Money Laundering) transaction tracking, regulatory reporting (SBS/UIF), and compliance alarms.",
+      "controlRecord": "Audit Regulatory Record",
+      "tags": [
+        "tag-bian"
+      ]
+    }
+  ],
+  "apps": [
+    {
+      "id": "app-cmd-current-account-lifecycle",
+      "systemId": "sys-domain-1",
+      "name": "cmd-current-account-lifecycle",
+      "archetype": "Command",
+      "description": "Handles opening authorization, state transitions (Active, Frozen, Dormant, Closed). js 20, Lambda, DynamoDB Write Table 'core-accounts-master'.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-01",
+      "bianControlRecord": "Current Account Agreement",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-cmd-current-account-deposits",
+      "systemId": "sys-domain-1",
+      "name": "cmd-current-account-deposits",
+      "archetype": "Command",
+      "description": "Ingestion and validation of direct cash/cheque deposits.",
+      "technology": "TypeScript Lambda, DynamoDB, EventBridge Outbox",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-01",
+      "bianControlRecord": "Current Account Agreement",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-cmd-current-account-overdraft",
+      "systemId": "sys-domain-1",
+      "name": "cmd-current-account-overdraft",
+      "archetype": "Command",
+      "description": "Evaluates and triggers automated overdraft drawdowns. 22 Lambda.",
+      "technology": "Go 1",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-01",
+      "bianControlRecord": "Current Account Agreement",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-qry-current-account-details",
+      "systemId": "sys-domain-1",
+      "name": "qry-current-account-details",
+      "archetype": "Query",
+      "description": "Sub-10ms query service for account metadata, state, limits. js Lambda, Redis Cache / DynamoDB Read Replica.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-01",
+      "bianControlRecord": "Current Account Agreement",
+      "bianOperation": "Retrieve",
+      "tags": [
+        "tag-aws",
+        "tag-qry"
+      ]
+    },
+    {
+      "id": "app-qry-current-account-statements",
+      "systemId": "sys-domain-1",
+      "name": "qry-current-account-statements",
+      "archetype": "Query",
+      "description": "Serves historical PDF and JSON statements.",
+      "technology": "Python FastAPI Lambda, S3 Glacier/Standard",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-01",
+      "bianControlRecord": "Current Account Agreement",
+      "bianOperation": "Retrieve",
+      "tags": [
+        "tag-aws",
+        "tag-qry"
+      ]
+    },
+    {
+      "id": "app-prj-current-account-readmodel",
+      "systemId": "sys-domain-1",
+      "name": "prj-current-account-readmodel",
+      "archetype": "Projection",
+      "description": "Consumes 'AccountCreated', 'AccountStatusChanged' events from EventBridge; writes to DynamoDB Global Read Table. js Lambda.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-01",
+      "bianControlRecord": "Current Account Agreement",
+      "bianOperation": "Update",
+      "tags": [
+        "tag-aws",
+        "tag-prj"
+      ]
+    },
+    {
+      "id": "app-prj-current-account-analytics",
+      "systemId": "sys-domain-1",
+      "name": "prj-current-account-analytics",
+      "archetype": "Projection",
+      "description": "Pushes account status telemetry to OpenSearch and S3 Parquet Lake.",
+      "technology": "EventBridge Pipes & Firehose",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-01",
+      "bianControlRecord": "Current Account Agreement",
+      "bianOperation": "Update",
+      "tags": [
+        "tag-aws",
+        "tag-prj"
+      ]
+    },
+    {
+      "id": "app-sfn-current-account-closure-saga",
+      "systemId": "sys-domain-1",
+      "name": "sfn-current-account-closure-saga",
+      "archetype": "Step Function",
+      "description": "Step Function state machine orchestrating account closure, fee clearance, balance zeroing, and legal release.",
+      "technology": "AWS Lambda, Node.js",
+      "awsService": "AWS Step Functions",
+      "bianDomainId": "SD-01",
+      "bianControlRecord": "Current Account Agreement",
+      "bianOperation": "Initiate & Coordinate",
+      "tags": [
+        "tag-aws",
+        "tag-sfn"
+      ]
+    },
+    {
+      "id": "app-plug-host-mainframe-core-sync",
+      "systemId": "sys-domain-1",
+      "name": "plug-host-mainframe-core-sync",
+      "archetype": "Plug for Integration",
+      "description": "Bi-directional SNA/TCP connector to IBM Mainframe DB2 Core Banking.",
+      "technology": "Java 21 Quarkus ECS Fargate container",
+      "awsService": "Amazon ECS Fargate",
+      "bianDomainId": "SD-01",
+      "bianControlRecord": "Current Account Agreement",
+      "bianOperation": "Request / Exchange",
+      "tags": [
+        "tag-aws",
+        "tag-plug"
+      ]
+    },
+    {
+      "id": "app-alm-current-account-errors",
+      "systemId": "sys-domain-1",
+      "name": "alm-current-account-errors",
+      "archetype": "Alarms",
+      "description": "CloudWatch alarms for 5xx spikes, DB lock timeouts, and DLQ backlogs on account lifecycle events.",
+      "technology": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "bianDomainId": "SD-01",
+      "bianControlRecord": "Current Account Agreement",
+      "bianOperation": "Evaluate",
+      "tags": [
+        "tag-aws",
+        "tag-alm"
+      ]
+    },
+    {
+      "id": "app-cmd-payment-execution-initiate",
+      "systemId": "sys-domain-2",
+      "name": "cmd-payment-execution-initiate",
+      "archetype": "Command",
+      "description": "Ingests payment orders, validates idempotency key, executes schema validation. js 20 Lambda.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-02",
+      "bianControlRecord": "Payment Order Procedure",
+      "bianOperation": "Initiate",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-cmd-payment-execution-authorization",
+      "systemId": "sys-domain-2",
+      "name": "cmd-payment-execution-authorization",
+      "archetype": "Command",
+      "description": "Enforces authorization rules, multi-factor token signatures.",
+      "technology": "Go Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-02",
+      "bianControlRecord": "Payment Order Procedure",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-cmd-payment-execution-settle",
+      "systemId": "sys-domain-2",
+      "name": "cmd-payment-execution-settle",
+      "archetype": "Command",
+      "description": "Executes final settlement confirmation and releases transaction locks.",
+      "technology": "TypeScript Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-02",
+      "bianControlRecord": "Payment Order Procedure",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-qry-payment-execution-status",
+      "systemId": "sys-domain-2",
+      "name": "qry-payment-execution-status",
+      "archetype": "Query",
+      "description": "Read API polling and webhook queries for transfer status. js Lambda, DynamoDB.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-02",
+      "bianControlRecord": "Payment Order Procedure",
+      "bianOperation": "Retrieve",
+      "tags": [
+        "tag-aws",
+        "tag-qry"
+      ]
+    },
+    {
+      "id": "app-qry-payment-execution-limits",
+      "systemId": "sys-domain-2",
+      "name": "qry-payment-execution-limits",
+      "archetype": "Query",
+      "description": "Calculates remaining daily and per-transaction limits. js Lambda, Redis Cache.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-02",
+      "bianControlRecord": "Payment Order Procedure",
+      "bianOperation": "Retrieve",
+      "tags": [
+        "tag-aws",
+        "tag-qry"
+      ]
+    },
+    {
+      "id": "app-prj-payment-execution-history",
+      "systemId": "sys-domain-2",
+      "name": "prj-payment-execution-history",
+      "archetype": "Projection",
+      "description": "Projects all payment lifecycle events into the unified payment timeline store.",
+      "technology": "Lambda DynamoDB Streams",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-02",
+      "bianControlRecord": "Payment Order Procedure",
+      "bianOperation": "Update",
+      "tags": [
+        "tag-aws",
+        "tag-prj"
+      ]
+    },
+    {
+      "id": "app-prj-payment-execution-metrics",
+      "systemId": "sys-domain-2",
+      "name": "prj-payment-execution-metrics",
+      "archetype": "Projection",
+      "description": "Emits Prometheus/CloudWatch metrics for transaction throughput, success rate, and latency.",
+      "technology": "AWS Lambda, Node.js",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-02",
+      "bianControlRecord": "Payment Order Procedure",
+      "bianOperation": "Update",
+      "tags": [
+        "tag-aws",
+        "tag-prj"
+      ]
+    },
+    {
+      "id": "app-sfn-payment-instant-transfer-saga",
+      "systemId": "sys-domain-2",
+      "name": "sfn-payment-instant-transfer-saga",
+      "archetype": "Step Function",
+      "description": "Critical distributed Saga: 1. Hold Funds in Source -> 2. Risk Check -> 3. Credit Target -> 4. Release Hold. Automated compensation on timeout.",
+      "technology": "AWS Lambda, Node.js",
+      "awsService": "AWS Step Functions",
+      "bianDomainId": "SD-02",
+      "bianControlRecord": "Payment Order Procedure",
+      "bianOperation": "Initiate & Coordinate",
+      "tags": [
+        "tag-aws",
+        "tag-sfn"
+      ]
+    },
+    {
+      "id": "app-sfn-payment-clearing-cce-saga",
+      "systemId": "sys-domain-2",
+      "name": "sfn-payment-clearing-cce-saga",
+      "archetype": "Step Function",
+      "description": "Batch and scheduled clearing orchestration with Chamber of Clearing (CCE).",
+      "technology": "AWS Lambda, Node.js",
+      "awsService": "AWS Step Functions",
+      "bianDomainId": "SD-02",
+      "bianControlRecord": "Payment Order Procedure",
+      "bianOperation": "Initiate & Coordinate",
+      "tags": [
+        "tag-aws",
+        "tag-sfn"
+      ]
+    },
+    {
+      "id": "app-plug-cce-clearing-ingress",
+      "systemId": "sys-domain-2",
+      "name": "plug-cce-clearing-ingress",
+      "archetype": "Plug for Integration",
+      "description": "Receives inbound payment batches from domestic clearinghouse via AS2/HTTPS.",
+      "technology": "ECS Fargate API",
+      "awsService": "Amazon ECS Fargate",
+      "bianDomainId": "SD-02",
+      "bianControlRecord": "Payment Order Procedure",
+      "bianOperation": "Request / Exchange",
+      "tags": [
+        "tag-aws",
+        "tag-plug"
+      ]
+    },
+    {
+      "id": "app-plug-swift-iso20022-connector",
+      "systemId": "sys-domain-2",
+      "name": "plug-swift-iso20022-connector",
+      "archetype": "Plug for Integration",
+      "description": "Translates ISO 20022 pacs.008, pacs.002 messages to internal JSON domain events.",
+      "technology": "Java 21 Spring Native",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-02",
+      "bianControlRecord": "Payment Order Procedure",
+      "bianOperation": "Request / Exchange",
+      "tags": [
+        "tag-aws",
+        "tag-plug"
+      ]
+    },
+    {
+      "id": "app-alm-payment-execution-p99-latency",
+      "systemId": "sys-domain-2",
+      "name": "alm-payment-execution-p99-latency",
+      "archetype": "Alarms",
+      "description": "Alarms on P99 latency exceeding 250ms, triggering automated incident alert to PagerDuty.",
+      "technology": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "bianDomainId": "SD-02",
+      "bianControlRecord": "Payment Order Procedure",
+      "bianOperation": "Evaluate",
+      "tags": [
+        "tag-aws",
+        "tag-alm"
+      ]
+    },
+    {
+      "id": "app-cmd-party-routing-register",
+      "systemId": "sys-domain-3",
+      "name": "cmd-party-routing-register",
+      "archetype": "Command",
+      "description": "Binds mobile phone number (MSISDN) and email to primary Account Number (CCI). js Lambda.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-03",
+      "bianControlRecord": "Party Directory Entry",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-cmd-party-routing-deregister",
+      "systemId": "sys-domain-3",
+      "name": "cmd-party-routing-deregister",
+      "archetype": "Command",
+      "description": "Unlinks alias or updates account destination. js Lambda.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-03",
+      "bianControlRecord": "Party Directory Entry",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-qry-party-routing-resolve",
+      "systemId": "sys-domain-3",
+      "name": "qry-party-routing-resolve",
+      "archetype": "Query",
+      "description": "Ultra-fast directory lookup (resolves phone number to bank routing and account in <15ms).",
+      "technology": "Go Lambda, DynamoDB DAX cluster",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-03",
+      "bianControlRecord": "Party Directory Entry",
+      "bianOperation": "Retrieve",
+      "tags": [
+        "tag-aws",
+        "tag-qry"
+      ]
+    },
+    {
+      "id": "app-prj-party-routing-directory",
+      "systemId": "sys-domain-3",
+      "name": "prj-party-routing-directory",
+      "archetype": "Projection",
+      "description": "Materializes lookup cache across multi-region tables.",
+      "technology": "Lambda DynamoDB Streams",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-03",
+      "bianControlRecord": "Party Directory Entry",
+      "bianOperation": "Update",
+      "tags": [
+        "tag-aws",
+        "tag-prj"
+      ]
+    },
+    {
+      "id": "app-plug-directory-federation-bridge",
+      "systemId": "sys-domain-3",
+      "name": "plug-directory-federation-bridge",
+      "archetype": "Plug for Integration",
+      "description": "Connects with interbank directory federation (CCE / BCRP rails). js ECS.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-03",
+      "bianControlRecord": "Party Directory Entry",
+      "bianOperation": "Request / Exchange",
+      "tags": [
+        "tag-aws",
+        "tag-plug"
+      ]
+    },
+    {
+      "id": "app-alm-party-routing-lookup-failures",
+      "systemId": "sys-domain-3",
+      "name": "alm-party-routing-lookup-failures",
+      "archetype": "Alarms",
+      "description": "Monitors resolution failure rates and cache misses.",
+      "technology": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "bianDomainId": "SD-03",
+      "bianControlRecord": "Party Directory Entry",
+      "bianOperation": "Evaluate",
+      "tags": [
+        "tag-aws",
+        "tag-alm"
+      ]
+    },
+    {
+      "id": "app-cmd-customer-onboarding-initiate",
+      "systemId": "sys-domain-4",
+      "name": "cmd-customer-onboarding-initiate",
+      "archetype": "Command",
+      "description": "Receives digital prospect application and initiates KYC workflow.",
+      "technology": "TypeScript Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-04",
+      "bianControlRecord": "Customer Onboarding Procedure",
+      "bianOperation": "Initiate",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-cmd-customer-onboarding-biometrics",
+      "systemId": "sys-domain-4",
+      "name": "cmd-customer-onboarding-biometrics",
+      "archetype": "Command",
+      "description": "Ingests facial validation payload and RENIEC biometric token.",
+      "technology": "Python Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-04",
+      "bianControlRecord": "Customer Onboarding Procedure",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-qry-customer-onboarding-progress",
+      "systemId": "sys-domain-4",
+      "name": "qry-customer-onboarding-progress",
+      "archetype": "Query",
+      "description": "Returns real-time state of applicant progress for mobile app. js Lambda.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-04",
+      "bianControlRecord": "Customer Onboarding Procedure",
+      "bianOperation": "Retrieve",
+      "tags": [
+        "tag-aws",
+        "tag-qry"
+      ]
+    },
+    {
+      "id": "app-prj-customer-onboarding-funnel",
+      "systemId": "sys-domain-4",
+      "name": "prj-customer-onboarding-funnel",
+      "archetype": "Projection",
+      "description": "Projects funnel conversion drop-offs into analytics lake.",
+      "technology": "EventBridge Pipes",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-04",
+      "bianControlRecord": "Customer Onboarding Procedure",
+      "bianOperation": "Update",
+      "tags": [
+        "tag-aws",
+        "tag-prj"
+      ]
+    },
+    {
+      "id": "app-sfn-customer-onboarding-saga",
+      "systemId": "sys-domain-4",
+      "name": "sfn-customer-onboarding-saga",
+      "archetype": "Step Function",
+      "description": "Orchestrates KYC -> AML Validation -> Contract Generation -> Account Creation -> Debit Card Provisioning.",
+      "technology": "AWS Lambda, Node.js",
+      "awsService": "AWS Step Functions",
+      "bianDomainId": "SD-04",
+      "bianControlRecord": "Customer Onboarding Procedure",
+      "bianOperation": "Initiate & Coordinate",
+      "tags": [
+        "tag-aws",
+        "tag-sfn"
+      ]
+    },
+    {
+      "id": "app-plug-reniec-biometrics-gateway",
+      "systemId": "sys-domain-4",
+      "name": "plug-reniec-biometrics-gateway",
+      "archetype": "Plug for Integration",
+      "description": "Connects to national identity registry (RENIEC) with TLS mutual auth.",
+      "technology": "Java Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-04",
+      "bianControlRecord": "Customer Onboarding Procedure",
+      "bianOperation": "Request / Exchange",
+      "tags": [
+        "tag-aws",
+        "tag-plug"
+      ]
+    },
+    {
+      "id": "app-plug-experian-credit-score",
+      "systemId": "sys-domain-4",
+      "name": "plug-experian-credit-score",
+      "archetype": "Plug for Integration",
+      "description": "Pulls credit score and risk bureau data.",
+      "technology": "Python Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-04",
+      "bianControlRecord": "Customer Onboarding Procedure",
+      "bianOperation": "Request / Exchange",
+      "tags": [
+        "tag-aws",
+        "tag-plug"
+      ]
+    },
+    {
+      "id": "app-alm-onboarding-kyc-drop-rate",
+      "systemId": "sys-domain-4",
+      "name": "alm-onboarding-kyc-drop-rate",
+      "archetype": "Alarms",
+      "description": "Alarms if KYC validation failures exceed 8% threshold.",
+      "technology": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "bianDomainId": "SD-04",
+      "bianControlRecord": "Customer Onboarding Procedure",
+      "bianOperation": "Evaluate",
+      "tags": [
+        "tag-aws",
+        "tag-alm"
+      ]
+    },
+    {
+      "id": "app-cmd-customer-agreement-sign",
+      "systemId": "sys-domain-5",
+      "name": "cmd-customer-agreement-sign",
+      "archetype": "Command",
+      "description": "Records digital signature, cryptographic hash, and legal consent timestamp. js Lambda.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-05",
+      "bianControlRecord": "Customer Agreement Specification",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-cmd-customer-agreement-amend",
+      "systemId": "sys-domain-5",
+      "name": "cmd-customer-agreement-amend",
+      "archetype": "Command",
+      "description": "Applies contractual annexes, interest rate changes, or clause updates.",
+      "technology": "TypeScript Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-05",
+      "bianControlRecord": "Customer Agreement Specification",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-qry-customer-agreement-fetch",
+      "systemId": "sys-domain-5",
+      "name": "qry-customer-agreement-fetch",
+      "archetype": "Query",
+      "description": "Retrieves signed legal terms and audit certificate. js Lambda, S3 presigned URLs.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-05",
+      "bianControlRecord": "Customer Agreement Specification",
+      "bianOperation": "Retrieve",
+      "tags": [
+        "tag-aws",
+        "tag-qry"
+      ]
+    },
+    {
+      "id": "app-prj-customer-agreement-indexer",
+      "systemId": "sys-domain-5",
+      "name": "prj-customer-agreement-indexer",
+      "archetype": "Projection",
+      "description": "Indexes contract clauses and consent history into OpenSearch.",
+      "technology": "Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-05",
+      "bianControlRecord": "Customer Agreement Specification",
+      "bianOperation": "Update",
+      "tags": [
+        "tag-aws",
+        "tag-prj"
+      ]
+    },
+    {
+      "id": "app-plug-docusign-legal-trust-bridge",
+      "systemId": "sys-domain-5",
+      "name": "plug-docusign-legal-trust-bridge",
+      "archetype": "Plug for Integration",
+      "description": "Integrates with certified digital signature provider for legal stamping.",
+      "technology": "TypeScript Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-05",
+      "bianControlRecord": "Customer Agreement Specification",
+      "bianOperation": "Request / Exchange",
+      "tags": [
+        "tag-aws",
+        "tag-plug"
+      ]
+    },
+    {
+      "id": "app-alm-agreement-compliance-gaps",
+      "systemId": "sys-domain-5",
+      "name": "alm-agreement-compliance-gaps",
+      "archetype": "Alarms",
+      "description": "Tracks missing required terms and condition acceptances.",
+      "technology": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "bianDomainId": "SD-05",
+      "bianControlRecord": "Customer Agreement Specification",
+      "bianOperation": "Evaluate",
+      "tags": [
+        "tag-aws",
+        "tag-alm"
+      ]
+    },
+    {
+      "id": "app-cmd-position-keeping-reserve",
+      "systemId": "sys-domain-6",
+      "name": "cmd-position-keeping-reserve",
+      "archetype": "Command",
+      "description": "Places temporary authorization holds on balances for card swipe or pending transfer.",
+      "technology": "Go Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-06",
+      "bianControlRecord": "Position Keeping Ledger Log",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-cmd-position-keeping-release",
+      "systemId": "sys-domain-6",
+      "name": "cmd-position-keeping-release",
+      "archetype": "Command",
+      "description": "Releases or commits hold into settled balance.",
+      "technology": "Go Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-06",
+      "bianControlRecord": "Position Keeping Ledger Log",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-qry-position-keeping-realtime-balance",
+      "systemId": "sys-domain-6",
+      "name": "qry-position-keeping-realtime-balance",
+      "archetype": "Query",
+      "description": "Provides instantaneous available, ledger, and hold balances.",
+      "technology": "Rust Lambda, Redis / DynamoDB DAX",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-06",
+      "bianControlRecord": "Position Keeping Ledger Log",
+      "bianOperation": "Retrieve",
+      "tags": [
+        "tag-aws",
+        "tag-qry"
+      ]
+    },
+    {
+      "id": "app-qry-position-keeping-movements",
+      "systemId": "sys-domain-6",
+      "name": "qry-position-keeping-movements",
+      "archetype": "Query",
+      "description": "Returns paginated transaction movements and timestamps. js Lambda.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-06",
+      "bianControlRecord": "Position Keeping Ledger Log",
+      "bianOperation": "Retrieve",
+      "tags": [
+        "tag-aws",
+        "tag-qry"
+      ]
+    },
+    {
+      "id": "app-prj-position-keeping-ledger-view",
+      "systemId": "sys-domain-6",
+      "name": "prj-position-keeping-ledger-view",
+      "archetype": "Projection",
+      "description": "Listens to debit/credit posted events to maintain continuous balance snapshots.",
+      "technology": "Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-06",
+      "bianControlRecord": "Position Keeping Ledger Log",
+      "bianOperation": "Update",
+      "tags": [
+        "tag-aws",
+        "tag-prj"
+      ]
+    },
+    {
+      "id": "app-prj-position-keeping-audit-balance",
+      "systemId": "sys-domain-6",
+      "name": "prj-position-keeping-audit-balance",
+      "archetype": "Projection",
+      "description": "Daily balance delta projection against core mainframe reports.",
+      "technology": "Python Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-06",
+      "bianControlRecord": "Position Keeping Ledger Log",
+      "bianOperation": "Update",
+      "tags": [
+        "tag-aws",
+        "tag-prj"
+      ]
+    },
+    {
+      "id": "app-plug-atm-switch-pos-gateway",
+      "systemId": "sys-domain-6",
+      "name": "plug-atm-switch-pos-gateway",
+      "archetype": "Plug for Integration",
+      "description": "ISO 8583 translator for ATM switches and POS debit authorizations.",
+      "technology": "C++/Rust ECS Fargate",
+      "awsService": "Amazon ECS Fargate",
+      "bianDomainId": "SD-06",
+      "bianControlRecord": "Position Keeping Ledger Log",
+      "bianOperation": "Request / Exchange",
+      "tags": [
+        "tag-aws",
+        "tag-plug"
+      ]
+    },
+    {
+      "id": "app-alm-position-keeping-balance-discrepancy",
+      "systemId": "sys-domain-6",
+      "name": "alm-position-keeping-balance-discrepancy",
+      "archetype": "Alarms",
+      "description": "Critical P0 Alarm: triggers on any ledger vs available balance mathematical mismatch.",
+      "technology": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "bianDomainId": "SD-06",
+      "bianControlRecord": "Position Keeping Ledger Log",
+      "bianOperation": "Evaluate",
+      "tags": [
+        "tag-aws",
+        "tag-alm"
+      ]
+    },
+    {
+      "id": "app-cmd-financial-accounting-voucher",
+      "systemId": "sys-domain-7",
+      "name": "cmd-financial-accounting-voucher",
+      "archetype": "Command",
+      "description": "Creates double-entry debits and credits ledger vouchers.",
+      "technology": "TypeScript Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-07",
+      "bianControlRecord": "Financial Accounting Journal",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-qry-financial-accounting-trail",
+      "systemId": "sys-domain-7",
+      "name": "qry-financial-accounting-trail",
+      "archetype": "Query",
+      "description": "Inquires chart of accounts balances and journal entries. js Lambda.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-07",
+      "bianControlRecord": "Financial Accounting Journal",
+      "bianOperation": "Retrieve",
+      "tags": [
+        "tag-aws",
+        "tag-qry"
+      ]
+    },
+    {
+      "id": "app-prj-financial-accounting-journal",
+      "systemId": "sys-domain-7",
+      "name": "prj-financial-accounting-journal",
+      "archetype": "Projection",
+      "description": "Stream-aggregates all financial transaction events into the general ledger journal.",
+      "technology": "Lambda EventBridge",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-07",
+      "bianControlRecord": "Financial Accounting Journal",
+      "bianOperation": "Update",
+      "tags": [
+        "tag-aws",
+        "tag-prj"
+      ]
+    },
+    {
+      "id": "app-prj-financial-accounting-eod-balance",
+      "systemId": "sys-domain-7",
+      "name": "prj-financial-accounting-eod-balance",
+      "archetype": "Projection",
+      "description": "Compiles End-of-Day balance totals per currency (PEN, USD).",
+      "technology": "Python Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-07",
+      "bianControlRecord": "Financial Accounting Journal",
+      "bianOperation": "Update",
+      "tags": [
+        "tag-aws",
+        "tag-prj"
+      ]
+    },
+    {
+      "id": "app-sfn-financial-accounting-eod-reconciliation",
+      "systemId": "sys-domain-7",
+      "name": "sfn-financial-accounting-eod-reconciliation",
+      "archetype": "Step Function",
+      "description": "Step Function running at 23:59:00 to lock daily balances, reconcile with central ledger, and produce balance sheet vouchers.",
+      "technology": "AWS Lambda, Node.js",
+      "awsService": "AWS Step Functions",
+      "bianDomainId": "SD-07",
+      "bianControlRecord": "Financial Accounting Journal",
+      "bianOperation": "Initiate & Coordinate",
+      "tags": [
+        "tag-aws",
+        "tag-sfn"
+      ]
+    },
+    {
+      "id": "app-plug-sap-erp-general-ledger-adapter",
+      "systemId": "sys-domain-7",
+      "name": "plug-sap-erp-general-ledger-adapter",
+      "archetype": "Plug for Integration",
+      "description": "Transmits daily accounting journals into SAP S/4HANA via RFC/OData.",
+      "technology": "Java ECS",
+      "awsService": "Amazon ECS Fargate",
+      "bianDomainId": "SD-07",
+      "bianControlRecord": "Financial Accounting Journal",
+      "bianOperation": "Request / Exchange",
+      "tags": [
+        "tag-aws",
+        "tag-plug"
+      ]
+    },
+    {
+      "id": "app-alm-general-ledger-unbalanced-voucher",
+      "systemId": "sys-domain-7",
+      "name": "alm-general-ledger-unbalanced-voucher",
+      "archetype": "Alarms",
+      "description": "High-priority alarm triggered if Total Debits != Total Credits.",
+      "technology": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "bianDomainId": "SD-07",
+      "bianControlRecord": "Financial Accounting Journal",
+      "bianOperation": "Evaluate",
+      "tags": [
+        "tag-aws",
+        "tag-alm"
+      ]
+    },
+    {
+      "id": "app-cmd-collateral-allocation-pledge",
+      "systemId": "sys-domain-8",
+      "name": "cmd-collateral-allocation-pledge",
+      "archetype": "Command",
+      "description": "Pledges term deposits or accounts as collateral against lines of credit. js Lambda.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-08",
+      "bianControlRecord": "Collateral Asset Allocation",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-cmd-collateral-allocation-release",
+      "systemId": "sys-domain-8",
+      "name": "cmd-collateral-allocation-release",
+      "archetype": "Command",
+      "description": "Releases collateral hold upon loan discharge.",
+      "technology": "TypeScript Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-08",
+      "bianControlRecord": "Collateral Asset Allocation",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-qry-collateral-allocation-status",
+      "systemId": "sys-domain-8",
+      "name": "qry-collateral-allocation-status",
+      "archetype": "Query",
+      "description": "Checks collateral coverage ratio and pledged assets. js Lambda.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-08",
+      "bianControlRecord": "Collateral Asset Allocation",
+      "bianOperation": "Retrieve",
+      "tags": [
+        "tag-aws",
+        "tag-qry"
+      ]
+    },
+    {
+      "id": "app-prj-collateral-allocation-exposure",
+      "systemId": "sys-domain-8",
+      "name": "prj-collateral-allocation-exposure",
+      "archetype": "Projection",
+      "description": "Projects real-time risk exposure of linked credit lines.",
+      "technology": "Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-08",
+      "bianControlRecord": "Collateral Asset Allocation",
+      "bianOperation": "Update",
+      "tags": [
+        "tag-aws",
+        "tag-prj"
+      ]
+    },
+    {
+      "id": "app-alm-collateral-under-coverage-warning",
+      "systemId": "sys-domain-8",
+      "name": "alm-collateral-under-coverage-warning",
+      "archetype": "Alarms",
+      "description": "Alarms when collateral value falls below loan margin ratio.",
+      "technology": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "bianDomainId": "SD-08",
+      "bianControlRecord": "Collateral Asset Allocation",
+      "bianOperation": "Evaluate",
+      "tags": [
+        "tag-aws",
+        "tag-alm"
+      ]
+    },
+    {
+      "id": "app-cmd-fraud-detection-evaluate-tx",
+      "systemId": "sys-domain-9",
+      "name": "cmd-fraud-detection-evaluate-tx",
+      "archetype": "Command",
+      "description": "Evaluates transaction risk score in real time using rules engine and ML model.",
+      "technology": "Go/C++ Lambda, <40ms SLA",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-09",
+      "bianControlRecord": "Fraud Evaluation Assessment",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-cmd-fraud-detection-lockout",
+      "systemId": "sys-domain-9",
+      "name": "cmd-fraud-detection-lockout",
+      "archetype": "Command",
+      "description": "Executes preventative security freeze on compromised cards and accounts. js Lambda.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-09",
+      "bianControlRecord": "Fraud Evaluation Assessment",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-qry-fraud-detection-risk-profile",
+      "systemId": "sys-domain-9",
+      "name": "qry-fraud-detection-risk-profile",
+      "archetype": "Query",
+      "description": "Reads customer behavioral risk indicators, device fingerprint history.",
+      "technology": "Python Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-09",
+      "bianControlRecord": "Fraud Evaluation Assessment",
+      "bianOperation": "Retrieve",
+      "tags": [
+        "tag-aws",
+        "tag-qry"
+      ]
+    },
+    {
+      "id": "app-prj-fraud-detection-blacklists",
+      "systemId": "sys-domain-9",
+      "name": "prj-fraud-detection-blacklists",
+      "archetype": "Projection",
+      "description": "Synchronizes international OFAC, PEP, and suspicious account blacklists.",
+      "technology": "Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-09",
+      "bianControlRecord": "Fraud Evaluation Assessment",
+      "bianOperation": "Update",
+      "tags": [
+        "tag-aws",
+        "tag-prj"
+      ]
+    },
+    {
+      "id": "app-sfn-fraud-suspicious-alert-investigation",
+      "systemId": "sys-domain-9",
+      "name": "sfn-fraud-suspicious-alert-investigation",
+      "archetype": "Step Function",
+      "description": "Escalates high-risk transaction cases to fraud operations squad, alerts user, and monitors feedback.",
+      "technology": "AWS Lambda, Node.js",
+      "awsService": "AWS Step Functions",
+      "bianDomainId": "SD-09",
+      "bianControlRecord": "Fraud Evaluation Assessment",
+      "bianOperation": "Initiate & Coordinate",
+      "tags": [
+        "tag-aws",
+        "tag-sfn"
+      ]
+    },
+    {
+      "id": "app-plug-device-fingerprint-threatmetrix",
+      "systemId": "sys-domain-9",
+      "name": "plug-device-fingerprint-threatmetrix",
+      "archetype": "Plug for Integration",
+      "description": "Ingests device telemetry, IP reputation, and biometrics signals from LexisNexis/ThreatMetrix. js Lambda.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-09",
+      "bianControlRecord": "Fraud Evaluation Assessment",
+      "bianOperation": "Request / Exchange",
+      "tags": [
+        "tag-aws",
+        "tag-plug"
+      ]
+    },
+    {
+      "id": "app-plug-biocatch-behavioral-engine",
+      "systemId": "sys-domain-9",
+      "name": "plug-biocatch-behavioral-engine",
+      "archetype": "Plug for Integration",
+      "description": "Ingests mobile screen interaction dynamics and behavioral telemetry.",
+      "technology": "TypeScript Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-09",
+      "bianControlRecord": "Fraud Evaluation Assessment",
+      "bianOperation": "Request / Exchange",
+      "tags": [
+        "tag-aws",
+        "tag-plug"
+      ]
+    },
+    {
+      "id": "app-alm-fraud-high-risk-spike-alarm",
+      "systemId": "sys-domain-9",
+      "name": "alm-fraud-high-risk-spike-alarm",
+      "archetype": "Alarms",
+      "description": "Alarms on sudden surges of high-risk transactions in specific BIN or geography.",
+      "technology": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "bianDomainId": "SD-09",
+      "bianControlRecord": "Fraud Evaluation Assessment",
+      "bianOperation": "Evaluate",
+      "tags": [
+        "tag-aws",
+        "tag-alm"
+      ]
+    },
+    {
+      "id": "app-cmd-customer-alert-dispatch",
+      "systemId": "sys-domain-10",
+      "name": "cmd-customer-alert-dispatch",
+      "archetype": "Command",
+      "description": "Routes transactional notifications according to customer channel preferences. js Lambda.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-10",
+      "bianControlRecord": "Customer Notification Campaign",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-qry-customer-alert-delivery-status",
+      "systemId": "sys-domain-10",
+      "name": "qry-customer-alert-delivery-status",
+      "archetype": "Query",
+      "description": "Inquires delivery status, open rates, and push delivery receipts.",
+      "technology": "TypeScript Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-10",
+      "bianControlRecord": "Customer Notification Campaign",
+      "bianOperation": "Retrieve",
+      "tags": [
+        "tag-aws",
+        "tag-qry"
+      ]
+    },
+    {
+      "id": "app-prj-customer-alert-audit-log",
+      "systemId": "sys-domain-10",
+      "name": "prj-customer-alert-audit-log",
+      "archetype": "Projection",
+      "description": "Records notification compliance records (timestamp, recipient, payload hash).",
+      "technology": "Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-10",
+      "bianControlRecord": "Customer Notification Campaign",
+      "bianOperation": "Update",
+      "tags": [
+        "tag-aws",
+        "tag-prj"
+      ]
+    },
+    {
+      "id": "app-plug-fcm-apns-push-gateway",
+      "systemId": "sys-domain-10",
+      "name": "plug-fcm-apns-push-gateway",
+      "archetype": "Plug for Integration",
+      "description": "Apple APNS & Google FCM mobile push connector.",
+      "technology": "Go Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-10",
+      "bianControlRecord": "Customer Notification Campaign",
+      "bianOperation": "Request / Exchange",
+      "tags": [
+        "tag-aws",
+        "tag-plug"
+      ]
+    },
+    {
+      "id": "app-plug-twilio-infobip-sms-gateway",
+      "systemId": "sys-domain-10",
+      "name": "plug-twilio-infobip-sms-gateway",
+      "archetype": "Plug for Integration",
+      "description": "High-throughput SMS and WhatsApp business API gateway. js ECS.",
+      "technology": "Node",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-10",
+      "bianControlRecord": "Customer Notification Campaign",
+      "bianOperation": "Request / Exchange",
+      "tags": [
+        "tag-aws",
+        "tag-plug"
+      ]
+    },
+    {
+      "id": "app-cmd-audit-log-immutable-record",
+      "systemId": "sys-domain-11",
+      "name": "cmd-audit-log-immutable-record",
+      "archetype": "Command",
+      "description": "Encrypts and writes WORM (Write-Once-Read-Many) audit events into AWS KMS/S3 Object Lock.",
+      "technology": "Rust Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-11",
+      "bianControlRecord": "Audit Regulatory Record",
+      "bianOperation": "Execute",
+      "tags": [
+        "tag-aws",
+        "tag-cmd"
+      ]
+    },
+    {
+      "id": "app-qry-audit-log-trace-inspector",
+      "systemId": "sys-domain-11",
+      "name": "qry-audit-log-trace-inspector",
+      "archetype": "Query",
+      "description": "Search interface for compliance officers, auditors, and security investigators.",
+      "technology": "Python Lambda, OpenSearch",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-11",
+      "bianControlRecord": "Audit Regulatory Record",
+      "bianOperation": "Retrieve",
+      "tags": [
+        "tag-aws",
+        "tag-qry"
+      ]
+    },
+    {
+      "id": "app-prj-audit-log-compliance-views",
+      "systemId": "sys-domain-11",
+      "name": "prj-audit-log-compliance-views",
+      "archetype": "Projection",
+      "description": "Materializes daily AML (Anti-Money Laundering) aggregation views for transactions > $10,000 USD.",
+      "technology": "Lambda",
+      "awsService": "AWS Lambda",
+      "bianDomainId": "SD-11",
+      "bianControlRecord": "Audit Regulatory Record",
+      "bianOperation": "Update",
+      "tags": [
+        "tag-aws",
+        "tag-prj"
+      ]
+    },
+    {
+      "id": "app-plug-sbs-regulatory-reporting-export",
+      "systemId": "sys-domain-11",
+      "name": "plug-sbs-regulatory-reporting-export",
+      "archetype": "Plug for Integration",
+      "description": "Generates periodic regulatory compliance files for SBS (Superintendencia de Banca y Seguros).",
+      "technology": "Python ECS",
+      "awsService": "Amazon ECS Fargate",
+      "bianDomainId": "SD-11",
+      "bianControlRecord": "Audit Regulatory Record",
+      "bianOperation": "Request / Exchange",
+      "tags": [
+        "tag-aws",
+        "tag-plug"
+      ]
+    },
+    {
+      "id": "app-alm-audit-tampering-security-alarm",
+      "systemId": "sys-domain-11",
+      "name": "alm-audit-tampering-security-alarm",
+      "archetype": "Alarms",
+      "description": "Critical security alarm triggered on any unauthorized attempt to alter audit archives or KMS keys.",
+      "technology": "AWS Lambda, Node.js",
+      "awsService": "Amazon CloudWatch Alarms",
+      "bianDomainId": "SD-11",
+      "bianControlRecord": "Audit Regulatory Record",
+      "bianOperation": "Evaluate",
+      "tags": [
+        "tag-aws",
+        "tag-alm"
+      ]
+    }
+  ],
+  "stores": [
+    {
+      "id": "store-eventbridge-core-bus",
+      "name": "EventBridge Core Banking EventBus",
+      "description": "Central event broker routing all transactional, lifecycle, and audit domain events",
+      "technology": "Amazon EventBridge",
+      "tags": [
+        "tag-aws",
+        "tag-evb"
+      ]
+    },
+    {
+      "id": "store-db-domain-1",
+      "name": "CURRENT ACCOUNT Storage Layer",
+      "systemId": "sys-domain-1",
+      "description": "Primary persistence and read projections for CURRENT ACCOUNT",
+      "technology": "Amazon DynamoDB & Redis Cache",
+      "tags": [
+        "tag-aws"
+      ]
+    },
+    {
+      "id": "store-db-domain-2",
+      "name": "PAYMENT EXECUTION Storage Layer",
+      "systemId": "sys-domain-2",
+      "description": "Primary persistence and read projections for PAYMENT EXECUTION",
+      "technology": "Amazon DynamoDB & Redis Cache",
+      "tags": [
+        "tag-aws"
+      ]
+    },
+    {
+      "id": "store-db-domain-3",
+      "name": "PARTY ROUTING PROFILE Storage Layer",
+      "systemId": "sys-domain-3",
+      "description": "Primary persistence and read projections for PARTY ROUTING PROFILE",
+      "technology": "Amazon DynamoDB & Redis Cache",
+      "tags": [
+        "tag-aws"
+      ]
+    },
+    {
+      "id": "store-db-domain-4",
+      "name": "CUSTOMER OFFER & ONBOARDING Storage Layer",
+      "systemId": "sys-domain-4",
+      "description": "Primary persistence and read projections for CUSTOMER OFFER & ONBOARDING",
+      "technology": "Amazon DynamoDB & Redis Cache",
+      "tags": [
+        "tag-aws"
+      ]
+    },
+    {
+      "id": "store-db-domain-5",
+      "name": "CUSTOMER AGREEMENT & CONTRACT Storage Layer",
+      "systemId": "sys-domain-5",
+      "description": "Primary persistence and read projections for CUSTOMER AGREEMENT & CONTRACT",
+      "technology": "Amazon DynamoDB & Redis Cache",
+      "tags": [
+        "tag-aws"
+      ]
+    },
+    {
+      "id": "store-db-domain-6",
+      "name": "POSITION KEEPING & BALANCES Storage Layer",
+      "systemId": "sys-domain-6",
+      "description": "Primary persistence and read projections for POSITION KEEPING & BALANCES",
+      "technology": "Amazon DynamoDB & Redis Cache",
+      "tags": [
+        "tag-aws"
+      ]
+    },
+    {
+      "id": "store-db-domain-7",
+      "name": "FINANCIAL ACCOUNTING & GENERAL LEDGER Storage Layer",
+      "systemId": "sys-domain-7",
+      "description": "Primary persistence and read projections for FINANCIAL ACCOUNTING & GENERAL LEDGER",
+      "technology": "Amazon DynamoDB & Redis Cache",
+      "tags": [
+        "tag-aws"
+      ]
+    },
+    {
+      "id": "store-db-domain-8",
+      "name": "COLLATERAL ALLOCATION & GUARANTEES Storage Layer",
+      "systemId": "sys-domain-8",
+      "description": "Primary persistence and read projections for COLLATERAL ALLOCATION & GUARANTEES",
+      "technology": "Amazon DynamoDB & Redis Cache",
+      "tags": [
+        "tag-aws"
+      ]
+    },
+    {
+      "id": "store-db-domain-9",
+      "name": "FRAUD DETECTION & RISK SCORING Storage Layer",
+      "systemId": "sys-domain-9",
+      "description": "Primary persistence and read projections for FRAUD DETECTION & RISK SCORING",
+      "technology": "Amazon DynamoDB & Redis Cache",
+      "tags": [
+        "tag-aws"
+      ]
+    },
+    {
+      "id": "store-db-domain-10",
+      "name": "CUSTOMER ALERT & NOTIFICATION Storage Layer",
+      "systemId": "sys-domain-10",
+      "description": "Primary persistence and read projections for CUSTOMER ALERT & NOTIFICATION",
+      "technology": "Amazon DynamoDB & Redis Cache",
+      "tags": [
+        "tag-aws"
+      ]
+    },
+    {
+      "id": "store-db-domain-11",
+      "name": "AUDIT, LOGGING & REGULATORY COMPLIANCE Storage Layer",
+      "systemId": "sys-domain-11",
+      "description": "Primary persistence and read projections for AUDIT, LOGGING & REGULATORY COMPLIANCE",
+      "technology": "Amazon DynamoDB & Redis Cache",
+      "tags": [
+        "tag-aws"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-app-cmd-current-account-lifecycle-store-db-domain-1",
+      "from": "app-cmd-current-account-lifecycle",
+      "to": "store-db-domain-1",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-current-account-lifecycle-store-eventbridge-core-bus",
+      "from": "app-cmd-current-account-lifecycle",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-cmd-current-account-deposits-store-db-domain-1",
+      "from": "app-cmd-current-account-deposits",
+      "to": "store-db-domain-1",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-current-account-deposits-store-eventbridge-core-bus",
+      "from": "app-cmd-current-account-deposits",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-cmd-current-account-overdraft-store-db-domain-1",
+      "from": "app-cmd-current-account-overdraft",
+      "to": "store-db-domain-1",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-current-account-overdraft-store-eventbridge-core-bus",
+      "from": "app-cmd-current-account-overdraft",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-qry-current-account-details-store-db-domain-1",
+      "from": "app-qry-current-account-details",
+      "to": "store-db-domain-1",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Query persistence / read access"
+    },
+    {
+      "id": "conn-app-qry-current-account-statements-store-db-domain-1",
+      "from": "app-qry-current-account-statements",
+      "to": "store-db-domain-1",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Query persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-current-account-readmodel-store-db-domain-1",
+      "from": "app-prj-current-account-readmodel",
+      "to": "store-db-domain-1",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Projection persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-current-account-readmodel-store-eventbridge-core-bus",
+      "from": "app-prj-current-account-readmodel",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-prj-current-account-analytics-store-db-domain-1",
+      "from": "app-prj-current-account-analytics",
+      "to": "store-db-domain-1",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Projection persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-current-account-analytics-store-eventbridge-core-bus",
+      "from": "app-prj-current-account-analytics",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-sfn-current-account-closure-saga-store-db-domain-1",
+      "from": "app-sfn-current-account-closure-saga",
+      "to": "store-db-domain-1",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Step Function persistence / read access"
+    },
+    {
+      "id": "conn-app-sfn-current-account-closure-saga-store-eventbridge-core-bus",
+      "from": "app-sfn-current-account-closure-saga",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-plug-host-mainframe-core-sync-store-db-domain-1",
+      "from": "app-plug-host-mainframe-core-sync",
+      "to": "store-db-domain-1",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Plug for Integration persistence / read access"
+    },
+    {
+      "id": "conn-app-alm-current-account-errors-store-db-domain-1",
+      "from": "app-alm-current-account-errors",
+      "to": "store-db-domain-1",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Alarms persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-payment-execution-initiate-store-db-domain-2",
+      "from": "app-cmd-payment-execution-initiate",
+      "to": "store-db-domain-2",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-payment-execution-initiate-store-eventbridge-core-bus",
+      "from": "app-cmd-payment-execution-initiate",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-cmd-payment-execution-authorization-store-db-domain-2",
+      "from": "app-cmd-payment-execution-authorization",
+      "to": "store-db-domain-2",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-payment-execution-authorization-store-eventbridge-core-bus",
+      "from": "app-cmd-payment-execution-authorization",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-cmd-payment-execution-settle-store-db-domain-2",
+      "from": "app-cmd-payment-execution-settle",
+      "to": "store-db-domain-2",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-payment-execution-settle-store-eventbridge-core-bus",
+      "from": "app-cmd-payment-execution-settle",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-qry-payment-execution-status-store-db-domain-2",
+      "from": "app-qry-payment-execution-status",
+      "to": "store-db-domain-2",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Query persistence / read access"
+    },
+    {
+      "id": "conn-app-qry-payment-execution-limits-store-db-domain-2",
+      "from": "app-qry-payment-execution-limits",
+      "to": "store-db-domain-2",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Query persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-payment-execution-history-store-db-domain-2",
+      "from": "app-prj-payment-execution-history",
+      "to": "store-db-domain-2",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Projection persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-payment-execution-history-store-eventbridge-core-bus",
+      "from": "app-prj-payment-execution-history",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-prj-payment-execution-metrics-store-db-domain-2",
+      "from": "app-prj-payment-execution-metrics",
+      "to": "store-db-domain-2",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Projection persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-payment-execution-metrics-store-eventbridge-core-bus",
+      "from": "app-prj-payment-execution-metrics",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-sfn-payment-instant-transfer-saga-store-db-domain-2",
+      "from": "app-sfn-payment-instant-transfer-saga",
+      "to": "store-db-domain-2",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Step Function persistence / read access"
+    },
+    {
+      "id": "conn-app-sfn-payment-instant-transfer-saga-store-eventbridge-core-bus",
+      "from": "app-sfn-payment-instant-transfer-saga",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-sfn-payment-clearing-cce-saga-store-db-domain-2",
+      "from": "app-sfn-payment-clearing-cce-saga",
+      "to": "store-db-domain-2",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Step Function persistence / read access"
+    },
+    {
+      "id": "conn-app-sfn-payment-clearing-cce-saga-store-eventbridge-core-bus",
+      "from": "app-sfn-payment-clearing-cce-saga",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-plug-cce-clearing-ingress-store-db-domain-2",
+      "from": "app-plug-cce-clearing-ingress",
+      "to": "store-db-domain-2",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Plug for Integration persistence / read access"
+    },
+    {
+      "id": "conn-app-plug-swift-iso20022-connector-store-db-domain-2",
+      "from": "app-plug-swift-iso20022-connector",
+      "to": "store-db-domain-2",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Plug for Integration persistence / read access"
+    },
+    {
+      "id": "conn-app-alm-payment-execution-p99-latency-store-db-domain-2",
+      "from": "app-alm-payment-execution-p99-latency",
+      "to": "store-db-domain-2",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Alarms persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-party-routing-register-store-db-domain-3",
+      "from": "app-cmd-party-routing-register",
+      "to": "store-db-domain-3",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-party-routing-register-store-eventbridge-core-bus",
+      "from": "app-cmd-party-routing-register",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-cmd-party-routing-deregister-store-db-domain-3",
+      "from": "app-cmd-party-routing-deregister",
+      "to": "store-db-domain-3",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-party-routing-deregister-store-eventbridge-core-bus",
+      "from": "app-cmd-party-routing-deregister",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-qry-party-routing-resolve-store-db-domain-3",
+      "from": "app-qry-party-routing-resolve",
+      "to": "store-db-domain-3",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Query persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-party-routing-directory-store-db-domain-3",
+      "from": "app-prj-party-routing-directory",
+      "to": "store-db-domain-3",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Projection persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-party-routing-directory-store-eventbridge-core-bus",
+      "from": "app-prj-party-routing-directory",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-plug-directory-federation-bridge-store-db-domain-3",
+      "from": "app-plug-directory-federation-bridge",
+      "to": "store-db-domain-3",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Plug for Integration persistence / read access"
+    },
+    {
+      "id": "conn-app-alm-party-routing-lookup-failures-store-db-domain-3",
+      "from": "app-alm-party-routing-lookup-failures",
+      "to": "store-db-domain-3",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Alarms persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-customer-onboarding-initiate-store-db-domain-4",
+      "from": "app-cmd-customer-onboarding-initiate",
+      "to": "store-db-domain-4",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-customer-onboarding-initiate-store-eventbridge-core-bus",
+      "from": "app-cmd-customer-onboarding-initiate",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-cmd-customer-onboarding-biometrics-store-db-domain-4",
+      "from": "app-cmd-customer-onboarding-biometrics",
+      "to": "store-db-domain-4",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-customer-onboarding-biometrics-store-eventbridge-core-bus",
+      "from": "app-cmd-customer-onboarding-biometrics",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-qry-customer-onboarding-progress-store-db-domain-4",
+      "from": "app-qry-customer-onboarding-progress",
+      "to": "store-db-domain-4",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Query persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-customer-onboarding-funnel-store-db-domain-4",
+      "from": "app-prj-customer-onboarding-funnel",
+      "to": "store-db-domain-4",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Projection persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-customer-onboarding-funnel-store-eventbridge-core-bus",
+      "from": "app-prj-customer-onboarding-funnel",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-sfn-customer-onboarding-saga-store-db-domain-4",
+      "from": "app-sfn-customer-onboarding-saga",
+      "to": "store-db-domain-4",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Step Function persistence / read access"
+    },
+    {
+      "id": "conn-app-sfn-customer-onboarding-saga-store-eventbridge-core-bus",
+      "from": "app-sfn-customer-onboarding-saga",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-plug-reniec-biometrics-gateway-store-db-domain-4",
+      "from": "app-plug-reniec-biometrics-gateway",
+      "to": "store-db-domain-4",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Plug for Integration persistence / read access"
+    },
+    {
+      "id": "conn-app-plug-experian-credit-score-store-db-domain-4",
+      "from": "app-plug-experian-credit-score",
+      "to": "store-db-domain-4",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Plug for Integration persistence / read access"
+    },
+    {
+      "id": "conn-app-alm-onboarding-kyc-drop-rate-store-db-domain-4",
+      "from": "app-alm-onboarding-kyc-drop-rate",
+      "to": "store-db-domain-4",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Alarms persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-customer-agreement-sign-store-db-domain-5",
+      "from": "app-cmd-customer-agreement-sign",
+      "to": "store-db-domain-5",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-customer-agreement-sign-store-eventbridge-core-bus",
+      "from": "app-cmd-customer-agreement-sign",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-cmd-customer-agreement-amend-store-db-domain-5",
+      "from": "app-cmd-customer-agreement-amend",
+      "to": "store-db-domain-5",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-customer-agreement-amend-store-eventbridge-core-bus",
+      "from": "app-cmd-customer-agreement-amend",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-qry-customer-agreement-fetch-store-db-domain-5",
+      "from": "app-qry-customer-agreement-fetch",
+      "to": "store-db-domain-5",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Query persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-customer-agreement-indexer-store-db-domain-5",
+      "from": "app-prj-customer-agreement-indexer",
+      "to": "store-db-domain-5",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Projection persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-customer-agreement-indexer-store-eventbridge-core-bus",
+      "from": "app-prj-customer-agreement-indexer",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-plug-docusign-legal-trust-bridge-store-db-domain-5",
+      "from": "app-plug-docusign-legal-trust-bridge",
+      "to": "store-db-domain-5",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Plug for Integration persistence / read access"
+    },
+    {
+      "id": "conn-app-alm-agreement-compliance-gaps-store-db-domain-5",
+      "from": "app-alm-agreement-compliance-gaps",
+      "to": "store-db-domain-5",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Alarms persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-position-keeping-reserve-store-db-domain-6",
+      "from": "app-cmd-position-keeping-reserve",
+      "to": "store-db-domain-6",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-position-keeping-reserve-store-eventbridge-core-bus",
+      "from": "app-cmd-position-keeping-reserve",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-cmd-position-keeping-release-store-db-domain-6",
+      "from": "app-cmd-position-keeping-release",
+      "to": "store-db-domain-6",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-position-keeping-release-store-eventbridge-core-bus",
+      "from": "app-cmd-position-keeping-release",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-qry-position-keeping-realtime-balance-store-db-domain-6",
+      "from": "app-qry-position-keeping-realtime-balance",
+      "to": "store-db-domain-6",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Query persistence / read access"
+    },
+    {
+      "id": "conn-app-qry-position-keeping-movements-store-db-domain-6",
+      "from": "app-qry-position-keeping-movements",
+      "to": "store-db-domain-6",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Query persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-position-keeping-ledger-view-store-db-domain-6",
+      "from": "app-prj-position-keeping-ledger-view",
+      "to": "store-db-domain-6",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Projection persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-position-keeping-ledger-view-store-eventbridge-core-bus",
+      "from": "app-prj-position-keeping-ledger-view",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-prj-position-keeping-audit-balance-store-db-domain-6",
+      "from": "app-prj-position-keeping-audit-balance",
+      "to": "store-db-domain-6",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Projection persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-position-keeping-audit-balance-store-eventbridge-core-bus",
+      "from": "app-prj-position-keeping-audit-balance",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-plug-atm-switch-pos-gateway-store-db-domain-6",
+      "from": "app-plug-atm-switch-pos-gateway",
+      "to": "store-db-domain-6",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Plug for Integration persistence / read access"
+    },
+    {
+      "id": "conn-app-alm-position-keeping-balance-discrepancy-store-db-domain-6",
+      "from": "app-alm-position-keeping-balance-discrepancy",
+      "to": "store-db-domain-6",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Alarms persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-financial-accounting-voucher-store-db-domain-7",
+      "from": "app-cmd-financial-accounting-voucher",
+      "to": "store-db-domain-7",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-financial-accounting-voucher-store-eventbridge-core-bus",
+      "from": "app-cmd-financial-accounting-voucher",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-qry-financial-accounting-trail-store-db-domain-7",
+      "from": "app-qry-financial-accounting-trail",
+      "to": "store-db-domain-7",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Query persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-financial-accounting-journal-store-db-domain-7",
+      "from": "app-prj-financial-accounting-journal",
+      "to": "store-db-domain-7",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Projection persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-financial-accounting-journal-store-eventbridge-core-bus",
+      "from": "app-prj-financial-accounting-journal",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-prj-financial-accounting-eod-balance-store-db-domain-7",
+      "from": "app-prj-financial-accounting-eod-balance",
+      "to": "store-db-domain-7",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Projection persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-financial-accounting-eod-balance-store-eventbridge-core-bus",
+      "from": "app-prj-financial-accounting-eod-balance",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-sfn-financial-accounting-eod-reconciliation-store-db-domain-7",
+      "from": "app-sfn-financial-accounting-eod-reconciliation",
+      "to": "store-db-domain-7",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Step Function persistence / read access"
+    },
+    {
+      "id": "conn-app-sfn-financial-accounting-eod-reconciliation-store-eventbridge-core-bus",
+      "from": "app-sfn-financial-accounting-eod-reconciliation",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-plug-sap-erp-general-ledger-adapter-store-db-domain-7",
+      "from": "app-plug-sap-erp-general-ledger-adapter",
+      "to": "store-db-domain-7",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Plug for Integration persistence / read access"
+    },
+    {
+      "id": "conn-app-alm-general-ledger-unbalanced-voucher-store-db-domain-7",
+      "from": "app-alm-general-ledger-unbalanced-voucher",
+      "to": "store-db-domain-7",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Alarms persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-collateral-allocation-pledge-store-db-domain-8",
+      "from": "app-cmd-collateral-allocation-pledge",
+      "to": "store-db-domain-8",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-collateral-allocation-pledge-store-eventbridge-core-bus",
+      "from": "app-cmd-collateral-allocation-pledge",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-cmd-collateral-allocation-release-store-db-domain-8",
+      "from": "app-cmd-collateral-allocation-release",
+      "to": "store-db-domain-8",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-collateral-allocation-release-store-eventbridge-core-bus",
+      "from": "app-cmd-collateral-allocation-release",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-qry-collateral-allocation-status-store-db-domain-8",
+      "from": "app-qry-collateral-allocation-status",
+      "to": "store-db-domain-8",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Query persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-collateral-allocation-exposure-store-db-domain-8",
+      "from": "app-prj-collateral-allocation-exposure",
+      "to": "store-db-domain-8",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Projection persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-collateral-allocation-exposure-store-eventbridge-core-bus",
+      "from": "app-prj-collateral-allocation-exposure",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-alm-collateral-under-coverage-warning-store-db-domain-8",
+      "from": "app-alm-collateral-under-coverage-warning",
+      "to": "store-db-domain-8",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Alarms persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-fraud-detection-evaluate-tx-store-db-domain-9",
+      "from": "app-cmd-fraud-detection-evaluate-tx",
+      "to": "store-db-domain-9",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-fraud-detection-evaluate-tx-store-eventbridge-core-bus",
+      "from": "app-cmd-fraud-detection-evaluate-tx",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-cmd-fraud-detection-lockout-store-db-domain-9",
+      "from": "app-cmd-fraud-detection-lockout",
+      "to": "store-db-domain-9",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-fraud-detection-lockout-store-eventbridge-core-bus",
+      "from": "app-cmd-fraud-detection-lockout",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-qry-fraud-detection-risk-profile-store-db-domain-9",
+      "from": "app-qry-fraud-detection-risk-profile",
+      "to": "store-db-domain-9",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Query persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-fraud-detection-blacklists-store-db-domain-9",
+      "from": "app-prj-fraud-detection-blacklists",
+      "to": "store-db-domain-9",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Projection persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-fraud-detection-blacklists-store-eventbridge-core-bus",
+      "from": "app-prj-fraud-detection-blacklists",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-sfn-fraud-suspicious-alert-investigation-store-db-domain-9",
+      "from": "app-sfn-fraud-suspicious-alert-investigation",
+      "to": "store-db-domain-9",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Step Function persistence / read access"
+    },
+    {
+      "id": "conn-app-sfn-fraud-suspicious-alert-investigation-store-eventbridge-core-bus",
+      "from": "app-sfn-fraud-suspicious-alert-investigation",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-plug-device-fingerprint-threatmetrix-store-db-domain-9",
+      "from": "app-plug-device-fingerprint-threatmetrix",
+      "to": "store-db-domain-9",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Plug for Integration persistence / read access"
+    },
+    {
+      "id": "conn-app-plug-biocatch-behavioral-engine-store-db-domain-9",
+      "from": "app-plug-biocatch-behavioral-engine",
+      "to": "store-db-domain-9",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Plug for Integration persistence / read access"
+    },
+    {
+      "id": "conn-app-alm-fraud-high-risk-spike-alarm-store-db-domain-9",
+      "from": "app-alm-fraud-high-risk-spike-alarm",
+      "to": "store-db-domain-9",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Alarms persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-customer-alert-dispatch-store-db-domain-10",
+      "from": "app-cmd-customer-alert-dispatch",
+      "to": "store-db-domain-10",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-customer-alert-dispatch-store-eventbridge-core-bus",
+      "from": "app-cmd-customer-alert-dispatch",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-qry-customer-alert-delivery-status-store-db-domain-10",
+      "from": "app-qry-customer-alert-delivery-status",
+      "to": "store-db-domain-10",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Query persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-customer-alert-audit-log-store-db-domain-10",
+      "from": "app-prj-customer-alert-audit-log",
+      "to": "store-db-domain-10",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Projection persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-customer-alert-audit-log-store-eventbridge-core-bus",
+      "from": "app-prj-customer-alert-audit-log",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-plug-fcm-apns-push-gateway-store-db-domain-10",
+      "from": "app-plug-fcm-apns-push-gateway",
+      "to": "store-db-domain-10",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Plug for Integration persistence / read access"
+    },
+    {
+      "id": "conn-app-plug-twilio-infobip-sms-gateway-store-db-domain-10",
+      "from": "app-plug-twilio-infobip-sms-gateway",
+      "to": "store-db-domain-10",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Plug for Integration persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-audit-log-immutable-record-store-db-domain-11",
+      "from": "app-cmd-audit-log-immutable-record",
+      "to": "store-db-domain-11",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Command persistence / read access"
+    },
+    {
+      "id": "conn-app-cmd-audit-log-immutable-record-store-eventbridge-core-bus",
+      "from": "app-cmd-audit-log-immutable-record",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Publishes Domain Events"
+    },
+    {
+      "id": "conn-app-qry-audit-log-trace-inspector-store-db-domain-11",
+      "from": "app-qry-audit-log-trace-inspector",
+      "to": "store-db-domain-11",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Query persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-audit-log-compliance-views-store-db-domain-11",
+      "from": "app-prj-audit-log-compliance-views",
+      "to": "store-db-domain-11",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Projection persistence / read access"
+    },
+    {
+      "id": "conn-app-prj-audit-log-compliance-views-store-eventbridge-core-bus",
+      "from": "app-prj-audit-log-compliance-views",
+      "to": "store-eventbridge-core-bus",
+      "protocol": "EventBridge API / PutEvents",
+      "description": "Consumes Domain Events"
+    },
+    {
+      "id": "conn-app-plug-sbs-regulatory-reporting-export-store-db-domain-11",
+      "from": "app-plug-sbs-regulatory-reporting-export",
+      "to": "store-db-domain-11",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Plug for Integration persistence / read access"
+    },
+    {
+      "id": "conn-app-alm-audit-tampering-security-alarm-store-db-domain-11",
+      "from": "app-alm-audit-tampering-security-alarm",
+      "to": "store-db-domain-11",
+      "protocol": "AWS SDK / HTTPS",
+      "description": "Alarms persistence / read access"
+    }
+  ],
+  "flows": [
+    {
+      "id": "FLOW-01",
+      "name": "Direct Digital Account Opening & KYC",
+      "description": "Prospect initiates digital onboarding, completes facial biometrics, signs contract, and receives opened active account.",
+      "primaryDomain": "Customer Offer & Onboarding",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-cmd-customer-onboarding-initiate",
+          "targetApp": "app-sfn-customer-onboarding-saga",
+          "type": "Sync Invocation",
+          "action": "Trigger onboarding state machine"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-sfn-customer-onboarding-saga",
+          "targetApp": "app-plug-reniec-biometrics-gateway",
+          "type": "HTTP/mTLS",
+          "action": "Validate facial biometric with RENIEC"
+        },
+        {
+          "step": 3,
+          "sourceApp": "app-sfn-customer-onboarding-saga",
+          "targetApp": "app-cmd-customer-agreement-sign",
+          "type": "Command",
+          "action": "Register digital terms and legal agreement"
+        },
+        {
+          "step": 4,
+          "sourceApp": "app-sfn-customer-onboarding-saga",
+          "targetApp": "app-cmd-current-account-lifecycle",
+          "type": "Command",
+          "action": "Create and activate Current Account in master table"
+        },
+        {
+          "step": 5,
+          "sourceApp": "app-cmd-current-account-lifecycle",
+          "targetApp": "app-prj-current-account-readmodel",
+          "type": "EventBridge Event",
+          "action": "AccountOpenedEvent.v1 emitted and projected"
+        },
+        {
+          "step": 6,
+          "sourceApp": "app-sfn-customer-onboarding-saga",
+          "targetApp": "app-cmd-customer-alert-dispatch",
+          "type": "Event",
+          "action": "Dispatch welcome SMS/Push notification"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-02",
+      "name": "Outbound Instant P2P Transfer (Yape/Plin)",
+      "description": "User enters mobile phone number, resolves destination CCI, places authorization hold, routes via instant rails, and clears funds.",
+      "primaryDomain": "Payment Execution",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-cmd-payment-execution-initiate",
+          "targetApp": "app-qry-party-routing-resolve",
+          "type": "Query",
+          "action": "Resolve recipient phone number to destination bank and CCI"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-cmd-payment-execution-initiate",
+          "targetApp": "app-cmd-fraud-detection-evaluate-tx",
+          "type": "Sync SLA <40ms",
+          "action": "Calculate real-time transactional fraud score"
+        },
+        {
+          "step": 3,
+          "sourceApp": "app-cmd-payment-execution-initiate",
+          "targetApp": "app-sfn-payment-instant-transfer-saga",
+          "type": "Start Saga",
+          "action": "Orchestrate multi-step transfer transaction"
+        },
+        {
+          "step": 4,
+          "sourceApp": "app-sfn-payment-instant-transfer-saga",
+          "targetApp": "app-cmd-position-keeping-reserve",
+          "type": "Command",
+          "action": "Place hold on source account balance"
+        },
+        {
+          "step": 5,
+          "sourceApp": "app-sfn-payment-instant-transfer-saga",
+          "targetApp": "app-plug-directory-federation-bridge",
+          "type": "HTTP API",
+          "action": "Dispatch funds over instant clearing rail (CCE/BCRP)"
+        },
+        {
+          "step": 6,
+          "sourceApp": "app-sfn-payment-instant-transfer-saga",
+          "targetApp": "app-cmd-position-keeping-release",
+          "type": "Command",
+          "action": "Commit balance debit and clear hold"
+        },
+        {
+          "step": 7,
+          "sourceApp": "app-sfn-payment-instant-transfer-saga",
+          "targetApp": "app-cmd-customer-alert-dispatch",
+          "type": "Event",
+          "action": "Notify sender and recipient via Push & SMS"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-03",
+      "name": "Inbound Clearing Payment (CCE / ACH)",
+      "description": "Receives inbound interbank payment batch, validates destination account, credits ledger, and acknowledges clearinghouse.",
+      "primaryDomain": "Payment Execution",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-plug-cce-clearing-ingress",
+          "targetApp": "app-cmd-payment-execution-settle",
+          "type": "EventBridge",
+          "action": "InboundPaymentReceivedEvent.v1 dispatched"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-cmd-payment-execution-settle",
+          "targetApp": "app-qry-current-account-details",
+          "type": "Query",
+          "action": "Verify account status is ACTIVE"
+        },
+        {
+          "step": 3,
+          "sourceApp": "app-cmd-payment-execution-settle",
+          "targetApp": "app-cmd-current-account-deposits",
+          "type": "Command",
+          "action": "Post credit deposit to account"
+        },
+        {
+          "step": 4,
+          "sourceApp": "app-cmd-current-account-deposits",
+          "targetApp": "app-prj-position-keeping-ledger-view",
+          "type": "EventBridge",
+          "action": "BalanceCommittedEvent.v1 emitted to update balance"
+        },
+        {
+          "step": 5,
+          "sourceApp": "app-cmd-payment-execution-settle",
+          "targetApp": "app-prj-financial-accounting-journal",
+          "type": "Event",
+          "action": "Post accounting ledger entry"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-04",
+      "name": "Debit Card Transaction Authorization Hold",
+      "description": "POS or e-commerce terminal attempts card swipe; checks balance, runs fraud filter, and holds funds.",
+      "primaryDomain": "Position Keeping & Balances",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-plug-atm-switch-pos-gateway",
+          "targetApp": "app-cmd-fraud-detection-evaluate-tx",
+          "type": "TCP/ISO8583",
+          "action": "Real-time risk scoring (<35ms)"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-plug-atm-switch-pos-gateway",
+          "targetApp": "app-cmd-position-keeping-reserve",
+          "type": "Command",
+          "action": "Request authorization hold on available funds"
+        },
+        {
+          "step": 3,
+          "sourceApp": "app-cmd-position-keeping-reserve",
+          "targetApp": "app-qry-position-keeping-realtime-balance",
+          "type": "Internal Check",
+          "action": "Verify available balance >= hold amount"
+        },
+        {
+          "step": 4,
+          "sourceApp": "app-cmd-position-keeping-reserve",
+          "targetApp": "app-plug-atm-switch-pos-gateway",
+          "type": "Response",
+          "action": "Return ISO 8583 Authorization Approved (00)"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-05",
+      "name": "Hold Settlement & Financial Clearing",
+      "description": "Merchant batch presents settled transactions, releasing prior holds and committing final debits.",
+      "primaryDomain": "Current Account",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-plug-atm-switch-pos-gateway",
+          "targetApp": "app-cmd-position-keeping-release",
+          "type": "Batch Settlement",
+          "action": "Release reservation hold"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-cmd-position-keeping-release",
+          "targetApp": "app-cmd-current-account-lifecycle",
+          "type": "Command",
+          "action": "Apply final financial debit to master account"
+        },
+        {
+          "step": 3,
+          "sourceApp": "app-cmd-current-account-lifecycle",
+          "targetApp": "app-prj-financial-accounting-journal",
+          "type": "EventBridge",
+          "action": "Post double-entry journal voucher to general ledger"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-06",
+      "name": "Real-Time Balance & Mini-Statement Inquiry",
+      "description": "Mobile app or ATM requests customer balances and last 10 movements with sub-20ms P99 latency.",
+      "primaryDomain": "Position Keeping & Balances",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-qry-position-keeping-realtime-balance",
+          "targetApp": "app-prj-position-keeping-ledger-view",
+          "type": "Cache Query",
+          "action": "Read cached available & ledger balance from Redis/DAX"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-qry-position-keeping-movements",
+          "targetApp": "app-prj-payment-execution-history",
+          "type": "Indexed Query",
+          "action": "Fetch latest 10 movements with pagination token"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-07",
+      "name": "Scheduled Direct Debit Service Billing",
+      "description": "Executes recurring utility or subscription bill payment against user current account.",
+      "primaryDomain": "Current Account",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-sfn-payment-clearing-cce-saga",
+          "targetApp": "app-qry-current-account-details",
+          "type": "Query",
+          "action": "Validate account active and direct debit authorized"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-sfn-payment-clearing-cce-saga",
+          "targetApp": "app-cmd-payment-execution-initiate",
+          "type": "Command",
+          "action": "Execute debit order against biller CCI"
+        },
+        {
+          "step": 3,
+          "sourceApp": "app-cmd-payment-execution-initiate",
+          "targetApp": "app-prj-financial-accounting-journal",
+          "type": "EventBridge",
+          "action": "Record transaction fee and settlement"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-08",
+      "name": "Overdraft Line Auto-Trigger & Coverage",
+      "description": "When customer balance is insufficient for critical payment, checks credit line and triggers overdraft loan.",
+      "primaryDomain": "Current Account",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-cmd-position-keeping-reserve",
+          "targetApp": "app-cmd-current-account-overdraft",
+          "type": "Trigger",
+          "action": "Account balance insufficient - request overdraft ceiling check"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-cmd-current-account-overdraft",
+          "targetApp": "app-qry-collateral-allocation-status",
+          "type": "Query",
+          "action": "Check pledged collateral or pre-approved limit"
+        },
+        {
+          "step": 3,
+          "sourceApp": "app-cmd-current-account-overdraft",
+          "targetApp": "app-cmd-current-account-deposits",
+          "type": "Command",
+          "action": "Disburse overdraft funds into account to cover debit"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-09",
+      "name": "Real-Time Transaction Fraud Evaluation (<50ms)",
+      "description": "Inline synchronous inspection of payment parameters against machine learning fraud model and device intelligence.",
+      "primaryDomain": "Fraud Detection & Risk Scoring",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-cmd-fraud-detection-evaluate-tx",
+          "targetApp": "app-plug-device-fingerprint-threatmetrix",
+          "type": "HTTP API",
+          "action": "Query device IP reputation, geo-velocity, emulator flags"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-cmd-fraud-detection-evaluate-tx",
+          "targetApp": "app-plug-biocatch-behavioral-engine",
+          "type": "HTTP API",
+          "action": "Query behavioral biometric score (typing cadence, gyros)"
+        },
+        {
+          "step": 3,
+          "sourceApp": "app-cmd-fraud-detection-evaluate-tx",
+          "targetApp": "app-qry-fraud-detection-risk-profile",
+          "type": "Query",
+          "action": "Check customer historical fraud index and blacklist"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-10",
+      "name": "High-Risk Account Preventative Freeze",
+      "description": "When confirmed compromise or brute-force pattern is detected, immediately locks account and alerts security squad.",
+      "primaryDomain": "Fraud Detection & Risk Scoring",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-cmd-fraud-detection-lockout",
+          "targetApp": "app-cmd-current-account-lifecycle",
+          "type": "Command",
+          "action": "Set account state to 'SECURITY_FROZEN'"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-cmd-fraud-detection-lockout",
+          "targetApp": "app-cmd-customer-alert-dispatch",
+          "type": "Urgent Alert",
+          "action": "Dispatch emergency SMS/Email security notice to customer"
+        },
+        {
+          "step": 3,
+          "sourceApp": "app-cmd-fraud-detection-lockout",
+          "targetApp": "app-alm-fraud-high-risk-spike-alarm",
+          "type": "Metric",
+          "action": "Record security event in CloudWatch security metric filter"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-11",
+      "name": "Customer Contact Preference & Alias Update",
+      "description": "Customer updates mobile phone number or changes primary account linked to instant P2P payments.",
+      "primaryDomain": "Party Routing Profile",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-cmd-party-routing-register",
+          "targetApp": "app-prj-party-routing-directory",
+          "type": "Command",
+          "action": "Update directory record mapping phone to new CCI"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-cmd-party-routing-register",
+          "targetApp": "app-plug-directory-federation-bridge",
+          "type": "Sync Bridge",
+          "action": "Broadcast alias update to national directory federation"
+        },
+        {
+          "step": 3,
+          "sourceApp": "app-cmd-party-routing-register",
+          "targetApp": "app-cmd-audit-log-immutable-record",
+          "type": "EventBridge",
+          "action": "Record alias change audit trail"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-12",
+      "name": "Daily Interest Accrual Calculation",
+      "description": "Calculates daily earned interest on positive savings account balances and schedules monthly payout.",
+      "primaryDomain": "Current Account",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-cmd-current-account-deposits",
+          "targetApp": "app-qry-position-keeping-realtime-balance",
+          "type": "Query",
+          "action": "Fetch daily average cleared balance"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-cmd-current-account-deposits",
+          "targetApp": "app-prj-financial-accounting-eod-balance",
+          "type": "Calculation",
+          "action": "Accrue daily interest into liability ledger"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-13",
+      "name": "End-of-Day (EOD) Ledger Reconciliation",
+      "description": "Midnight batch locks daily transactions, compares cloud ledger balances against host mainframe, and produces delta reports.",
+      "primaryDomain": "Financial Accounting & General Ledger",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-sfn-financial-accounting-eod-reconciliation",
+          "targetApp": "app-prj-position-keeping-audit-balance",
+          "type": "Step",
+          "action": "Freeze daily balance snapshot across all accounts"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-sfn-financial-accounting-eod-reconciliation",
+          "targetApp": "app-plug-host-mainframe-core-sync",
+          "type": "Step",
+          "action": "Pull Host DB2 daily total ledger report"
+        },
+        {
+          "step": 3,
+          "sourceApp": "app-sfn-financial-accounting-eod-reconciliation",
+          "targetApp": "app-alm-general-ledger-unbalanced-voucher",
+          "type": "Validation",
+          "action": "Trigger P0 Alarm if Cloud vs Host balance delta != 0.00"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-14",
+      "name": "General Ledger Journal Accounting Posting",
+      "description": "Transforms settled retail transactions into standardized accounting vouchers for ERP ingestion.",
+      "primaryDomain": "Financial Accounting & General Ledger",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-prj-financial-accounting-journal",
+          "targetApp": "app-cmd-financial-accounting-voucher",
+          "type": "Event Consumer",
+          "action": "Aggregate transaction types into ledger accounts"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-cmd-financial-accounting-voucher",
+          "targetApp": "app-plug-sap-erp-general-ledger-adapter",
+          "type": "OData/RFC",
+          "action": "Transmit posted journal vouchers into SAP S/4HANA"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-15",
+      "name": "Multi-Channel Transaction Alert Notification",
+      "description": "Subscribes to transaction completed events and dispatches notifications based on customer opted-in channels.",
+      "primaryDomain": "Customer Alert & Notification",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-cmd-customer-alert-dispatch",
+          "targetApp": "app-plug-fcm-apns-push-gateway",
+          "type": "Push",
+          "action": "Dispatch instant mobile app push alert"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-cmd-customer-alert-dispatch",
+          "targetApp": "app-plug-twilio-infobip-sms-gateway",
+          "type": "Fallback SMS",
+          "action": "Send SMS confirmation if push is undelivered or for high amounts"
+        },
+        {
+          "step": 3,
+          "sourceApp": "app-cmd-customer-alert-dispatch",
+          "targetApp": "app-prj-customer-alert-audit-log",
+          "type": "Log",
+          "action": "Record notification proof and delivery timestamp"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-16",
+      "name": "Account Maintenance Fee Assessment",
+      "description": "Monthly recurring job checks average balance; applies maintenance commission fee if minimum balance is not met.",
+      "primaryDomain": "Current Account",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-cmd-current-account-lifecycle",
+          "targetApp": "app-qry-current-account-details",
+          "type": "Query",
+          "action": "Evaluate average balance against fee waiver rule"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-cmd-current-account-lifecycle",
+          "targetApp": "app-cmd-payment-execution-initiate",
+          "type": "Command",
+          "action": "Initiate automated maintenance fee deduction order"
+        },
+        {
+          "step": 3,
+          "sourceApp": "app-cmd-payment-execution-initiate",
+          "targetApp": "app-prj-financial-accounting-journal",
+          "type": "EventBridge",
+          "action": "Record bank fee revenue accounting entry"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-17",
+      "name": "Digital Terms & Conditions Legal Consent",
+      "description": "Captures customer acceptance of updated product terms, biometric data consent, and regulatory disclosures.",
+      "primaryDomain": "Customer Agreement & Contract",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-cmd-customer-agreement-sign",
+          "targetApp": "app-plug-docusign-legal-trust-bridge",
+          "type": "API Call",
+          "action": "Apply legal cryptographic timestamp and certificate seal"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-cmd-customer-agreement-sign",
+          "targetApp": "app-prj-customer-agreement-indexer",
+          "type": "EventBridge",
+          "action": "Index accepted clauses into contract repository"
+        },
+        {
+          "step": 3,
+          "sourceApp": "app-cmd-customer-agreement-sign",
+          "targetApp": "app-cmd-audit-log-immutable-record",
+          "type": "Command",
+          "action": "Store legal proof in WORM immutable storage"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-18",
+      "name": "Mainframe Host Realtime & Batch Sync",
+      "description": "Provides backward compatibility for branch tellers, ATMs, and legacy systems during gradual core migration.",
+      "primaryDomain": "Current Account",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-prj-current-account-readmodel",
+          "targetApp": "app-plug-host-mainframe-core-sync",
+          "type": "Outbox Event",
+          "action": "Forward cloud account modifications to Host SNA queue"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-plug-host-mainframe-core-sync",
+          "targetApp": "app-cmd-current-account-lifecycle",
+          "type": "Inbound Sync",
+          "action": "Receive teller cash branch deposits from Host CICS"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-19",
+      "name": "Regulatory AML & UIF Suspicious Report",
+      "description": "Identifies suspicious transaction patterns (smurfing, sudden large transfers >$10k) and generates regulatory reporting files.",
+      "primaryDomain": "Audit, Logging & Regulatory Compliance",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-prj-audit-log-compliance-views",
+          "targetApp": "app-qry-audit-log-trace-inspector",
+          "type": "Query",
+          "action": "Aggregate single and multi-party transactions exceeding threshold"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-prj-audit-log-compliance-views",
+          "targetApp": "app-plug-sbs-regulatory-reporting-export",
+          "type": "Export",
+          "action": "Format encrypted RO/UIF XML compliance submission file"
+        }
+      ]
+    },
+    {
+      "id": "FLOW-20",
+      "name": "Distributed Transfer Saga Compensation",
+      "description": "Automated backward rollback when instant transfer times out or target bank rejects funds after source hold was created.",
+      "primaryDomain": "Payment Execution",
+      "steps": [
+        {
+          "step": 1,
+          "sourceApp": "app-sfn-payment-instant-transfer-saga",
+          "targetApp": "app-plug-directory-federation-bridge",
+          "type": "Timeout / Failure",
+          "action": "Receive 504 Gateway Timeout or Reject response"
+        },
+        {
+          "step": 2,
+          "sourceApp": "app-sfn-payment-instant-transfer-saga",
+          "targetApp": "app-cmd-position-keeping-release",
+          "type": "Compensation Action",
+          "action": "Cancel and unfreeze source account balance reservation"
+        },
+        {
+          "step": 3,
+          "sourceApp": "app-sfn-payment-instant-transfer-saga",
+          "targetApp": "app-alm-payment-execution-p99-latency",
+          "type": "Metric",
+          "action": "Increment transaction compensation counter in CloudWatch"
+        },
+        {
+          "step": 4,
+          "sourceApp": "app-sfn-payment-instant-transfer-saga",
+          "targetApp": "app-cmd-customer-alert-dispatch",
+          "type": "Event",
+          "action": "Notify user that transfer failed and funds remain available"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+# SQUAD CORE BANKING & DIGITAL RAILS - ARCHITECTURAL TOPOLOGY & REPOSITORY DUMP
+# Enterprise: Retail Core Banking Modernization (AWS Cloud Native Migration)
+# Squad: Squad "Cuentas & Rieles Transaccionales" (Legacy Modernization Initiative)
+# Document Version: 4.8.2-RELEASE-AUDIT
+
+=== 1. EXECUTIVE CONTEXT & DOMAIN SCOPE ===
+The squad is responsible for the transactional backbone of retail banking, serving over 12 million active accounts with peak loads exceeding 4,500 TPS. The architecture has transitioned from an IBM Mainframe (z/OS DB2 CICS) monolith into an Event-Driven Architecture (EDA) on AWS, strictly aligned with BIAN v10 standards across 11 Service Domains:
+- Domain 1: Current Account (Gestión de Cuentas de Ahorros y Corrientes)
+- Domain 2: Payment Execution (Rieles Transaccionales, CCE, Yape/Plin, Pagos Inmediatos)
+- Domain 3: Party Routing Profile (Directorio de Enrutamiento de Clientes y Alias)
+- Domain 4: Customer Offer & Onboarding (Originación Digital de Cuentas y Biometría)
+- Domain 5: Customer Agreement & Contract (Contratos Digitales, Términos Legales)
+- Domain 6: Position Keeping & Balances (Motor de Saldos y Movimientos en Tiempo Real)
+- Domain 7: Financial Accounting & General Ledger (Contabilidad Mayor y Asientos Diarios)
+- Domain 8: Collateral Allocation & Guarantees (Garantías Líquidas y Líneas Asociadas)
+- Domain 9: Fraud Detection & Risk Scoring (Motor Antifraude en Tiempo Real y Reglas)
+- Domain 10: Customer Alert & Notification (Notificaciones Push, SMS, Email Transaccional)
+- Domain 11: Audit, Logging & Regulatory Compliance (Trazabilidad Regulatoria SBS y UIF)
+
+=== 2. COMPLETE REPOSITORY MANIFEST (80 REPOSITORIES) ===
+
+--- DOMAIN 1: CURRENT ACCOUNT (10 REPOSITORIES) ---
+1. cmd-current-account-lifecycle (Archetype: Command): Handles opening authorization, state transitions (Active, Frozen, Dormant, Closed). Tech: Node.js 20, Lambda, DynamoDB Write Table 'core-accounts-master'.
+2. cmd-current-account-deposits (Archetype: Command): Ingestion and validation of direct cash/cheque deposits. Tech: TypeScript Lambda, DynamoDB, EventBridge Outbox.
+3. cmd-current-account-overdraft (Archetype: Command): Evaluates and triggers automated overdraft drawdowns. Tech: Go 1.22 Lambda.
+4. qry-current-account-details (Archetype: Query): Sub-10ms query service for account metadata, state, limits. Tech: Node.js Lambda, Redis Cache / DynamoDB Read Replica.
+5. qry-current-account-statements (Archetype: Query): Serves historical PDF and JSON statements. Tech: Python FastAPI Lambda, S3 Glacier/Standard.
+6. prj-current-account-readmodel (Archetype: Projection): Consumes 'AccountCreated', 'AccountStatusChanged' events from EventBridge; writes to DynamoDB Global Read Table. Tech: Node.js Lambda.
+7. prj-current-account-analytics (Archetype: Projection): Pushes account status telemetry to OpenSearch and S3 Parquet Lake. Tech: EventBridge Pipes & Firehose.
+8. sfn-current-account-closure-saga (Archetype: Step Function): Step Function state machine orchestrating account closure, fee clearance, balance zeroing, and legal release.
+9. plug-host-mainframe-core-sync (Archetype: Plug for Integration): Bi-directional SNA/TCP connector to IBM Mainframe DB2 Core Banking. Tech: Java 21 Quarkus ECS Fargate container.
+10. alm-current-account-errors (Archetype: Alarms): CloudWatch alarms for 5xx spikes, DB lock timeouts, and DLQ backlogs on account lifecycle events.
+
+--- DOMAIN 2: PAYMENT EXECUTION (12 REPOSITORIES) ---
+11. cmd-payment-execution-initiate (Archetype: Command): Ingests payment orders, validates idempotency key, executes schema validation. Tech: Node.js 20 Lambda.
+12. cmd-payment-execution-authorization (Archetype: Command): Enforces authorization rules, multi-factor token signatures. Tech: Go Lambda.
+13. cmd-payment-execution-settle (Archetype: Command): Executes final settlement confirmation and releases transaction locks. Tech: TypeScript Lambda.
+14. qry-payment-execution-status (Archetype: Query): Read API polling and webhook queries for transfer status. Tech: Node.js Lambda, DynamoDB.
+15. qry-payment-execution-limits (Archetype: Query): Calculates remaining daily and per-transaction limits. Tech: Node.js Lambda, Redis Cache.
+16. prj-payment-execution-history (Archetype: Projection): Projects all payment lifecycle events into the unified payment timeline store. Tech: Lambda DynamoDB Streams.
+17. prj-payment-execution-metrics (Archetype: Projection): Emits Prometheus/CloudWatch metrics for transaction throughput, success rate, and latency.
+18. sfn-payment-instant-transfer-saga (Archetype: Step Function): Critical distributed Saga: 1. Hold Funds in Source -> 2. Risk Check -> 3. Credit Target -> 4. Release Hold. Automated compensation on timeout.
+19. sfn-payment-clearing-cce-saga (Archetype: Step Function): Batch and scheduled clearing orchestration with Chamber of Clearing (CCE).
+20. plug-cce-clearing-ingress (Archetype: Plug for Integration): Receives inbound payment batches from domestic clearinghouse via AS2/HTTPS. Tech: ECS Fargate API.
+21. plug-swift-iso20022-connector (Archetype: Plug for Integration): Translates ISO 20022 pacs.008, pacs.002 messages to internal JSON domain events. Tech: Java 21 Spring Native.
+22. alm-payment-execution-p99-latency (Archetype: Alarms): Alarms on P99 latency exceeding 250ms, triggering automated incident alert to PagerDuty.
+
+--- DOMAIN 3: PARTY ROUTING PROFILE (6 REPOSITORIES) ---
+23. cmd-party-routing-register (Archetype: Command): Binds mobile phone number (MSISDN) and email to primary Account Number (CCI). Tech: Node.js Lambda.
+24. cmd-party-routing-deregister (Archetype: Command): Unlinks alias or updates account destination. Tech: Node.js Lambda.
+25. qry-party-routing-resolve (Archetype: Query): Ultra-fast directory lookup (resolves phone number to bank routing and account in <15ms). Tech: Go Lambda, DynamoDB DAX cluster.
+26. prj-party-routing-directory (Archetype: Projection): Materializes lookup cache across multi-region tables. Tech: Lambda DynamoDB Streams.
+27. plug-directory-federation-bridge (Archetype: Plug for Integration): Connects with interbank directory federation (CCE / BCRP rails). Tech: Node.js ECS.
+28. alm-party-routing-lookup-failures (Archetype: Alarms): Monitors resolution failure rates and cache misses.
+
+--- DOMAIN 4: CUSTOMER OFFER & ONBOARDING (8 REPOSITORIES) ---
+29. cmd-customer-onboarding-initiate (Archetype: Command): Receives digital prospect application and initiates KYC workflow. Tech: TypeScript Lambda.
+30. cmd-customer-onboarding-biometrics (Archetype: Command): Ingests facial validation payload and RENIEC biometric token. Tech: Python Lambda.
+31. qry-customer-onboarding-progress (Archetype: Query): Returns real-time state of applicant progress for mobile app. Tech: Node.js Lambda.
+32. prj-customer-onboarding-funnel (Archetype: Projection): Projects funnel conversion drop-offs into analytics lake. Tech: EventBridge Pipes.
+33. sfn-customer-onboarding-saga (Archetype: Step Function): Orchestrates KYC -> AML Validation -> Contract Generation -> Account Creation -> Debit Card Provisioning.
+34. plug-reniec-biometrics-gateway (Archetype: Plug for Integration): Connects to national identity registry (RENIEC) with TLS mutual auth. Tech: Java Lambda.
+35. plug-experian-credit-score (Archetype: Plug for Integration): Pulls credit score and risk bureau data. Tech: Python Lambda.
+36. alm-onboarding-kyc-drop-rate (Archetype: Alarms): Alarms if KYC validation failures exceed 8% threshold.
+
+--- DOMAIN 5: CUSTOMER AGREEMENT & CONTRACT (6 REPOSITORIES) ---
+37. cmd-customer-agreement-sign (Archetype: Command): Records digital signature, cryptographic hash, and legal consent timestamp. Tech: Node.js Lambda.
+38. cmd-customer-agreement-amend (Archetype: Command): Applies contractual annexes, interest rate changes, or clause updates. Tech: TypeScript Lambda.
+39. qry-customer-agreement-fetch (Archetype: Query): Retrieves signed legal terms and audit certificate. Tech: Node.js Lambda, S3 presigned URLs.
+40. prj-customer-agreement-indexer (Archetype: Projection): Indexes contract clauses and consent history into OpenSearch. Tech: Lambda.
+41. plug-docusign-legal-trust-bridge (Archetype: Plug for Integration): Integrates with certified digital signature provider for legal stamping. Tech: TypeScript Lambda.
+42. alm-agreement-compliance-gaps (Archetype: Alarms): Tracks missing required terms and condition acceptances.
+
+--- DOMAIN 6: POSITION KEEPING & BALANCES (8 REPOSITORIES) ---
+43. cmd-position-keeping-reserve (Archetype: Command): Places temporary authorization holds on balances for card swipe or pending transfer. Tech: Go Lambda.
+44. cmd-position-keeping-release (Archetype: Command): Releases or commits hold into settled balance. Tech: Go Lambda.
+45. qry-position-keeping-realtime-balance (Archetype: Query): Provides instantaneous available, ledger, and hold balances. Tech: Rust Lambda, Redis / DynamoDB DAX.
+46. qry-position-keeping-movements (Archetype: Query): Returns paginated transaction movements and timestamps. Tech: Node.js Lambda.
+47. prj-position-keeping-ledger-view (Archetype: Projection): Listens to debit/credit posted events to maintain continuous balance snapshots. Tech: Lambda.
+48. prj-position-keeping-audit-balance (Archetype: Projection): Daily balance delta projection against core mainframe reports. Tech: Python Lambda.
+49. plug-atm-switch-pos-gateway (Archetype: Plug for Integration): ISO 8583 translator for ATM switches and POS debit authorizations. Tech: C++/Rust ECS Fargate.
+50. alm-position-keeping-balance-discrepancy (Archetype: Alarms): Critical P0 Alarm: triggers on any ledger vs available balance mathematical mismatch.
+
+--- DOMAIN 7: FINANCIAL ACCOUNTING & GENERAL LEDGER (7 REPOSITORIES) ---
+51. cmd-financial-accounting-voucher (Archetype: Command): Creates double-entry debits and credits ledger vouchers. Tech: TypeScript Lambda.
+52. qry-financial-accounting-trail (Archetype: Query): Inquires chart of accounts balances and journal entries. Tech: Node.js Lambda.
+53. prj-financial-accounting-journal (Archetype: Projection): Stream-aggregates all financial transaction events into the general ledger journal. Tech: Lambda EventBridge.
+54. prj-financial-accounting-eod-balance (Archetype: Projection): Compiles End-of-Day balance totals per currency (PEN, USD). Tech: Python Lambda.
+55. sfn-financial-accounting-eod-reconciliation (Archetype: Step Function): Step Function running at 23:59:00 to lock daily balances, reconcile with central ledger, and produce balance sheet vouchers.
+56. plug-sap-erp-general-ledger-adapter (Archetype: Plug for Integration): Transmits daily accounting journals into SAP S/4HANA via RFC/OData. Tech: Java ECS.
+57. alm-general-ledger-unbalanced-voucher (Archetype: Alarms): High-priority alarm triggered if Total Debits != Total Credits.
+
+--- DOMAIN 8: COLLATERAL ALLOCATION & GUARANTEES (5 REPOSITORIES) ---
+58. cmd-collateral-allocation-pledge (Archetype: Command): Pledges term deposits or accounts as collateral against lines of credit. Tech: Node.js Lambda.
+59. cmd-collateral-allocation-release (Archetype: Command): Releases collateral hold upon loan discharge. Tech: TypeScript Lambda.
+60. qry-collateral-allocation-status (Archetype: Query): Checks collateral coverage ratio and pledged assets. Tech: Node.js Lambda.
+61. prj-collateral-allocation-exposure (Archetype: Projection): Projects real-time risk exposure of linked credit lines. Tech: Lambda.
+62. alm-collateral-under-coverage-warning (Archetype: Alarms): Alarms when collateral value falls below loan margin ratio.
+
+--- DOMAIN 9: FRAUD DETECTION & RISK SCORING (8 REPOSITORIES) ---
+63. cmd-fraud-detection-evaluate-tx (Archetype: Command): Evaluates transaction risk score in real time using rules engine and ML model. Tech: Go/C++ Lambda, <40ms SLA.
+64. cmd-fraud-detection-lockout (Archetype: Command): Executes preventative security freeze on compromised cards and accounts. Tech: Node.js Lambda.
+65. qry-fraud-detection-risk-profile (Archetype: Query): Reads customer behavioral risk indicators, device fingerprint history. Tech: Python Lambda.
+66. prj-fraud-detection-blacklists (Archetype: Projection): Synchronizes international OFAC, PEP, and suspicious account blacklists. Tech: Lambda.
+67. sfn-fraud-suspicious-alert-investigation (Archetype: Step Function): Escalates high-risk transaction cases to fraud operations squad, alerts user, and monitors feedback.
+68. plug-device-fingerprint-threatmetrix (Archetype: Plug for Integration): Ingests device telemetry, IP reputation, and biometrics signals from LexisNexis/ThreatMetrix. Tech: Node.js Lambda.
+69. plug-biocatch-behavioral-engine (Archetype: Plug for Integration): Ingests mobile screen interaction dynamics and behavioral telemetry. Tech: TypeScript Lambda.
+70. alm-fraud-high-risk-spike-alarm (Archetype: Alarms): Alarms on sudden surges of high-risk transactions in specific BIN or geography.
+
+--- DOMAIN 10: CUSTOMER ALERT & NOTIFICATION (5 REPOSITORIES) ---
+71. cmd-customer-alert-dispatch (Archetype: Command): Routes transactional notifications according to customer channel preferences. Tech: Node.js Lambda.
+72. qry-customer-alert-delivery-status (Archetype: Query): Inquires delivery status, open rates, and push delivery receipts. Tech: TypeScript Lambda.
+73. prj-customer-alert-audit-log (Archetype: Projection): Records notification compliance records (timestamp, recipient, payload hash). Tech: Lambda.
+74. plug-fcm-apns-push-gateway (Archetype: Plug for Integration): Apple APNS & Google FCM mobile push connector. Tech: Go Lambda.
+75. plug-twilio-infobip-sms-gateway (Archetype: Plug for Integration): High-throughput SMS and WhatsApp business API gateway. Tech: Node.js ECS.
+
+--- DOMAIN 11: AUDIT, LOGGING & REGULATORY COMPLIANCE (5 REPOSITORIES) ---
+76. cmd-audit-log-immutable-record (Archetype: Command): Encrypts and writes WORM (Write-Once-Read-Many) audit events into AWS KMS/S3 Object Lock. Tech: Rust Lambda.
+77. qry-audit-log-trace-inspector (Archetype: Query): Search interface for compliance officers, auditors, and security investigators. Tech: Python Lambda, OpenSearch.
+78. prj-audit-log-compliance-views (Archetype: Projection): Materializes daily AML (Anti-Money Laundering) aggregation views for transactions > $10,000 USD. Tech: Lambda.
+79. plug-sbs-regulatory-reporting-export (Archetype: Plug for Integration): Generates periodic regulatory compliance files for SBS (Superintendencia de Banca y Seguros). Tech: Python ECS.
+80. alm-audit-tampering-security-alarm (Archetype: Alarms): Critical security alarm triggered on any unauthorized attempt to alter audit archives or KMS keys.
+
+=== 3. BACKBONE EVENT BUSES & ORCHESTRATION INFRASTRUCTURE ===
+All domains are interconnected via an Amazon EventBridge Enterprise Bus (`arn:aws:events:us-east-1:123456789012:event-bus/core-banking-eventbus`):
+- Key Event Types:
+  * `AccountOpenedEvent.v1`, `AccountStateChangedEvent.v1`, `BalanceReservedEvent.v1`, `BalanceCommittedEvent.v1`
+  * `PaymentInitiatedEvent.v1`, `PaymentAuthorizedEvent.v1`, `PaymentCompletedEvent.v1`, `PaymentFailedEvent.v1`
+  * `FraudRiskScoreCalculatedEvent.v1`, `AccountFrozenEvent.v1`, `LedgerVoucherPostedEvent.v1`
+  * `NotificationDispatchedEvent.v1`, `ComplianceReportGeneratedEvent.v1`
+
+Dead-Letter Queues (DLQs) are configured on Amazon SQS for every EventBridge Rule with maximum 3 retry attempts before dispatching to CloudWatch Alarms.
+Long-running distributed transactions are orchestrated via AWS Step Functions Express & Standard State Machines with automated backward compensation.
+

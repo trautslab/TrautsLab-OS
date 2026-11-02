@@ -1,0 +1,139 @@
+%% Mermaid C4 Diagram - Retail Core Banking Squad (11 Domains, 80 Repositories, 20 Flows)
+graph TB
+  classDef domainBox fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f8fafc;
+  classDef cmdStyle fill:#ef4444,stroke:#7f1d1d,stroke-width:1px,color:#ffffff;
+  classDef qryStyle fill:#22c55e,stroke:#14532d,stroke-width:1px,color:#ffffff;
+  classDef prjStyle fill:#06b6d4,stroke:#164e63,stroke-width:1px,color:#ffffff;
+  classDef plugStyle fill:#f59e0b,stroke:#78350f,stroke-width:1px,color:#ffffff;
+  classDef sfnStyle fill:#a855f7,stroke:#581c87,stroke-width:1px,color:#ffffff;
+  classDef almStyle fill:#f43f5e,stroke:#881337,stroke-width:1px,color:#ffffff;
+  classDef busStyle fill:#334155,stroke:#94a3b8,stroke-width:3px,color:#f8fafc;
+
+  subgraph Backbone["⚡ Enterprise Event Backbone"]
+    EventBus[("Amazon EventBridge Core Banking Bus")]:::busStyle
+  end
+
+  subgraph Sub_CURRENT_ACCOUNT["🏛️ SD-01: CURRENT ACCOUNT"]
+    cmd_current_account_lifecycle["cmd-current-account-lifecycle<br/><i>(Command)</i>"]:::cmdStyle
+    cmd_current_account_deposits["cmd-current-account-deposits<br/><i>(Command)</i>"]:::cmdStyle
+    cmd_current_account_overdraft["cmd-current-account-overdraft<br/><i>(Command)</i>"]:::cmdStyle
+    qry_current_account_details["qry-current-account-details<br/><i>(Query)</i>"]:::qryStyle
+    qry_current_account_statements["qry-current-account-statements<br/><i>(Query)</i>"]:::qryStyle
+    prj_current_account_readmodel["prj-current-account-readmodel<br/><i>(Projection)</i>"]:::prjStyle
+    prj_current_account_analytics["prj-current-account-analytics<br/><i>(Projection)</i>"]:::prjStyle
+    sfn_current_account_closure_saga["sfn-current-account-closure-saga<br/><i>(Step Function)</i>"]:::sfnStyle
+    plug_host_mainframe_core_sync["plug-host-mainframe-core-sync<br/><i>(Plug for Integration)</i>"]:::plugStyle
+    alm_current_account_errors["alm-current-account-errors<br/><i>(Alarms)</i>"]:::almStyle
+  end
+
+  subgraph Sub_PAYMENT_EXECUTION["🏛️ SD-02: PAYMENT EXECUTION"]
+    cmd_payment_execution_initiate["cmd-payment-execution-initiate<br/><i>(Command)</i>"]:::cmdStyle
+    cmd_payment_execution_authorization["cmd-payment-execution-authorization<br/><i>(Command)</i>"]:::cmdStyle
+    cmd_payment_execution_settle["cmd-payment-execution-settle<br/><i>(Command)</i>"]:::cmdStyle
+    qry_payment_execution_status["qry-payment-execution-status<br/><i>(Query)</i>"]:::qryStyle
+    qry_payment_execution_limits["qry-payment-execution-limits<br/><i>(Query)</i>"]:::qryStyle
+    prj_payment_execution_history["prj-payment-execution-history<br/><i>(Projection)</i>"]:::prjStyle
+    prj_payment_execution_metrics["prj-payment-execution-metrics<br/><i>(Projection)</i>"]:::prjStyle
+    sfn_payment_instant_transfer_saga["sfn-payment-instant-transfer-saga<br/><i>(Step Function)</i>"]:::sfnStyle
+    sfn_payment_clearing_cce_saga["sfn-payment-clearing-cce-saga<br/><i>(Step Function)</i>"]:::sfnStyle
+    plug_cce_clearing_ingress["plug-cce-clearing-ingress<br/><i>(Plug for Integration)</i>"]:::plugStyle
+    plug_swift_iso20022_connector["plug-swift-iso20022-connector<br/><i>(Plug for Integration)</i>"]:::plugStyle
+    alm_payment_execution_p99_latency["alm-payment-execution-p99-latency<br/><i>(Alarms)</i>"]:::almStyle
+  end
+
+  subgraph Sub_PARTY_ROUTING_PROFILE["🏛️ SD-03: PARTY ROUTING PROFILE"]
+    cmd_party_routing_register["cmd-party-routing-register<br/><i>(Command)</i>"]:::cmdStyle
+    cmd_party_routing_deregister["cmd-party-routing-deregister<br/><i>(Command)</i>"]:::cmdStyle
+    qry_party_routing_resolve["qry-party-routing-resolve<br/><i>(Query)</i>"]:::qryStyle
+    prj_party_routing_directory["prj-party-routing-directory<br/><i>(Projection)</i>"]:::prjStyle
+    plug_directory_federation_bridge["plug-directory-federation-bridge<br/><i>(Plug for Integration)</i>"]:::plugStyle
+    alm_party_routing_lookup_failures["alm-party-routing-lookup-failures<br/><i>(Alarms)</i>"]:::almStyle
+  end
+
+  subgraph Sub_CUSTOMER_OFFER___ONBOARDING["🏛️ SD-04: CUSTOMER OFFER & ONBOARDING"]
+    cmd_customer_onboarding_initiate["cmd-customer-onboarding-initiate<br/><i>(Command)</i>"]:::cmdStyle
+    cmd_customer_onboarding_biometrics["cmd-customer-onboarding-biometrics<br/><i>(Command)</i>"]:::cmdStyle
+    qry_customer_onboarding_progress["qry-customer-onboarding-progress<br/><i>(Query)</i>"]:::qryStyle
+    prj_customer_onboarding_funnel["prj-customer-onboarding-funnel<br/><i>(Projection)</i>"]:::prjStyle
+    sfn_customer_onboarding_saga["sfn-customer-onboarding-saga<br/><i>(Step Function)</i>"]:::sfnStyle
+    plug_reniec_biometrics_gateway["plug-reniec-biometrics-gateway<br/><i>(Plug for Integration)</i>"]:::plugStyle
+    plug_experian_credit_score["plug-experian-credit-score<br/><i>(Plug for Integration)</i>"]:::plugStyle
+    alm_onboarding_kyc_drop_rate["alm-onboarding-kyc-drop-rate<br/><i>(Alarms)</i>"]:::almStyle
+  end
+
+  subgraph Sub_CUSTOMER_AGREEMENT___CONTRACT["🏛️ SD-05: CUSTOMER AGREEMENT & CONTRACT"]
+    cmd_customer_agreement_sign["cmd-customer-agreement-sign<br/><i>(Command)</i>"]:::cmdStyle
+    cmd_customer_agreement_amend["cmd-customer-agreement-amend<br/><i>(Command)</i>"]:::cmdStyle
+    qry_customer_agreement_fetch["qry-customer-agreement-fetch<br/><i>(Query)</i>"]:::qryStyle
+    prj_customer_agreement_indexer["prj-customer-agreement-indexer<br/><i>(Projection)</i>"]:::prjStyle
+    plug_docusign_legal_trust_bridge["plug-docusign-legal-trust-bridge<br/><i>(Plug for Integration)</i>"]:::plugStyle
+    alm_agreement_compliance_gaps["alm-agreement-compliance-gaps<br/><i>(Alarms)</i>"]:::almStyle
+  end
+
+  subgraph Sub_POSITION_KEEPING___BALANCES["🏛️ SD-06: POSITION KEEPING & BALANCES"]
+    cmd_position_keeping_reserve["cmd-position-keeping-reserve<br/><i>(Command)</i>"]:::cmdStyle
+    cmd_position_keeping_release["cmd-position-keeping-release<br/><i>(Command)</i>"]:::cmdStyle
+    qry_position_keeping_realtime_balance["qry-position-keeping-realtime-balance<br/><i>(Query)</i>"]:::qryStyle
+    qry_position_keeping_movements["qry-position-keeping-movements<br/><i>(Query)</i>"]:::qryStyle
+    prj_position_keeping_ledger_view["prj-position-keeping-ledger-view<br/><i>(Projection)</i>"]:::prjStyle
+    prj_position_keeping_audit_balance["prj-position-keeping-audit-balance<br/><i>(Projection)</i>"]:::prjStyle
+    plug_atm_switch_pos_gateway["plug-atm-switch-pos-gateway<br/><i>(Plug for Integration)</i>"]:::plugStyle
+    alm_position_keeping_balance_discrepancy["alm-position-keeping-balance-discrepancy<br/><i>(Alarms)</i>"]:::almStyle
+  end
+
+  subgraph Sub_FINANCIAL_ACCOUNTING___GENERAL_LEDGER["🏛️ SD-07: FINANCIAL ACCOUNTING & GENERAL LEDGER"]
+    cmd_financial_accounting_voucher["cmd-financial-accounting-voucher<br/><i>(Command)</i>"]:::cmdStyle
+    qry_financial_accounting_trail["qry-financial-accounting-trail<br/><i>(Query)</i>"]:::qryStyle
+    prj_financial_accounting_journal["prj-financial-accounting-journal<br/><i>(Projection)</i>"]:::prjStyle
+    prj_financial_accounting_eod_balance["prj-financial-accounting-eod-balance<br/><i>(Projection)</i>"]:::prjStyle
+    sfn_financial_accounting_eod_reconciliation["sfn-financial-accounting-eod-reconciliation<br/><i>(Step Function)</i>"]:::sfnStyle
+    plug_sap_erp_general_ledger_adapter["plug-sap-erp-general-ledger-adapter<br/><i>(Plug for Integration)</i>"]:::plugStyle
+    alm_general_ledger_unbalanced_voucher["alm-general-ledger-unbalanced-voucher<br/><i>(Alarms)</i>"]:::almStyle
+  end
+
+  subgraph Sub_COLLATERAL_ALLOCATION___GUARANTEES["🏛️ SD-08: COLLATERAL ALLOCATION & GUARANTEES"]
+    cmd_collateral_allocation_pledge["cmd-collateral-allocation-pledge<br/><i>(Command)</i>"]:::cmdStyle
+    cmd_collateral_allocation_release["cmd-collateral-allocation-release<br/><i>(Command)</i>"]:::cmdStyle
+    qry_collateral_allocation_status["qry-collateral-allocation-status<br/><i>(Query)</i>"]:::qryStyle
+    prj_collateral_allocation_exposure["prj-collateral-allocation-exposure<br/><i>(Projection)</i>"]:::prjStyle
+    alm_collateral_under_coverage_warning["alm-collateral-under-coverage-warning<br/><i>(Alarms)</i>"]:::almStyle
+  end
+
+  subgraph Sub_FRAUD_DETECTION___RISK_SCORING["🏛️ SD-09: FRAUD DETECTION & RISK SCORING"]
+    cmd_fraud_detection_evaluate_tx["cmd-fraud-detection-evaluate-tx<br/><i>(Command)</i>"]:::cmdStyle
+    cmd_fraud_detection_lockout["cmd-fraud-detection-lockout<br/><i>(Command)</i>"]:::cmdStyle
+    qry_fraud_detection_risk_profile["qry-fraud-detection-risk-profile<br/><i>(Query)</i>"]:::qryStyle
+    prj_fraud_detection_blacklists["prj-fraud-detection-blacklists<br/><i>(Projection)</i>"]:::prjStyle
+    sfn_fraud_suspicious_alert_investigation["sfn-fraud-suspicious-alert-investigation<br/><i>(Step Function)</i>"]:::sfnStyle
+    plug_device_fingerprint_threatmetrix["plug-device-fingerprint-threatmetrix<br/><i>(Plug for Integration)</i>"]:::plugStyle
+    plug_biocatch_behavioral_engine["plug-biocatch-behavioral-engine<br/><i>(Plug for Integration)</i>"]:::plugStyle
+    alm_fraud_high_risk_spike_alarm["alm-fraud-high-risk-spike-alarm<br/><i>(Alarms)</i>"]:::almStyle
+  end
+
+  subgraph Sub_CUSTOMER_ALERT___NOTIFICATION["🏛️ SD-10: CUSTOMER ALERT & NOTIFICATION"]
+    cmd_customer_alert_dispatch["cmd-customer-alert-dispatch<br/><i>(Command)</i>"]:::cmdStyle
+    qry_customer_alert_delivery_status["qry-customer-alert-delivery-status<br/><i>(Query)</i>"]:::qryStyle
+    prj_customer_alert_audit_log["prj-customer-alert-audit-log<br/><i>(Projection)</i>"]:::prjStyle
+    plug_fcm_apns_push_gateway["plug-fcm-apns-push-gateway<br/><i>(Plug for Integration)</i>"]:::plugStyle
+    plug_twilio_infobip_sms_gateway["plug-twilio-infobip-sms-gateway<br/><i>(Plug for Integration)</i>"]:::plugStyle
+  end
+
+  subgraph Sub_AUDIT__LOGGING___REGULATORY_COMPLIANCE["🏛️ SD-11: AUDIT, LOGGING & REGULATORY COMPLIANCE"]
+    cmd_audit_log_immutable_record["cmd-audit-log-immutable-record<br/><i>(Command)</i>"]:::cmdStyle
+    qry_audit_log_trace_inspector["qry-audit-log-trace-inspector<br/><i>(Query)</i>"]:::qryStyle
+    prj_audit_log_compliance_views["prj-audit-log-compliance-views<br/><i>(Projection)</i>"]:::prjStyle
+    plug_sbs_regulatory_reporting_export["plug-sbs-regulatory-reporting-export<br/><i>(Plug for Integration)</i>"]:::plugStyle
+    alm_audit_tampering_security_alarm["alm-audit-tampering-security-alarm<br/><i>(Alarms)</i>"]:::almStyle
+  end
+
+  %% Exemplary Core Flow: Instant P2P Transfer (FLOW-02)
+  cmd_payment_execution_initiate -->|1. Resolve| qry_party_routing_resolve
+  cmd_payment_execution_initiate -->|2. Fraud Score| cmd_fraud_detection_evaluate_tx
+  cmd_payment_execution_initiate -->|3. Start Saga| sfn_payment_instant_transfer_saga
+  sfn_payment_instant_transfer_saga -->|4. Hold Funds| cmd_position_keeping_reserve
+  sfn_payment_instant_transfer_saga -->|5. Instant Rail| plug_directory_federation_bridge
+  sfn_payment_instant_transfer_saga -->|6. Commit| cmd_position_keeping_release
+  sfn_payment_instant_transfer_saga -->|7. Outbox Event| EventBus
+  EventBus -.->|Event Subscription| prj_payment_execution_history
+  EventBus -.->|Event Subscription| cmd_customer_alert_dispatch
+  cmd_customer_alert_dispatch -->|Push| plug_fcm_apns_push_gateway

@@ -1,0 +1,1079 @@
+// ==============================================================================
+// LikeC4 Architecture Model - BIAN Core Banking & Agentic Native Rails
+// Strict grammar compliant: Tags first, valid semantic colors
+// ==============================================================================
+
+specification {
+  element domain {
+    style {
+      shape rectangle
+      color slate
+    }
+  }
+  element commandApp {
+    style {
+      shape rectangle
+      color red
+    }
+  }
+  element queryApp {
+    style {
+      shape rectangle
+      color green
+    }
+  }
+  element projectionApp {
+    style {
+      shape rectangle
+      color sky
+    }
+  }
+  element plugApp {
+    style {
+      shape rectangle
+      color amber
+    }
+  }
+  element sfnApp {
+    style {
+      shape rectangle
+      color indigo
+    }
+  }
+  element alarmApp {
+    style {
+      shape rectangle
+      color red
+    }
+  }
+  element eventbus {
+    style {
+      shape queue
+      color indigo
+    }
+  }
+  element datastore {
+    style {
+      shape storage
+      color slate
+    }
+  }
+  element gateway {
+    style {
+      shape rectangle
+      color indigo
+    }
+  }
+  element agentRuntime {
+    style {
+      shape rectangle
+      color blue
+    }
+  }
+  element plannedApp {
+    style {
+      shape rectangle
+      color amber
+    }
+  }
+  element brokenApp {
+    style {
+      shape rectangle
+      color red
+    }
+  }
+  element containerCluster {
+    style {
+      shape rectangle
+      color blue
+    }
+  }
+  element externalLLM {
+    style {
+      shape person
+      color slate
+    }
+  }
+  tag bcp
+  tag bian
+  tag aws
+  tag squad
+  tag active
+  tag to_create
+  tag non_existent
+}
+
+model {
+  // Central Event Backbone
+  eventbridge_bus = eventbus 'Core Banking EventBus' {
+    #aws
+    description 'Amazon EventBridge Central Enterprise Backbone'
+    technology 'Amazon EventBridge'
+  }
+
+  external_llm = externalLLM 'External LLM Consumers' {
+    description 'External Agentic Workflows, Copilots, and Mobile Assistants'
+  }
+
+  acg_gateway = gateway 'acg-{env}-io-semantic-router-01' {
+    #aws #active
+    description 'Agent Core Gateway: Auth, Semantic Routing, Rate Limiting & MCP Proxy'
+    technology 'Amazon API Gateway HTTP / ECS Envoy'
+  }
+
+  subgraph_acr = domain 'Agent Core Runtime (ACR) Cluster' {
+    #squad
+    description 'MCP Tool Servers hosting domain capabilities (Active & Planned)'
+
+    acr_vads_coupons = agentRuntime 'acr_{env}_io_vads_coupons_mcp_01' {
+      #active #squad
+      description '[ACTIVO] MCP Server for coupons operations'
+      technology 'Node.js 20, MCP stdio/SSE'
+    }
+    acr_vads_cashback = agentRuntime 'acr_{env}_io_vads_cashback_mcp_01' {
+      #active #squad
+      description '[ACTIVO] MCP Server for cashback benefits'
+      technology 'Node.js 20, MCP stdio/SSE'
+    }
+    acr_sale_campaign = plannedApp 'acr-io-sale-campaign-mcp-01' {
+      #to_create #squad
+      description '[POR CREAR] MCP Server for marketing & sales campaign tools'
+      technology 'TypeScript, MCP'
+    }
+    acr_reward_point_acc = agentRuntime 'acr_{env}_io_acse_reward_point_acc_mcp_01' {
+      #active #squad
+      description '[ACTIVO] MCP Server for loyalty points account & balances'
+      technology 'Node.js, MCP'
+    }
+    acr_reward_point_ar = plannedApp 'acr_{env}_io_opse_reward_point_ar_mcp_01' {
+      #to_create #squad
+      description '[POR CREAR] MCP Server for points accrual and redemption operations'
+      technology 'Node.js 20, MCP'
+    }
+    acr_made_campaign_dsg = agentRuntime 'acr_{env}_io_made_campaign_dsg_mcp_01' {
+      #active #squad
+      description '[ACTIVO] MCP Server for campaign design rules'
+      technology 'TypeScript, MCP'
+    }
+  }
+
+  subgraph_backend = domain 'Backend Microservices & Lambda Finders' {
+    #aws
+    description 'Granular serverless query handlers and containerized core'
+
+    lmb_coupons_non_expired = queryApp 'lmb-matrix-findby-non-expired-coupons-qry-svc-01' {
+      #active #aws
+      description '[ACTIVO] Finder query for active, non-expired coupons'
+      technology 'AWS Lambda, Go 1.22'
+    }
+    lmb_coupons_by_id = queryApp 'lmb-matrix-findby-id-coupons-qry-svc-01' {
+      #active #aws
+      description '[ACTIVO] Finder query for coupon details by ID'
+      technology 'AWS Lambda, Node.js 20'
+    }
+    lmb_coupons_by_dep = queryApp 'lmb-matrix-findby-dep-coupons-qry-svc-01' {
+      #active #aws
+      description '[ACTIVO] Finder query for department coupons'
+      technology 'AWS Lambda, Node.js 20'
+    }
+    lmb_matrix_env_coupons_by_id = queryApp 'lmb-(env)-matrix-findby-id-coupons-qry-svc-01' {
+      #active #aws
+      description '[ACTIVO] Environment-scoped coupon finder service'
+      technology 'AWS Lambda, Node.js 20'
+    }
+    lmb_sale_cust_cpgn = queryApp 'lmb-(env)-io-sale-cust-cpgn-ex-qry_findby-01' {
+      #active #aws
+      description '[ACTIVO] Customer campaign execution query finder'
+      technology 'AWS Lambda, TypeScript'
+    }
+    lmb_sale_campaign_exec = plannedApp 'lmb-{env}-io-sale-campaign-exec--qry_findby-01' {
+      #to_create #aws
+      description '[POR CREAR] Query service for campaign execution details'
+      technology 'AWS Lambda, TypeScript'
+    }
+    lmb_opse_reward_ar = plannedApp 'lmb-{env}-io-opse-reward-point-ar-qry-01' {
+      #to_create #aws
+      description '[POR CREAR] Query service for points operation records'
+      technology 'AWS Lambda, Python 3.11'
+    }
+    lmb_acse_reward_acc = queryApp 'lmb-(env)-io-acse-reward-point-acc-qry_findby-01' {
+      #active #aws
+      description '[ACTIVO] Loyalty points account and balance finder'
+      technology 'AWS Lambda, Python 3.11'
+    }
+    lmb_made_campaign_pjc = brokenApp 'lmb-(env)-io-made-campaign-dsg-pjc_findby-id-01' {
+      #non_existent #aws
+      description '[NO EXISTE] Missing projection finder -> Triggers 502 Bad Gateway'
+      technology 'Phantom Lambda Service'
+    }
+    eks_cluster = containerCluster 'eks-{env}-io-01' {
+      #active #aws
+      description '[ACTIVO] EKS Cluster hosting high-throughput transactional services'
+      technology 'Amazon EKS'
+    }
+  }
+
+  external_llm -> acg_gateway 'Prompts & Multi-Tool Calls'
+  acg_gateway -> acr_vads_coupons 'Routes coupons.*'
+  acg_gateway -> acr_vads_cashback 'Routes cashback.*'
+  acg_gateway -> acr_sale_campaign 'Routes campaigns.* [POR CREAR: Ambiguity]'
+  acg_gateway -> acr_reward_point_acc 'Routes points.*'
+  acg_gateway -> acr_reward_point_ar 'Routes accrual.* [POR CREAR]'
+  acg_gateway -> acr_made_campaign_dsg 'Routes design.*'
+  acr_vads_coupons -> lmb_coupons_non_expired 'Invokes non-expired finder'
+  acr_vads_coupons -> lmb_coupons_by_id 'Invokes by-ID finder'
+  acr_vads_coupons -> lmb_coupons_by_dep 'Invokes department finder'
+  acr_vads_coupons -> lmb_matrix_env_coupons_by_id 'Invokes env finder'
+  acr_sale_campaign -> lmb_sale_campaign_exec '[POR CREAR] Invokes campaign finder'
+  acr_sale_campaign -> lmb_sale_cust_cpgn 'Invokes customer campaign query'
+  acr_reward_point_acc -> lmb_acse_reward_acc 'Invokes points query [Race Condition]'
+  acr_reward_point_ar -> lmb_opse_reward_ar '[POR CREAR] Invokes accrual query'
+  acr_made_campaign_dsg -> lmb_made_campaign_pjc 'Invokes projection [NO EXISTE: 502 Collision]'
+  acr_vads_cashback -> eks_cluster 'Dispatches cashback transaction'
+
+  dom_1 = domain 'SD-01: CURRENT ACCOUNT' {
+    #bian
+    description 'Fulfills standard current account servicing, balances, transactions, deposits, and debit management.'
+
+    store_db_1 = datastore 'CURRENT ACCOUNT Storage' {
+      #aws
+      description 'Persistence and cache views for CURRENT ACCOUNT'
+      technology 'Amazon DynamoDB & Redis'
+    }
+
+    cmd_current_account_lifecycle = commandApp 'cmd-current-account-lifecycle' {
+      #squad #aws
+      description 'Handles opening authorization, state transitions (Active, Frozen, Dormant, Closed). js 20, Lambda, DynamoDB Write Table \'core-accounts-master\'.'
+      technology 'Node'
+    }
+
+    cmd_current_account_lifecycle -> store_db_1 'accesses persistence'
+    cmd_current_account_lifecycle -> eventbridge_bus 'emits domain events to'
+    cmd_current_account_deposits = commandApp 'cmd-current-account-deposits' {
+      #squad #aws
+      description 'Ingestion and validation of direct cash/cheque deposits.'
+      technology 'TypeScript Lambda, DynamoDB, EventBridge Outbox'
+    }
+
+    cmd_current_account_deposits -> store_db_1 'accesses persistence'
+    cmd_current_account_deposits -> eventbridge_bus 'emits domain events to'
+    cmd_current_account_overdraft = commandApp 'cmd-current-account-overdraft' {
+      #squad #aws
+      description 'Evaluates and triggers automated overdraft drawdowns. 22 Lambda.'
+      technology 'Go 1'
+    }
+
+    cmd_current_account_overdraft -> store_db_1 'accesses persistence'
+    cmd_current_account_overdraft -> eventbridge_bus 'emits domain events to'
+    qry_current_account_details = queryApp 'qry-current-account-details' {
+      #squad #aws
+      description 'Sub-10ms query service for account metadata, state, limits. js Lambda, Redis Cache / DynamoDB Read Replica.'
+      technology 'Node'
+    }
+
+    qry_current_account_details -> store_db_1 'accesses persistence'
+    qry_current_account_statements = queryApp 'qry-current-account-statements' {
+      #squad #aws
+      description 'Serves historical PDF and JSON statements.'
+      technology 'Python FastAPI Lambda, S3 Glacier/Standard'
+    }
+
+    qry_current_account_statements -> store_db_1 'accesses persistence'
+    prj_current_account_readmodel = projectionApp 'prj-current-account-readmodel' {
+      #squad #aws
+      description 'Consumes \'AccountCreated\', \'AccountStatusChanged\' events from EventBridge; writes to DynamoDB Global Read Table. js Lambda.'
+      technology 'Node'
+    }
+
+    prj_current_account_readmodel -> store_db_1 'accesses persistence'
+    prj_current_account_readmodel -> eventbridge_bus 'subscribes to events from'
+    prj_current_account_analytics = projectionApp 'prj-current-account-analytics' {
+      #squad #aws
+      description 'Pushes account status telemetry to OpenSearch and S3 Parquet Lake.'
+      technology 'EventBridge Pipes & Firehose'
+    }
+
+    prj_current_account_analytics -> store_db_1 'accesses persistence'
+    prj_current_account_analytics -> eventbridge_bus 'subscribes to events from'
+    sfn_current_account_closure_saga = sfnApp 'sfn-current-account-closure-saga' {
+      #squad #aws
+      description 'Step Function state machine orchestrating account closure, fee clearance, balance zeroing, and legal release.'
+      technology 'AWS Lambda, Node.js'
+    }
+
+    sfn_current_account_closure_saga -> store_db_1 'accesses persistence'
+    sfn_current_account_closure_saga -> eventbridge_bus 'subscribes to events from'
+    plug_host_mainframe_core_sync = plugApp 'plug-host-mainframe-core-sync' {
+      #squad #aws
+      description 'Bi-directional SNA/TCP connector to IBM Mainframe DB2 Core Banking.'
+      technology 'Java 21 Quarkus ECS Fargate container'
+    }
+
+    plug_host_mainframe_core_sync -> store_db_1 'accesses persistence'
+    alm_current_account_errors = alarmApp 'alm-current-account-errors' {
+      #squad #aws
+      description 'CloudWatch alarms for 5xx spikes, DB lock timeouts, and DLQ backlogs on account lifecycle events.'
+      technology 'AWS Lambda, Node.js'
+    }
+
+    alm_current_account_errors -> store_db_1 'accesses persistence'
+  }
+
+  dom_2 = domain 'SD-02: PAYMENT EXECUTION' {
+    #bian
+    description 'Orchestrates outbound and inbound funds transfers, domestic clearing (CCE), instant P2P transfers, and rails routing.'
+
+    store_db_2 = datastore 'PAYMENT EXECUTION Storage' {
+      #aws
+      description 'Persistence and cache views for PAYMENT EXECUTION'
+      technology 'Amazon DynamoDB & Redis'
+    }
+
+    cmd_payment_execution_initiate = commandApp 'cmd-payment-execution-initiate' {
+      #squad #aws
+      description 'Ingests payment orders, validates idempotency key, executes schema validation. js 20 Lambda.'
+      technology 'Node'
+    }
+
+    cmd_payment_execution_initiate -> store_db_2 'accesses persistence'
+    cmd_payment_execution_initiate -> eventbridge_bus 'emits domain events to'
+    cmd_payment_execution_authorization = commandApp 'cmd-payment-execution-authorization' {
+      #squad #aws
+      description 'Enforces authorization rules, multi-factor token signatures.'
+      technology 'Go Lambda'
+    }
+
+    cmd_payment_execution_authorization -> store_db_2 'accesses persistence'
+    cmd_payment_execution_authorization -> eventbridge_bus 'emits domain events to'
+    cmd_payment_execution_settle = commandApp 'cmd-payment-execution-settle' {
+      #squad #aws
+      description 'Executes final settlement confirmation and releases transaction locks.'
+      technology 'TypeScript Lambda'
+    }
+
+    cmd_payment_execution_settle -> store_db_2 'accesses persistence'
+    cmd_payment_execution_settle -> eventbridge_bus 'emits domain events to'
+    qry_payment_execution_status = queryApp 'qry-payment-execution-status' {
+      #squad #aws
+      description 'Read API polling and webhook queries for transfer status. js Lambda, DynamoDB.'
+      technology 'Node'
+    }
+
+    qry_payment_execution_status -> store_db_2 'accesses persistence'
+    qry_payment_execution_limits = queryApp 'qry-payment-execution-limits' {
+      #squad #aws
+      description 'Calculates remaining daily and per-transaction limits. js Lambda, Redis Cache.'
+      technology 'Node'
+    }
+
+    qry_payment_execution_limits -> store_db_2 'accesses persistence'
+    prj_payment_execution_history = projectionApp 'prj-payment-execution-history' {
+      #squad #aws
+      description 'Projects all payment lifecycle events into the unified payment timeline store.'
+      technology 'Lambda DynamoDB Streams'
+    }
+
+    prj_payment_execution_history -> store_db_2 'accesses persistence'
+    prj_payment_execution_history -> eventbridge_bus 'subscribes to events from'
+    prj_payment_execution_metrics = projectionApp 'prj-payment-execution-metrics' {
+      #squad #aws
+      description 'Emits Prometheus/CloudWatch metrics for transaction throughput, success rate, and latency.'
+      technology 'AWS Lambda, Node.js'
+    }
+
+    prj_payment_execution_metrics -> store_db_2 'accesses persistence'
+    prj_payment_execution_metrics -> eventbridge_bus 'subscribes to events from'
+    sfn_payment_instant_transfer_saga = sfnApp 'sfn-payment-instant-transfer-saga' {
+      #squad #aws
+      description 'Critical distributed Saga: 1. Hold Funds in Source -> 2. Risk Check -> 3. Credit Target -> 4. Release Hold. Automated compensation on timeout.'
+      technology 'AWS Lambda, Node.js'
+    }
+
+    sfn_payment_instant_transfer_saga -> store_db_2 'accesses persistence'
+    sfn_payment_instant_transfer_saga -> eventbridge_bus 'subscribes to events from'
+    sfn_payment_clearing_cce_saga = sfnApp 'sfn-payment-clearing-cce-saga' {
+      #squad #aws
+      description 'Batch and scheduled clearing orchestration with Chamber of Clearing (CCE).'
+      technology 'AWS Lambda, Node.js'
+    }
+
+    sfn_payment_clearing_cce_saga -> store_db_2 'accesses persistence'
+    sfn_payment_clearing_cce_saga -> eventbridge_bus 'subscribes to events from'
+    plug_cce_clearing_ingress = plugApp 'plug-cce-clearing-ingress' {
+      #squad #aws
+      description 'Receives inbound payment batches from domestic clearinghouse via AS2/HTTPS.'
+      technology 'ECS Fargate API'
+    }
+
+    plug_cce_clearing_ingress -> store_db_2 'accesses persistence'
+    plug_swift_iso20022_connector = plugApp 'plug-swift-iso20022-connector' {
+      #squad #aws
+      description 'Translates ISO 20022 pacs.008, pacs.002 messages to internal JSON domain events.'
+      technology 'Java 21 Spring Native'
+    }
+
+    plug_swift_iso20022_connector -> store_db_2 'accesses persistence'
+    alm_payment_execution_p99_latency = alarmApp 'alm-payment-execution-p99-latency' {
+      #squad #aws
+      description 'Alarms on P99 latency exceeding 250ms, triggering automated incident alert to PagerDuty.'
+      technology 'AWS Lambda, Node.js'
+    }
+
+    alm_payment_execution_p99_latency -> store_db_2 'accesses persistence'
+  }
+
+  dom_3 = domain 'SD-03: PARTY ROUTING PROFILE' {
+    #bian
+    description 'Maintains customer identity aliases, phone/email-to-account mappings for instant P2P payments (e.g. Yape/Plin), and channel profiles.'
+
+    store_db_3 = datastore 'PARTY ROUTING PROFILE Storage' {
+      #aws
+      description 'Persistence and cache views for PARTY ROUTING PROFILE'
+      technology 'Amazon DynamoDB & Redis'
+    }
+
+    cmd_party_routing_register = commandApp 'cmd-party-routing-register' {
+      #squad #aws
+      description 'Binds mobile phone number (MSISDN) and email to primary Account Number (CCI). js Lambda.'
+      technology 'Node'
+    }
+
+    cmd_party_routing_register -> store_db_3 'accesses persistence'
+    cmd_party_routing_register -> eventbridge_bus 'emits domain events to'
+    cmd_party_routing_deregister = commandApp 'cmd-party-routing-deregister' {
+      #squad #aws
+      description 'Unlinks alias or updates account destination. js Lambda.'
+      technology 'Node'
+    }
+
+    cmd_party_routing_deregister -> store_db_3 'accesses persistence'
+    cmd_party_routing_deregister -> eventbridge_bus 'emits domain events to'
+    qry_party_routing_resolve = queryApp 'qry-party-routing-resolve' {
+      #squad #aws
+      description 'Ultra-fast directory lookup (resolves phone number to bank routing and account in <15ms).'
+      technology 'Go Lambda, DynamoDB DAX cluster'
+    }
+
+    qry_party_routing_resolve -> store_db_3 'accesses persistence'
+    prj_party_routing_directory = projectionApp 'prj-party-routing-directory' {
+      #squad #aws
+      description 'Materializes lookup cache across multi-region tables.'
+      technology 'Lambda DynamoDB Streams'
+    }
+
+    prj_party_routing_directory -> store_db_3 'accesses persistence'
+    prj_party_routing_directory -> eventbridge_bus 'subscribes to events from'
+    plug_directory_federation_bridge = plugApp 'plug-directory-federation-bridge' {
+      #squad #aws
+      description 'Connects with interbank directory federation (CCE / BCRP rails). js ECS.'
+      technology 'Node'
+    }
+
+    plug_directory_federation_bridge -> store_db_3 'accesses persistence'
+    alm_party_routing_lookup_failures = alarmApp 'alm-party-routing-lookup-failures' {
+      #squad #aws
+      description 'Monitors resolution failure rates and cache misses.'
+      technology 'AWS Lambda, Node.js'
+    }
+
+    alm_party_routing_lookup_failures -> store_db_3 'accesses persistence'
+  }
+
+  dom_4 = domain 'SD-04: CUSTOMER OFFER & ONBOARDING' {
+    #bian
+    description 'Manages customer digital acquisition, biometric KYC verification, pre-approved credit lines, and account origination.'
+
+    store_db_4 = datastore 'CUSTOMER OFFER & ONBOARDING Storage' {
+      #aws
+      description 'Persistence and cache views for CUSTOMER OFFER & ONBOARDING'
+      technology 'Amazon DynamoDB & Redis'
+    }
+
+    cmd_customer_onboarding_initiate = commandApp 'cmd-customer-onboarding-initiate' {
+      #squad #aws
+      description 'Receives digital prospect application and initiates KYC workflow.'
+      technology 'TypeScript Lambda'
+    }
+
+    cmd_customer_onboarding_initiate -> store_db_4 'accesses persistence'
+    cmd_customer_onboarding_initiate -> eventbridge_bus 'emits domain events to'
+    cmd_customer_onboarding_biometrics = commandApp 'cmd-customer-onboarding-biometrics' {
+      #squad #aws
+      description 'Ingests facial validation payload and RENIEC biometric token.'
+      technology 'Python Lambda'
+    }
+
+    cmd_customer_onboarding_biometrics -> store_db_4 'accesses persistence'
+    cmd_customer_onboarding_biometrics -> eventbridge_bus 'emits domain events to'
+    qry_customer_onboarding_progress = queryApp 'qry-customer-onboarding-progress' {
+      #squad #aws
+      description 'Returns real-time state of applicant progress for mobile app. js Lambda.'
+      technology 'Node'
+    }
+
+    qry_customer_onboarding_progress -> store_db_4 'accesses persistence'
+    prj_customer_onboarding_funnel = projectionApp 'prj-customer-onboarding-funnel' {
+      #squad #aws
+      description 'Projects funnel conversion drop-offs into analytics lake.'
+      technology 'EventBridge Pipes'
+    }
+
+    prj_customer_onboarding_funnel -> store_db_4 'accesses persistence'
+    prj_customer_onboarding_funnel -> eventbridge_bus 'subscribes to events from'
+    sfn_customer_onboarding_saga = sfnApp 'sfn-customer-onboarding-saga' {
+      #squad #aws
+      description 'Orchestrates KYC -> AML Validation -> Contract Generation -> Account Creation -> Debit Card Provisioning.'
+      technology 'AWS Lambda, Node.js'
+    }
+
+    sfn_customer_onboarding_saga -> store_db_4 'accesses persistence'
+    sfn_customer_onboarding_saga -> eventbridge_bus 'subscribes to events from'
+    plug_reniec_biometrics_gateway = plugApp 'plug-reniec-biometrics-gateway' {
+      #squad #aws
+      description 'Connects to national identity registry (RENIEC) with TLS mutual auth.'
+      technology 'Java Lambda'
+    }
+
+    plug_reniec_biometrics_gateway -> store_db_4 'accesses persistence'
+    plug_experian_credit_score = plugApp 'plug-experian-credit-score' {
+      #squad #aws
+      description 'Pulls credit score and risk bureau data.'
+      technology 'Python Lambda'
+    }
+
+    plug_experian_credit_score -> store_db_4 'accesses persistence'
+    alm_onboarding_kyc_drop_rate = alarmApp 'alm-onboarding-kyc-drop-rate' {
+      #squad #aws
+      description 'Alarms if KYC validation failures exceed 8% threshold.'
+      technology 'AWS Lambda, Node.js'
+    }
+
+    alm_onboarding_kyc_drop_rate -> store_db_4 'accesses persistence'
+  }
+
+  dom_5 = domain 'SD-05: CUSTOMER AGREEMENT & CONTRACT' {
+    #bian
+    description 'Maintains contractual terms, digital signatures, legal disclosures, fees agreements, and product conditions.'
+
+    store_db_5 = datastore 'CUSTOMER AGREEMENT & CONTRACT Storage' {
+      #aws
+      description 'Persistence and cache views for CUSTOMER AGREEMENT & CONTRACT'
+      technology 'Amazon DynamoDB & Redis'
+    }
+
+    cmd_customer_agreement_sign = commandApp 'cmd-customer-agreement-sign' {
+      #squad #aws
+      description 'Records digital signature, cryptographic hash, and legal consent timestamp. js Lambda.'
+      technology 'Node'
+    }
+
+    cmd_customer_agreement_sign -> store_db_5 'accesses persistence'
+    cmd_customer_agreement_sign -> eventbridge_bus 'emits domain events to'
+    cmd_customer_agreement_amend = commandApp 'cmd-customer-agreement-amend' {
+      #squad #aws
+      description 'Applies contractual annexes, interest rate changes, or clause updates.'
+      technology 'TypeScript Lambda'
+    }
+
+    cmd_customer_agreement_amend -> store_db_5 'accesses persistence'
+    cmd_customer_agreement_amend -> eventbridge_bus 'emits domain events to'
+    qry_customer_agreement_fetch = queryApp 'qry-customer-agreement-fetch' {
+      #squad #aws
+      description 'Retrieves signed legal terms and audit certificate. js Lambda, S3 presigned URLs.'
+      technology 'Node'
+    }
+
+    qry_customer_agreement_fetch -> store_db_5 'accesses persistence'
+    prj_customer_agreement_indexer = projectionApp 'prj-customer-agreement-indexer' {
+      #squad #aws
+      description 'Indexes contract clauses and consent history into OpenSearch.'
+      technology 'Lambda'
+    }
+
+    prj_customer_agreement_indexer -> store_db_5 'accesses persistence'
+    prj_customer_agreement_indexer -> eventbridge_bus 'subscribes to events from'
+    plug_docusign_legal_trust_bridge = plugApp 'plug-docusign-legal-trust-bridge' {
+      #squad #aws
+      description 'Integrates with certified digital signature provider for legal stamping.'
+      technology 'TypeScript Lambda'
+    }
+
+    plug_docusign_legal_trust_bridge -> store_db_5 'accesses persistence'
+    alm_agreement_compliance_gaps = alarmApp 'alm-agreement-compliance-gaps' {
+      #squad #aws
+      description 'Tracks missing required terms and condition acceptances.'
+      technology 'AWS Lambda, Node.js'
+    }
+
+    alm_agreement_compliance_gaps -> store_db_5 'accesses persistence'
+  }
+
+  dom_6 = domain 'SD-06: POSITION KEEPING & BALANCES' {
+    #bian
+    description 'Maintains real-time authorized, ledger, available, and hold balances with microsecond latency.'
+
+    store_db_6 = datastore 'POSITION KEEPING & BALANCES Storage' {
+      #aws
+      description 'Persistence and cache views for POSITION KEEPING & BALANCES'
+      technology 'Amazon DynamoDB & Redis'
+    }
+
+    cmd_position_keeping_reserve = commandApp 'cmd-position-keeping-reserve' {
+      #squad #aws
+      description 'Places temporary authorization holds on balances for card swipe or pending transfer.'
+      technology 'Go Lambda'
+    }
+
+    cmd_position_keeping_reserve -> store_db_6 'accesses persistence'
+    cmd_position_keeping_reserve -> eventbridge_bus 'emits domain events to'
+    cmd_position_keeping_release = commandApp 'cmd-position-keeping-release' {
+      #squad #aws
+      description 'Releases or commits hold into settled balance.'
+      technology 'Go Lambda'
+    }
+
+    cmd_position_keeping_release -> store_db_6 'accesses persistence'
+    cmd_position_keeping_release -> eventbridge_bus 'emits domain events to'
+    qry_position_keeping_realtime_balance = queryApp 'qry-position-keeping-realtime-balance' {
+      #squad #aws
+      description 'Provides instantaneous available, ledger, and hold balances.'
+      technology 'Rust Lambda, Redis / DynamoDB DAX'
+    }
+
+    qry_position_keeping_realtime_balance -> store_db_6 'accesses persistence'
+    qry_position_keeping_movements = queryApp 'qry-position-keeping-movements' {
+      #squad #aws
+      description 'Returns paginated transaction movements and timestamps. js Lambda.'
+      technology 'Node'
+    }
+
+    qry_position_keeping_movements -> store_db_6 'accesses persistence'
+    prj_position_keeping_ledger_view = projectionApp 'prj-position-keeping-ledger-view' {
+      #squad #aws
+      description 'Listens to debit/credit posted events to maintain continuous balance snapshots.'
+      technology 'Lambda'
+    }
+
+    prj_position_keeping_ledger_view -> store_db_6 'accesses persistence'
+    prj_position_keeping_ledger_view -> eventbridge_bus 'subscribes to events from'
+    prj_position_keeping_audit_balance = projectionApp 'prj-position-keeping-audit-balance' {
+      #squad #aws
+      description 'Daily balance delta projection against core mainframe reports.'
+      technology 'Python Lambda'
+    }
+
+    prj_position_keeping_audit_balance -> store_db_6 'accesses persistence'
+    prj_position_keeping_audit_balance -> eventbridge_bus 'subscribes to events from'
+    plug_atm_switch_pos_gateway = plugApp 'plug-atm-switch-pos-gateway' {
+      #squad #aws
+      description 'ISO 8583 translator for ATM switches and POS debit authorizations.'
+      technology 'C++/Rust ECS Fargate'
+    }
+
+    plug_atm_switch_pos_gateway -> store_db_6 'accesses persistence'
+    alm_position_keeping_balance_discrepancy = alarmApp 'alm-position-keeping-balance-discrepancy' {
+      #squad #aws
+      description 'Critical P0 Alarm: triggers on any ledger vs available balance mathematical mismatch.'
+      technology 'AWS Lambda, Node.js'
+    }
+
+    alm_position_keeping_balance_discrepancy -> store_db_6 'accesses persistence'
+  }
+
+  dom_7 = domain 'SD-07: FINANCIAL ACCOUNTING & GENERAL LEDGER' {
+    #bian
+    description 'Generates double-entry accounting bookings, chart of accounts journal vouchers, and end-of-day reconciliation balances.'
+
+    store_db_7 = datastore 'FINANCIAL ACCOUNTING & GENERAL LEDGER Storage' {
+      #aws
+      description 'Persistence and cache views for FINANCIAL ACCOUNTING & GENERAL LEDGER'
+      technology 'Amazon DynamoDB & Redis'
+    }
+
+    cmd_financial_accounting_voucher = commandApp 'cmd-financial-accounting-voucher' {
+      #squad #aws
+      description 'Creates double-entry debits and credits ledger vouchers.'
+      technology 'TypeScript Lambda'
+    }
+
+    cmd_financial_accounting_voucher -> store_db_7 'accesses persistence'
+    cmd_financial_accounting_voucher -> eventbridge_bus 'emits domain events to'
+    qry_financial_accounting_trail = queryApp 'qry-financial-accounting-trail' {
+      #squad #aws
+      description 'Inquires chart of accounts balances and journal entries. js Lambda.'
+      technology 'Node'
+    }
+
+    qry_financial_accounting_trail -> store_db_7 'accesses persistence'
+    prj_financial_accounting_journal = projectionApp 'prj-financial-accounting-journal' {
+      #squad #aws
+      description 'Stream-aggregates all financial transaction events into the general ledger journal.'
+      technology 'Lambda EventBridge'
+    }
+
+    prj_financial_accounting_journal -> store_db_7 'accesses persistence'
+    prj_financial_accounting_journal -> eventbridge_bus 'subscribes to events from'
+    prj_financial_accounting_eod_balance = projectionApp 'prj-financial-accounting-eod-balance' {
+      #squad #aws
+      description 'Compiles End-of-Day balance totals per currency (PEN, USD).'
+      technology 'Python Lambda'
+    }
+
+    prj_financial_accounting_eod_balance -> store_db_7 'accesses persistence'
+    prj_financial_accounting_eod_balance -> eventbridge_bus 'subscribes to events from'
+    sfn_financial_accounting_eod_reconciliation = sfnApp 'sfn-financial-accounting-eod-reconciliation' {
+      #squad #aws
+      description 'Step Function running at 23:59:00 to lock daily balances, reconcile with central ledger, and produce balance sheet vouchers.'
+      technology 'AWS Lambda, Node.js'
+    }
+
+    sfn_financial_accounting_eod_reconciliation -> store_db_7 'accesses persistence'
+    sfn_financial_accounting_eod_reconciliation -> eventbridge_bus 'subscribes to events from'
+    plug_sap_erp_general_ledger_adapter = plugApp 'plug-sap-erp-general-ledger-adapter' {
+      #squad #aws
+      description 'Transmits daily accounting journals into SAP S/4HANA via RFC/OData.'
+      technology 'Java ECS'
+    }
+
+    plug_sap_erp_general_ledger_adapter -> store_db_7 'accesses persistence'
+    alm_general_ledger_unbalanced_voucher = alarmApp 'alm-general-ledger-unbalanced-voucher' {
+      #squad #aws
+      description 'High-priority alarm triggered if Total Debits != Total Credits.'
+      technology 'AWS Lambda, Node.js'
+    }
+
+    alm_general_ledger_unbalanced_voucher -> store_db_7 'accesses persistence'
+  }
+
+  dom_8 = domain 'SD-08: COLLATERAL ALLOCATION & GUARANTEES' {
+    #bian
+    description 'Monitors collateralized guarantees, lien holds, escrow reserves, and asset-backed credit ceilings.'
+
+    store_db_8 = datastore 'COLLATERAL ALLOCATION & GUARANTEES Storage' {
+      #aws
+      description 'Persistence and cache views for COLLATERAL ALLOCATION & GUARANTEES'
+      technology 'Amazon DynamoDB & Redis'
+    }
+
+    cmd_collateral_allocation_pledge = commandApp 'cmd-collateral-allocation-pledge' {
+      #squad #aws
+      description 'Pledges term deposits or accounts as collateral against lines of credit. js Lambda.'
+      technology 'Node'
+    }
+
+    cmd_collateral_allocation_pledge -> store_db_8 'accesses persistence'
+    cmd_collateral_allocation_pledge -> eventbridge_bus 'emits domain events to'
+    cmd_collateral_allocation_release = commandApp 'cmd-collateral-allocation-release' {
+      #squad #aws
+      description 'Releases collateral hold upon loan discharge.'
+      technology 'TypeScript Lambda'
+    }
+
+    cmd_collateral_allocation_release -> store_db_8 'accesses persistence'
+    cmd_collateral_allocation_release -> eventbridge_bus 'emits domain events to'
+    qry_collateral_allocation_status = queryApp 'qry-collateral-allocation-status' {
+      #squad #aws
+      description 'Checks collateral coverage ratio and pledged assets. js Lambda.'
+      technology 'Node'
+    }
+
+    qry_collateral_allocation_status -> store_db_8 'accesses persistence'
+    prj_collateral_allocation_exposure = projectionApp 'prj-collateral-allocation-exposure' {
+      #squad #aws
+      description 'Projects real-time risk exposure of linked credit lines.'
+      technology 'Lambda'
+    }
+
+    prj_collateral_allocation_exposure -> store_db_8 'accesses persistence'
+    prj_collateral_allocation_exposure -> eventbridge_bus 'subscribes to events from'
+    alm_collateral_under_coverage_warning = alarmApp 'alm-collateral-under-coverage-warning' {
+      #squad #aws
+      description 'Alarms when collateral value falls below loan margin ratio.'
+      technology 'AWS Lambda, Node.js'
+    }
+
+    alm_collateral_under_coverage_warning -> store_db_8 'accesses persistence'
+  }
+
+  dom_9 = domain 'SD-09: FRAUD DETECTION & RISK SCORING' {
+    #bian
+    description 'Evaluates transactional risk in real time (<50ms), flags anomaly patterns, calculates device risk scores, and triggers security lockouts.'
+
+    store_db_9 = datastore 'FRAUD DETECTION & RISK SCORING Storage' {
+      #aws
+      description 'Persistence and cache views for FRAUD DETECTION & RISK SCORING'
+      technology 'Amazon DynamoDB & Redis'
+    }
+
+    cmd_fraud_detection_evaluate_tx = commandApp 'cmd-fraud-detection-evaluate-tx' {
+      #squad #aws
+      description 'Evaluates transaction risk score in real time using rules engine and ML model.'
+      technology 'Go/C++ Lambda, <40ms SLA'
+    }
+
+    cmd_fraud_detection_evaluate_tx -> store_db_9 'accesses persistence'
+    cmd_fraud_detection_evaluate_tx -> eventbridge_bus 'emits domain events to'
+    cmd_fraud_detection_lockout = commandApp 'cmd-fraud-detection-lockout' {
+      #squad #aws
+      description 'Executes preventative security freeze on compromised cards and accounts. js Lambda.'
+      technology 'Node'
+    }
+
+    cmd_fraud_detection_lockout -> store_db_9 'accesses persistence'
+    cmd_fraud_detection_lockout -> eventbridge_bus 'emits domain events to'
+    qry_fraud_detection_risk_profile = queryApp 'qry-fraud-detection-risk-profile' {
+      #squad #aws
+      description 'Reads customer behavioral risk indicators, device fingerprint history.'
+      technology 'Python Lambda'
+    }
+
+    qry_fraud_detection_risk_profile -> store_db_9 'accesses persistence'
+    prj_fraud_detection_blacklists = projectionApp 'prj-fraud-detection-blacklists' {
+      #squad #aws
+      description 'Synchronizes international OFAC, PEP, and suspicious account blacklists.'
+      technology 'Lambda'
+    }
+
+    prj_fraud_detection_blacklists -> store_db_9 'accesses persistence'
+    prj_fraud_detection_blacklists -> eventbridge_bus 'subscribes to events from'
+    sfn_fraud_suspicious_alert_investigation = sfnApp 'sfn-fraud-suspicious-alert-investigation' {
+      #squad #aws
+      description 'Escalates high-risk transaction cases to fraud operations squad, alerts user, and monitors feedback.'
+      technology 'AWS Lambda, Node.js'
+    }
+
+    sfn_fraud_suspicious_alert_investigation -> store_db_9 'accesses persistence'
+    sfn_fraud_suspicious_alert_investigation -> eventbridge_bus 'subscribes to events from'
+    plug_device_fingerprint_threatmetrix = plugApp 'plug-device-fingerprint-threatmetrix' {
+      #squad #aws
+      description 'Ingests device telemetry, IP reputation, and biometrics signals from LexisNexis/ThreatMetrix. js Lambda.'
+      technology 'Node'
+    }
+
+    plug_device_fingerprint_threatmetrix -> store_db_9 'accesses persistence'
+    plug_biocatch_behavioral_engine = plugApp 'plug-biocatch-behavioral-engine' {
+      #squad #aws
+      description 'Ingests mobile screen interaction dynamics and behavioral telemetry.'
+      technology 'TypeScript Lambda'
+    }
+
+    plug_biocatch_behavioral_engine -> store_db_9 'accesses persistence'
+    alm_fraud_high_risk_spike_alarm = alarmApp 'alm-fraud-high-risk-spike-alarm' {
+      #squad #aws
+      description 'Alarms on sudden surges of high-risk transactions in specific BIN or geography.'
+      technology 'AWS Lambda, Node.js'
+    }
+
+    alm_fraud_high_risk_spike_alarm -> store_db_9 'accesses persistence'
+  }
+
+  dom_10 = domain 'SD-10: CUSTOMER ALERT & NOTIFICATION' {
+    #bian
+    description 'Multi-channel transactional alert dispatch (Push notifications, SMS, Email, WhatsApp) with preference routing and delivery tracking.'
+
+    store_db_10 = datastore 'CUSTOMER ALERT & NOTIFICATION Storage' {
+      #aws
+      description 'Persistence and cache views for CUSTOMER ALERT & NOTIFICATION'
+      technology 'Amazon DynamoDB & Redis'
+    }
+
+    cmd_customer_alert_dispatch = commandApp 'cmd-customer-alert-dispatch' {
+      #squad #aws
+      description 'Routes transactional notifications according to customer channel preferences. js Lambda.'
+      technology 'Node'
+    }
+
+    cmd_customer_alert_dispatch -> store_db_10 'accesses persistence'
+    cmd_customer_alert_dispatch -> eventbridge_bus 'emits domain events to'
+    qry_customer_alert_delivery_status = queryApp 'qry-customer-alert-delivery-status' {
+      #squad #aws
+      description 'Inquires delivery status, open rates, and push delivery receipts.'
+      technology 'TypeScript Lambda'
+    }
+
+    qry_customer_alert_delivery_status -> store_db_10 'accesses persistence'
+    prj_customer_alert_audit_log = projectionApp 'prj-customer-alert-audit-log' {
+      #squad #aws
+      description 'Records notification compliance records (timestamp, recipient, payload hash).'
+      technology 'Lambda'
+    }
+
+    prj_customer_alert_audit_log -> store_db_10 'accesses persistence'
+    prj_customer_alert_audit_log -> eventbridge_bus 'subscribes to events from'
+    plug_fcm_apns_push_gateway = plugApp 'plug-fcm-apns-push-gateway' {
+      #squad #aws
+      description 'Apple APNS & Google FCM mobile push connector.'
+      technology 'Go Lambda'
+    }
+
+    plug_fcm_apns_push_gateway -> store_db_10 'accesses persistence'
+    plug_twilio_infobip_sms_gateway = plugApp 'plug-twilio-infobip-sms-gateway' {
+      #squad #aws
+      description 'High-throughput SMS and WhatsApp business API gateway. js ECS.'
+      technology 'Node'
+    }
+
+    plug_twilio_infobip_sms_gateway -> store_db_10 'accesses persistence'
+  }
+
+  dom_11 = domain 'SD-11: AUDIT, LOGGING & REGULATORY COMPLIANCE' {
+    #bian
+    description 'Immutable audit trails, AML (Anti-Money Laundering) transaction tracking, regulatory reporting (SBS/UIF), and compliance alarms.'
+
+    store_db_11 = datastore 'AUDIT, LOGGING & REGULATORY COMPLIANCE Storage' {
+      #aws
+      description 'Persistence and cache views for AUDIT, LOGGING & REGULATORY COMPLIANCE'
+      technology 'Amazon DynamoDB & Redis'
+    }
+
+    cmd_audit_log_immutable_record = commandApp 'cmd-audit-log-immutable-record' {
+      #squad #aws
+      description 'Encrypts and writes WORM (Write-Once-Read-Many) audit events into AWS KMS/S3 Object Lock.'
+      technology 'Rust Lambda'
+    }
+
+    cmd_audit_log_immutable_record -> store_db_11 'accesses persistence'
+    cmd_audit_log_immutable_record -> eventbridge_bus 'emits domain events to'
+    qry_audit_log_trace_inspector = queryApp 'qry-audit-log-trace-inspector' {
+      #squad #aws
+      description 'Search interface for compliance officers, auditors, and security investigators.'
+      technology 'Python Lambda, OpenSearch'
+    }
+
+    qry_audit_log_trace_inspector -> store_db_11 'accesses persistence'
+    prj_audit_log_compliance_views = projectionApp 'prj-audit-log-compliance-views' {
+      #squad #aws
+      description 'Materializes daily AML (Anti-Money Laundering) aggregation views for transactions > $10,000 USD.'
+      technology 'Lambda'
+    }
+
+    prj_audit_log_compliance_views -> store_db_11 'accesses persistence'
+    prj_audit_log_compliance_views -> eventbridge_bus 'subscribes to events from'
+    plug_sbs_regulatory_reporting_export = plugApp 'plug-sbs-regulatory-reporting-export' {
+      #squad #aws
+      description 'Generates periodic regulatory compliance files for SBS (Superintendencia de Banca y Seguros).'
+      technology 'Python ECS'
+    }
+
+    plug_sbs_regulatory_reporting_export -> store_db_11 'accesses persistence'
+    alm_audit_tampering_security_alarm = alarmApp 'alm-audit-tampering-security-alarm' {
+      #squad #aws
+      description 'Critical security alarm triggered on any unauthorized attempt to alter audit archives or KMS keys.'
+      technology 'AWS Lambda, Node.js'
+    }
+
+    alm_audit_tampering_security_alarm -> store_db_11 'accesses persistence'
+  }
+
+}
+
+views {
+  view index {
+    title 'Core Banking BIAN Architecture Landscape (11 Domains)'
+    include *
+  }
+
+  view view_acg_acr_architecture {
+    title 'Agentic Topology: ACG Gateway -> ACR (MCP) -> Lambda / EKS'
+    include external_llm, acg_gateway, subgraph_acr, subgraph_acr.*, subgraph_backend, subgraph_backend.*
+  }
+
+  dynamic view acg_collision_diorama {
+    title 'DIORAMA: 4 Collision Points & Phantom / Uncreated Dependencies'
+    external_llm -> acg_gateway '1. LLMs fire concurrent ambiguous queries'
+    acg_gateway -> acr_sale_campaign '2. [COLLISION 1] Ambiguity on POR CREAR tool'
+    acg_gateway -> acr_made_campaign_dsg '3. Route to campaign design MCP'
+    acr_made_campaign_dsg -> lmb_made_campaign_pjc '4. [COLLISION 2] Calls NO EXISTE Lambda -> 502 Bad Gateway'
+    acg_gateway -> acr_reward_point_acc '5. [COLLISION 3] Concurrent mutations without lock'
+    acr_reward_point_acc -> lmb_acse_reward_acc '6. Double-spend race condition on loyalty balance'
+    lmb_coupons_non_expired -> acr_vads_coupons '7. [COLLISION 4] Unpaginated 3MB payload -> Context Window Bloat'
+  }
+
+  view view_dom_1 of dom_1 {
+    title 'SD-01: CURRENT ACCOUNT Components'
+    include dom_1.*
+    include eventbridge_bus
+  }
+
+  view view_dom_2 of dom_2 {
+    title 'SD-02: PAYMENT EXECUTION Components'
+    include dom_2.*
+    include eventbridge_bus
+  }
+
+  view view_dom_3 of dom_3 {
+    title 'SD-03: PARTY ROUTING PROFILE Components'
+    include dom_3.*
+    include eventbridge_bus
+  }
+
+  view view_dom_4 of dom_4 {
+    title 'SD-04: CUSTOMER OFFER & ONBOARDING Components'
+    include dom_4.*
+    include eventbridge_bus
+  }
+
+  view view_dom_5 of dom_5 {
+    title 'SD-05: CUSTOMER AGREEMENT & CONTRACT Components'
+    include dom_5.*
+    include eventbridge_bus
+  }
+
+  view view_dom_6 of dom_6 {
+    title 'SD-06: POSITION KEEPING & BALANCES Components'
+    include dom_6.*
+    include eventbridge_bus
+  }
+
+  view view_dom_7 of dom_7 {
+    title 'SD-07: FINANCIAL ACCOUNTING & GENERAL LEDGER Components'
+    include dom_7.*
+    include eventbridge_bus
+  }
+
+  view view_dom_8 of dom_8 {
+    title 'SD-08: COLLATERAL ALLOCATION & GUARANTEES Components'
+    include dom_8.*
+    include eventbridge_bus
+  }
+
+  view view_dom_9 of dom_9 {
+    title 'SD-09: FRAUD DETECTION & RISK SCORING Components'
+    include dom_9.*
+    include eventbridge_bus
+  }
+
+  view view_dom_10 of dom_10 {
+    title 'SD-10: CUSTOMER ALERT & NOTIFICATION Components'
+    include dom_10.*
+    include eventbridge_bus
+  }
+
+  view view_dom_11 of dom_11 {
+    title 'SD-11: AUDIT, LOGGING & REGULATORY COMPLIANCE Components'
+    include dom_11.*
+    include eventbridge_bus
+  }
+
+  dynamic view flow_02_instant_p2p {
+    title 'FLOW-02: Outbound Instant P2P Transfer'
+    dom_2.cmd_payment_execution_initiate -> dom_3.qry_party_routing_resolve '1. Resolve phone to CCI'
+    dom_2.cmd_payment_execution_initiate -> dom_9.cmd_fraud_detection_evaluate_tx '2. Realtime fraud risk score'
+    dom_2.cmd_payment_execution_initiate -> dom_2.sfn_payment_instant_transfer_saga '3. Start transfer saga'
+    dom_2.sfn_payment_instant_transfer_saga -> dom_6.cmd_position_keeping_reserve '4. Hold source balance'
+    dom_2.sfn_payment_instant_transfer_saga -> dom_3.plug_directory_federation_bridge '5. Dispatch instant rail'
+    dom_2.sfn_payment_instant_transfer_saga -> dom_6.cmd_position_keeping_release '6. Release hold & commit debit'
+    dom_2.sfn_payment_instant_transfer_saga -> eventbridge_bus '7. Emit PaymentCompletedEvent'
+    eventbridge_bus -> dom_10.cmd_customer_alert_dispatch '8. Dispatch push notification'
+  }
+
+  dynamic view flow_01_digital_onboarding {
+    title 'FLOW-01: Direct Digital Account Opening & KYC'
+    dom_4.cmd_customer_onboarding_initiate -> dom_4.sfn_customer_onboarding_saga '1. Initiate onboarding saga'
+    dom_4.sfn_customer_onboarding_saga -> dom_4.plug_reniec_biometrics_gateway '2. Validate RENIEC biometrics'
+    dom_4.sfn_customer_onboarding_saga -> dom_5.cmd_customer_agreement_sign '3. Sign legal contract'
+    dom_4.sfn_customer_onboarding_saga -> dom_1.cmd_current_account_lifecycle '4. Activate Current Account'
+    dom_1.cmd_current_account_lifecycle -> eventbridge_bus '5. Emit AccountOpenedEvent'
+    eventbridge_bus -> dom_10.cmd_customer_alert_dispatch '6. Welcome SMS alert'
+  }
+}

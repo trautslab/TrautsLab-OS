@@ -1,0 +1,233 @@
+{
+  "totalFlows": 20,
+  "squad": "Squad Cuentas & Rieles Transaccionales",
+  "flows": [
+    {
+      "id": "FLOW-01",
+      "name": "Direct Digital Account Opening & KYC",
+      "description": "Prospect initiates digital onboarding, completes facial biometrics, signs contract, and receives opened active account.",
+      "primaryDomain": "Customer Offer & Onboarding",
+      "steps": [
+        { "step": 1, "source": "cmd-customer-onboarding-initiate", "target": "sfn-customer-onboarding-saga", "type": "Sync Invocation", "action": "Trigger onboarding state machine" },
+        { "step": 2, "source": "sfn-customer-onboarding-saga", "target": "plug-reniec-biometrics-gateway", "type": "HTTP/mTLS", "action": "Validate facial biometric with RENIEC" },
+        { "step": 3, "source": "sfn-customer-onboarding-saga", "target": "cmd-customer-agreement-sign", "type": "Command", "action": "Register digital terms and legal agreement" },
+        { "step": 4, "source": "sfn-customer-onboarding-saga", "target": "cmd-current-account-lifecycle", "type": "Command", "action": "Create and activate Current Account in master table" },
+        { "step": 5, "source": "cmd-current-account-lifecycle", "target": "prj-current-account-readmodel", "type": "EventBridge Event", "action": "AccountOpenedEvent.v1 emitted and projected" },
+        { "step": 6, "source": "sfn-customer-onboarding-saga", "target": "cmd-customer-alert-dispatch", "type": "Event", "action": "Dispatch welcome SMS/Push notification" }
+      ]
+    },
+    {
+      "id": "FLOW-02",
+      "name": "Outbound Instant P2P Transfer (Yape/Plin)",
+      "description": "User enters mobile phone number, resolves destination CCI, places authorization hold, routes via instant rails, and clears funds.",
+      "primaryDomain": "Payment Execution",
+      "steps": [
+        { "step": 1, "source": "cmd-payment-execution-initiate", "target": "qry-party-routing-resolve", "type": "Query", "action": "Resolve recipient phone number to destination bank and CCI" },
+        { "step": 2, "source": "cmd-payment-execution-initiate", "target": "cmd-fraud-detection-evaluate-tx", "type": "Sync SLA <40ms", "action": "Calculate real-time transactional fraud score" },
+        { "step": 3, "source": "cmd-payment-execution-initiate", "target": "sfn-payment-instant-transfer-saga", "type": "Start Saga", "action": "Orchestrate multi-step transfer transaction" },
+        { "step": 4, "source": "sfn-payment-instant-transfer-saga", "target": "cmd-position-keeping-reserve", "type": "Command", "action": "Place hold on source account balance" },
+        { "step": 5, "source": "sfn-payment-instant-transfer-saga", "target": "plug-directory-federation-bridge", "type": "HTTP API", "action": "Dispatch funds over instant clearing rail (CCE/BCRP)" },
+        { "step": 6, "source": "sfn-payment-instant-transfer-saga", "target": "cmd-position-keeping-release", "type": "Command", "action": "Commit balance debit and clear hold" },
+        { "step": 7, "source": "sfn-payment-instant-transfer-saga", "target": "cmd-customer-alert-dispatch", "type": "Event", "action": "Notify sender and recipient via Push & SMS" }
+      ]
+    },
+    {
+      "id": "FLOW-03",
+      "name": "Inbound Clearing Payment (CCE / ACH)",
+      "description": "Receives inbound interbank payment batch, validates destination account, credits ledger, and acknowledges clearinghouse.",
+      "primaryDomain": "Payment Execution",
+      "steps": [
+        { "step": 1, "source": "plug-cce-clearing-ingress", "target": "cmd-payment-execution-settle", "type": "EventBridge", "action": "InboundPaymentReceivedEvent.v1 dispatched" },
+        { "step": 2, "source": "cmd-payment-execution-settle", "target": "qry-current-account-details", "type": "Query", "action": "Verify account status is ACTIVE" },
+        { "step": 3, "source": "cmd-payment-execution-settle", "target": "cmd-current-account-deposits", "type": "Command", "action": "Post credit deposit to account" },
+        { "step": 4, "source": "cmd-current-account-deposits", "target": "prj-position-keeping-ledger-view", "type": "EventBridge", "action": "BalanceCommittedEvent.v1 emitted to update balance" },
+        { "step": 5, "source": "cmd-payment-execution-settle", "target": "prj-financial-accounting-journal", "type": "Event", "action": "Post accounting ledger entry" }
+      ]
+    },
+    {
+      "id": "FLOW-04",
+      "name": "Debit Card Transaction Authorization Hold",
+      "description": "POS or e-commerce terminal attempts card swipe; checks balance, runs fraud filter, and holds funds.",
+      "primaryDomain": "Position Keeping & Balances",
+      "steps": [
+        { "step": 1, "source": "plug-atm-switch-pos-gateway", "target": "cmd-fraud-detection-evaluate-tx", "type": "TCP/ISO8583", "action": "Real-time risk scoring (<35ms)" },
+        { "step": 2, "source": "plug-atm-switch-pos-gateway", "target": "cmd-position-keeping-reserve", "type": "Command", "action": "Request authorization hold on available funds" },
+        { "step": 3, "source": "cmd-position-keeping-reserve", "target": "qry-position-keeping-realtime-balance", "type": "Internal Check", "action": "Verify available balance >= hold amount" },
+        { "step": 4, "source": "cmd-position-keeping-reserve", "target": "plug-atm-switch-pos-gateway", "type": "Response", "action": "Return ISO 8583 Authorization Approved (00)" }
+      ]
+    },
+    {
+      "id": "FLOW-05",
+      "name": "Hold Settlement & Financial Clearing",
+      "description": "Merchant batch presents settled transactions, releasing prior holds and committing final debits.",
+      "primaryDomain": "Current Account",
+      "steps": [
+        { "step": 1, "source": "plug-atm-switch-pos-gateway", "target": "cmd-position-keeping-release", "type": "Batch Settlement", "action": "Release reservation hold" },
+        { "step": 2, "source": "cmd-position-keeping-release", "target": "cmd-current-account-lifecycle", "type": "Command", "action": "Apply final financial debit to master account" },
+        { "step": 3, "source": "cmd-current-account-lifecycle", "target": "prj-financial-accounting-journal", "type": "EventBridge", "action": "Post double-entry journal voucher to general ledger" }
+      ]
+    },
+    {
+      "id": "FLOW-06",
+      "name": "Real-Time Balance & Mini-Statement Inquiry",
+      "description": "Mobile app or ATM requests customer balances and last 10 movements with sub-20ms P99 latency.",
+      "primaryDomain": "Position Keeping & Balances",
+      "steps": [
+        { "step": 1, "source": "qry-position-keeping-realtime-balance", "target": "prj-position-keeping-ledger-view", "type": "Cache Query", "action": "Read cached available & ledger balance from Redis/DAX" },
+        { "step": 2, "source": "qry-position-keeping-movements", "target": "prj-payment-execution-history", "type": "Indexed Query", "action": "Fetch latest 10 movements with pagination token" }
+      ]
+    },
+    {
+      "id": "FLOW-07",
+      "name": "Scheduled Direct Debit Service Billing",
+      "description": "Executes recurring utility or subscription bill payment against user current account.",
+      "primaryDomain": "Current Account",
+      "steps": [
+        { "step": 1, "source": "sfn-payment-clearing-cce-saga", "target": "qry-current-account-details", "type": "Query", "action": "Validate account active and direct debit authorized" },
+        { "step": 2, "source": "sfn-payment-clearing-cce-saga", "target": "cmd-payment-execution-initiate", "type": "Command", "action": "Execute debit order against biller CCI" },
+        { "step": 3, "source": "cmd-payment-execution-initiate", "target": "prj-financial-accounting-journal", "type": "EventBridge", "action": "Record transaction fee and settlement" }
+      ]
+    },
+    {
+      "id": "FLOW-08",
+      "name": "Overdraft Line Auto-Trigger & Coverage",
+      "description": "When customer balance is insufficient for critical payment, checks credit line and triggers overdraft loan.",
+      "primaryDomain": "Current Account",
+      "steps": [
+        { "step": 1, "source": "cmd-position-keeping-reserve", "target": "cmd-current-account-overdraft", "type": "Trigger", "action": "Account balance insufficient - request overdraft ceiling check" },
+        { "step": 2, "source": "cmd-current-account-overdraft", "target": "qry-collateral-allocation-status", "type": "Query", "action": "Check pledged collateral or pre-approved limit" },
+        { "step": 3, "source": "cmd-current-account-overdraft", "target": "cmd-current-account-deposits", "type": "Command", "action": "Disburse overdraft funds into account to cover debit" }
+      ]
+    },
+    {
+      "id": "FLOW-09",
+      "name": "Real-Time Transaction Fraud Evaluation (<50ms)",
+      "description": "Inline synchronous inspection of payment parameters against machine learning fraud model and device intelligence.",
+      "primaryDomain": "Fraud Detection & Risk Scoring",
+      "steps": [
+        { "step": 1, "source": "cmd-fraud-detection-evaluate-tx", "target": "plug-device-fingerprint-threatmetrix", "type": "HTTP API", "action": "Query device IP reputation, geo-velocity, emulator flags" },
+        { "step": 2, "source": "cmd-fraud-detection-evaluate-tx", "target": "plug-biocatch-behavioral-engine", "type": "HTTP API", "action": "Query behavioral biometric score (typing cadence, gyros)" },
+        { "step": 3, "source": "cmd-fraud-detection-evaluate-tx", "target": "qry-fraud-detection-risk-profile", "type": "Query", "action": "Check customer historical fraud index and blacklist" }
+      ]
+    },
+    {
+      "id": "FLOW-10",
+      "name": "High-Risk Account Preventative Freeze",
+      "description": "When confirmed compromise or brute-force pattern is detected, immediately locks account and alerts security squad.",
+      "primaryDomain": "Fraud Detection & Risk Scoring",
+      "steps": [
+        { "step": 1, "source": "cmd-fraud-detection-lockout", "target": "cmd-current-account-lifecycle", "type": "Command", "action": "Set account state to 'SECURITY_FROZEN'" },
+        { "step": 2, "source": "cmd-fraud-detection-lockout", "target": "cmd-customer-alert-dispatch", "type": "Urgent Alert", "action": "Dispatch emergency SMS/Email security notice to customer" },
+        { "step": 3, "source": "cmd-fraud-detection-lockout", "target": "alm-fraud-high-risk-spike-alarm", "type": "Metric", "action": "Record security event in CloudWatch security metric filter" }
+      ]
+    },
+    {
+      "id": "FLOW-11",
+      "name": "Customer Contact Preference & Alias Update",
+      "description": "Customer updates mobile phone number or changes primary account linked to instant P2P payments.",
+      "primaryDomain": "Party Routing Profile",
+      "steps": [
+        { "step": 1, "source": "cmd-party-routing-register", "target": "prj-party-routing-directory", "type": "Command", "action": "Update directory record mapping phone to new CCI" },
+        { "step": 2, "source": "cmd-party-routing-register", "target": "plug-directory-federation-bridge", "type": "Sync Bridge", "action": "Broadcast alias update to national directory federation" },
+        { "step": 3, "source": "cmd-party-routing-register", "target": "cmd-audit-log-immutable-record", "type": "EventBridge", "action": "Record alias change audit trail" }
+      ]
+    },
+    {
+      "id": "FLOW-12",
+      "name": "Daily Interest Accrual Calculation",
+      "description": "Calculates daily earned interest on positive savings account balances and schedules monthly payout.",
+      "primaryDomain": "Current Account",
+      "steps": [
+        { "step": 1, "source": "cmd-current-account-deposits", "target": "qry-position-keeping-realtime-balance", "type": "Query", "action": "Fetch daily average cleared balance" },
+        { "step": 2, "source": "cmd-current-account-deposits", "target": "prj-financial-accounting-eod-balance", "type": "Calculation", "action": "Accrue daily interest into liability ledger" }
+      ]
+    },
+    {
+      "id": "FLOW-13",
+      "name": "End-of-Day (EOD) Ledger Reconciliation",
+      "description": "Midnight batch locks daily transactions, compares cloud ledger balances against host mainframe, and produces delta reports.",
+      "primaryDomain": "Financial Accounting & General Ledger",
+      "steps": [
+        { "step": 1, "source": "sfn-financial-accounting-eod-reconciliation", "target": "prj-position-keeping-audit-balance", "type": "Step", "action": "Freeze daily balance snapshot across all accounts" },
+        { "step": 2, "source": "sfn-financial-accounting-eod-reconciliation", "target": "plug-host-mainframe-core-sync", "type": "Step", "action": "Pull Host DB2 daily total ledger report" },
+        { "step": 3, "source": "sfn-financial-accounting-eod-reconciliation", "target": "alm-general-ledger-unbalanced-voucher", "type": "Validation", "action": "Trigger P0 Alarm if Cloud vs Host balance delta != 0.00" }
+      ]
+    },
+    {
+      "id": "FLOW-14",
+      "name": "General Ledger Journal Accounting Posting",
+      "description": "Transforms settled retail transactions into standardized accounting vouchers for ERP ingestion.",
+      "primaryDomain": "Financial Accounting & General Ledger",
+      "steps": [
+        { "step": 1, "source": "prj-financial-accounting-journal", "target": "cmd-financial-accounting-voucher", "type": "Event Consumer", "action": "Aggregate transaction types into ledger accounts" },
+        { "step": 2, "source": "cmd-financial-accounting-voucher", "target": "plug-sap-erp-general-ledger-adapter", "type": "OData/RFC", "action": "Transmit posted journal vouchers into SAP S/4HANA" }
+      ]
+    },
+    {
+      "id": "FLOW-15",
+      "name": "Multi-Channel Transaction Alert Notification",
+      "description": "Subscribes to transaction completed events and dispatches notifications based on customer opted-in channels.",
+      "primaryDomain": "Customer Alert & Notification",
+      "steps": [
+        { "step": 1, "source": "cmd-customer-alert-dispatch", "target": "plug-fcm-apns-push-gateway", "type": "Push", "action": "Dispatch instant mobile app push alert" },
+        { "step": 2, "source": "cmd-customer-alert-dispatch", "target": "plug-twilio-infobip-sms-gateway", "type": "Fallback SMS", "action": "Send SMS confirmation if push is undelivered or for high amounts" },
+        { "step": 3, "source": "cmd-customer-alert-dispatch", "target": "prj-customer-alert-audit-log", "type": "Log", "action": "Record notification proof and delivery timestamp" }
+      ]
+    },
+    {
+      "id": "FLOW-16",
+      "name": "Account Maintenance Fee Assessment",
+      "description": "Monthly recurring job checks average balance; applies maintenance commission fee if minimum balance is not met.",
+      "primaryDomain": "Current Account",
+      "steps": [
+        { "step": 1, "source": "cmd-current-account-lifecycle", "target": "qry-current-account-details", "type": "Query", "action": "Evaluate average balance against fee waiver rule" },
+        { "step": 2, "source": "cmd-current-account-lifecycle", "target": "cmd-payment-execution-initiate", "type": "Command", "action": "Initiate automated maintenance fee deduction order" },
+        { "step": 3, "source": "cmd-payment-execution-initiate", "target": "prj-financial-accounting-journal", "type": "EventBridge", "action": "Record bank fee revenue accounting entry" }
+      ]
+    },
+    {
+      "id": "FLOW-17",
+      "name": "Digital Terms & Conditions Legal Consent",
+      "description": "Captures customer acceptance of updated product terms, biometric data consent, and regulatory disclosures.",
+      "primaryDomain": "Customer Agreement & Contract",
+      "steps": [
+        { "step": 1, "source": "cmd-customer-agreement-sign", "target": "plug-docusign-legal-trust-bridge", "type": "API Call", "action": "Apply legal cryptographic timestamp and certificate seal" },
+        { "step": 2, "source": "cmd-customer-agreement-sign", "target": "prj-customer-agreement-indexer", "type": "EventBridge", "action": "Index accepted clauses into contract repository" },
+        { "step": 3, "source": "cmd-customer-agreement-sign", "target": "cmd-audit-log-immutable-record", "type": "Command", "action": "Store legal proof in WORM immutable storage" }
+      ]
+    },
+    {
+      "id": "FLOW-18",
+      "name": "Mainframe Host Realtime & Batch Sync",
+      "description": "Provides backward compatibility for branch tellers, ATMs, and legacy systems during gradual core migration.",
+      "primaryDomain": "Current Account",
+      "steps": [
+        { "step": 1, "source": "prj-current-account-readmodel", "target": "plug-host-mainframe-core-sync", "type": "Outbox Event", "action": "Forward cloud account modifications to Host SNA queue" },
+        { "step": 2, "source": "plug-host-mainframe-core-sync", "target": "cmd-current-account-lifecycle", "type": "Inbound Sync", "action": "Receive teller cash branch deposits from Host CICS" }
+      ]
+    },
+    {
+      "id": "FLOW-19",
+      "name": "Regulatory AML & UIF Suspicious Report",
+      "description": "Identifies suspicious transaction patterns (smurfing, sudden large transfers >$10k) and generates regulatory reporting files.",
+      "primaryDomain": "Audit, Logging & Regulatory Compliance",
+      "steps": [
+        { "step": 1, "source": "prj-audit-log-compliance-views", "target": "qry-audit-log-trace-inspector", "type": "Query", "action": "Aggregate single and multi-party transactions exceeding threshold" },
+        { "step": 2, "source": "prj-audit-log-compliance-views", "target": "plug-sbs-regulatory-reporting-export", "type": "Export", "action": "Format encrypted RO/UIF XML compliance submission file" }
+      ]
+    },
+    {
+      "id": "FLOW-20",
+      "name": "Distributed Transfer Saga Compensation",
+      "description": "Automated backward rollback when instant transfer times out or target bank rejects funds after source hold was created.",
+      "primaryDomain": "Payment Execution",
+      "steps": [
+        { "step": 1, "source": "sfn-payment-instant-transfer-saga", "target": "plug-directory-federation-bridge", "type": "Timeout / Failure", "action": "Receive 504 Gateway Timeout or Reject response" },
+        { "step": 2, "source": "sfn-payment-instant-transfer-saga", "target": "cmd-position-keeping-release", "type": "Compensation Action", "action": "Cancel and unfreeze source account balance reservation" },
+        { "step": 3, "source": "sfn-payment-instant-transfer-saga", "target": "alm-payment-execution-p99-latency", "type": "Metric", "action": "Increment transaction compensation counter in CloudWatch" },
+        { "step": 4, "source": "sfn-payment-instant-transfer-saga", "target": "cmd-customer-alert-dispatch", "type": "Event", "action": "Notify user that transfer failed and funds remain available" }
+      ]
+    }
+  ]
+}
+

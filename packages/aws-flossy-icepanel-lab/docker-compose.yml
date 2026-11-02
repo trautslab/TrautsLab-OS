@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # Floci (Flossy) - High-performance local AWS cloud emulator compiled with GraalVM/Quarkus
+  # Default port: 4566 (AWS wire protocol compatible)
+  floci:
+    image: ${EMULATOR_IMAGE:-floci/floci:latest}
+    container_name: flossy-local-aws
+    ports:
+      - "4566:4566"
+    environment:
+      - AWS_DEFAULT_REGION=us-east-1
+      - SERVICES=events,stepfunctions,dynamodb,sqs,sns,s3,cloudwatch,logs,iam
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - DEBUG=1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - floci_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_floci/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  floci_data:
+    driver: local
+

@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+.pnpm/
+
+# Terraform binaries and cache
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+
+# Build archives
+*.zip
+/tmp/
+
+# Logs and environment
+*.log
+.env
