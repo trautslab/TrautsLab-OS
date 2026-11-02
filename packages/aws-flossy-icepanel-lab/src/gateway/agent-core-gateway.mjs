@@ -19,6 +19,7 @@ export class AgentCoreGateway {
     // Semantic Intent Mapping Table
     const intentMap = {
       "FIND_COUPON": "coupons_find_by_id",
+      "LIST_ACTIVE_COUPONS": "coupons_find_non_expired",
       "CHECK_POINTS_BALANCE": "rewards_get_balance",
       "ADD_LOYALTY_POINTS": "rewards_accrue_points",
       "GET_CUSTOMER_CAMPAIGNS": "campaigns_find_eligible"

@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NonExpiredCouponsContract",
+  "description": "API Contract for lmb-matrix-findby-non-expired-coupons-qry-svc-01 with cursor pagination",
+  "request": {
+    "type": "object",
+    "required": ["customerId"],
+    "additionalProperties": false,
+    "properties": {
+      "customerId": {
+        "type": "string",
+        "pattern": "^ACC-[A-Z0-9-]+$",
+        "description": "Customer Account ID"
+      },
+      "category": {
+        "type": "string",
+        "enum": ["ALL", "RETAIL", "TRAVEL", "DINING", "ENTERTAINMENT"],
+        "default": "ALL"
+      },
+      "limit": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 20,
+        "default": 3,
+        "description": "Max items to return to prevent Context Window Bloat in LLMs"
+      },
+      "cursorToken": {
+        "type": "string",
+        "description": "Opaque base64 cursor token for fetching subsequent pages"
+      }
+    }
+  },
+  "response": {
+    "type": "object",
+    "required": ["statusCode", "data", "pageInfo"],
+    "properties": {
+      "statusCode": { "type": "integer", "enum": [200, 400, 500] },
+      "data": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["couponId", "title", "discountPercentage", "category", "expirationDate"],
+          "properties": {
+            "couponId": { "type": "string" },
+            "title": { "type": "string" },
+            "discountPercentage": { "type": "number" },
+            "category": { "type": "string" },
+            "expirationDate": { "type": "string" },
+            "merchant": { "type": "string" }
+          }
+        }
+      },
+      "pageInfo": {
+        "type": "object",
+        "required": ["totalMatched", "limit", "hasMore"],
+        "properties": {
+          "totalMatched": { "type": "integer" },
+          "returnedCount": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "hasMore": { "type": "boolean" },
+          "nextCursorToken": { "type": ["string", "null"] }
+        }
+      }
+    }
+  }
+}

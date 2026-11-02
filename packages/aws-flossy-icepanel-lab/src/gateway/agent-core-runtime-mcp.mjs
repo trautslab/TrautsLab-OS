@@ -23,6 +23,7 @@ const lambda = new LambdaClient({
 
 // Load Contracts
 const couponsContract = JSON.parse(fs.readFileSync(path.join(ROOT, "src/contracts/coupons-contract.json"), "utf8"));
+const nonExpiredContract = JSON.parse(fs.readFileSync(path.join(ROOT, "src/contracts/non-expired-coupons-contract.json"), "utf8"));
 const rewardsContract = JSON.parse(fs.readFileSync(path.join(ROOT, "src/contracts/rewards-contract.json"), "utf8"));
 const campaignContract = JSON.parse(fs.readFileSync(path.join(ROOT, "src/contracts/campaign-contract.json"), "utf8"));
 
@@ -35,6 +36,12 @@ export class AgentCoreRuntimeMCP {
         description: "Retrieves verified coupon details by ID. Enforces CouponDetailsContract.",
         inputSchema: couponsContract.request,
         lambdaTarget: "lmb-matrix-findby-id-coupons-qry-svc-01"
+      },
+      {
+        name: "coupons_find_non_expired",
+        description: "Lists non-expired customer coupons with cursor pagination to prevent context window bloat.",
+        inputSchema: nonExpiredContract.request,
+        lambdaTarget: "lmb-matrix-findby-non-expired-coupons-qry-svc-01"
       },
       {
         name: "rewards_get_balance",

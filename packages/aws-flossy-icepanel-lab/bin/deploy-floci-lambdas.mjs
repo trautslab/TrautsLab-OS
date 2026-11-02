@@ -29,6 +29,11 @@ const LAMBDAS = [
     description: "Query finder service for coupon details by ID"
   },
   {
+    name: "lmb-matrix-findby-non-expired-coupons-qry-svc-01",
+    srcDir: path.join(ROOT, "src/lambdas/lmb-matrix-findby-non-expired-coupons"),
+    description: "Query finder for active non-expired coupons with cursor pagination"
+  },
+  {
     name: "lmb-io-acse-reward-point-acc-qry_findby-01",
     srcDir: path.join(ROOT, "src/lambdas/lmb-reward-point-acc"),
     description: "Loyalty rewards account and balance finder with OCC"
