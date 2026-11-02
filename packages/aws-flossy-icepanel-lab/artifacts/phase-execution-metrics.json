@@ -1,0 +1,33 @@
+{
+  "executedAt": "2026-11-02T13:39:57.875Z",
+  "flociEndpoint": "http://localhost:4566",
+  "totalDurationMs": 1522,
+  "allPassed": true,
+  "cqrsAuditEventsRecorded": 4,
+  "phases": [
+    {
+      "phase": "PHASE_1",
+      "name": "Baseline Happy Path & Typed API Contracts",
+      "status": "PASSED",
+      "durationMs": 771
+    },
+    {
+      "phase": "PHASE_2",
+      "name": "Alternative Paths & Cursor Pagination",
+      "status": "PASSED",
+      "durationMs": 247
+    },
+    {
+      "phase": "PHASE_3",
+      "name": "Edge Cases, Contract Drift & Circuit Breaker",
+      "status": "PASSED",
+      "durationMs": 86
+    },
+    {
+      "phase": "PHASE_4",
+      "name": "Shared DynamoDB Table Collision & OCC Auto-Healing",
+      "status": "PASSED",
+      "durationMs": 396
+    }
+  ]
+}

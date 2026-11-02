@@ -2,7 +2,7 @@
  * Lambda: lmb-(env)-io-acse-reward-point-acc-qry_findby-01
  * Implements RewardsAccountContract
  */
-const { DynamoDBClient, GetItemCommand, UpdateItemCommand } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBClient, GetItemCommand, UpdateItemCommand, PutItemCommand } = require("@aws-sdk/client-dynamodb");
 
 const flociHost = process.env.AWS_LAMBDA_RUNTIME_API ? process.env.AWS_LAMBDA_RUNTIME_API.split(":")[0] : "localhost";
 const FLOCI_ENDPOINT = process.env.FLOCI_ENDPOINT && !process.env.FLOCI_ENDPOINT.includes("localhost")
@@ -82,6 +82,22 @@ exports.handler = async (event) => {
 
       const newPoints = Number(updateRes.Attributes.pointsBalance.N);
       const newVersion = Number(updateRes.Attributes.version.N);
+
+      // CQRS Projection: Write audit event to core-transactions-history-local
+      try {
+        await ddb.send(new PutItemCommand({
+          TableName: "core-transactions-history-local",
+          Item: {
+            accountId: { S: accountId },
+            transactionTimestamp: { N: String(Date.now()) },
+            transactionType: { S: "POINTS_ACCRUED" },
+            amount: { N: String(increment) },
+            version: { N: String(newVersion) }
+          }
+        }));
+      } catch (e) {
+        console.error("Non-blocking CQRS projection error:", e.message);
+      }
 
       return {
         statusCode: 200,

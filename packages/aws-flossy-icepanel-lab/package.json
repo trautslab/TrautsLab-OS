@@ -25,6 +25,7 @@
     "demo:phase2": "node bin/run-phase2-demo.mjs",
     "demo:phase3": "node bin/run-phase3-demo.mjs",
     "demo:phase4": "node bin/run-phase4-demo.mjs",
+    "demo:all": "node bin/run-all-phases.mjs",
     "demo:collision": "node bin/test-acg-collision-sim.mjs"
   },
   "keywords": [

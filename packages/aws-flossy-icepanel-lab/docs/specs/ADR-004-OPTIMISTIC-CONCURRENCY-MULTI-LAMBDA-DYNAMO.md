@@ -66,3 +66,4 @@ Cuando DynamoDB arroja un error `ConditionalCheckFailedException (HTTP 409)`:
 
 ### Compensaciones:
 - Añade una latencia media de 15ms a 35ms en el segundo intento concurrente.
+

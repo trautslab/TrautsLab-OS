@@ -45,3 +45,4 @@ Se aprueba la implementación obligatoria de:
 ### Positivas:
 - **Consumo Predecible de Tokens:** El tamaño de carga por turno de conversación permanece acotado a menos de 500 tokens.
 - **Interactividad Humana:** El agente puede decir: *"He encontrado 8 cupones disponibles. Te muestro los primeros 3; ¿deseas ver los siguientes o filtrar por Viajes?"*.
+

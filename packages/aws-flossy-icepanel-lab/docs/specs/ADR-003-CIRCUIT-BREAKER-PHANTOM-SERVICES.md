@@ -44,3 +44,4 @@ Se aprueba la incorporación de:
 ### 2.2. Validación Estricta de Contrato y Schema Hints (Anti-Drift)
 * Todo payload inbound es validado contra regex y tipado exacto.
 * Si el LLM envía un tipo inválido (ej. un entero en lugar de un código regex), el MCP devuelve un error 400 semántico indicando exactamente qué campo falló y cuál es el formato esperado para auto-corrección inmediata.
+

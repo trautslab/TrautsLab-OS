@@ -64,3 +64,4 @@ main().catch(err => {
   console.error("❌ Falló la ejecución de Fase 3:", err);
   process.exit(1);
 });
+

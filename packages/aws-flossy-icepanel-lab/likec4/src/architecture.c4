@@ -206,6 +206,11 @@ model {
       description '[NO EXISTE] Missing projection finder -> Triggers 502 Bad Gateway'
       technology 'Phantom Lambda Service'
     }
+    lmb_card_cashback_disb = commandApp 'lmb-(env)-io-vads-cashback-disb-cmd-01' {
+      #active #aws
+      description '[ACTIVO] Card cashback benefit disbursement command with OCC'
+      technology 'AWS Lambda, Node.js 20'
+    }
     eks_cluster = containerCluster 'eks-{env}-io-01' {
       #active #aws
       description '[ACTIVO] EKS Cluster hosting high-throughput transactional services'
@@ -229,7 +234,10 @@ model {
   acr_reward_point_acc -> lmb_acse_reward_acc 'Invokes points query [Race Condition]'
   acr_reward_point_ar -> lmb_opse_reward_ar '[POR CREAR] Invokes accrual query'
   acr_made_campaign_dsg -> lmb_made_campaign_pjc 'Invokes projection [NO EXISTE: 502 Collision]'
+  acr_vads_cashback -> lmb_card_cashback_disb 'Dispatches cashback benefit'
   acr_vads_cashback -> eks_cluster 'Dispatches cashback transaction'
+  lmb_acse_reward_acc -> store_db_1 'Updates loyalty points with OCC'
+  lmb_card_cashback_disb -> store_db_1 'Updates cashback with OCC'
 
   dom_1 = domain 'SD-01: CURRENT ACCOUNT' {
     #bian
@@ -987,6 +995,49 @@ views {
     acg_gateway -> acr_reward_point_acc '5. [COLLISION 3] Concurrent mutations without lock'
     acr_reward_point_acc -> lmb_acse_reward_acc '6. Double-spend race condition on loyalty balance'
     lmb_coupons_non_expired -> acr_vads_coupons '7. [COLLISION 4] Unpaginated 3MB payload -> Context Window Bloat'
+  }
+
+  dynamic view phase1_happy_path {
+    title 'PHASE 1: Typed Contract Happy Path (ACG -> ACR -> Lambda -> DynamoDB)'
+    external_llm -> acg_gateway '1. Intent: ADD_LOYALTY_POINTS (accountId: ACC-7701, points: 800, version: 1)'
+    acg_gateway -> acr_reward_point_acc '2. tools/call: rewards_accrue_points (Validated via RewardsAccountContract)'
+    acr_reward_point_acc -> lmb_acse_reward_acc '3. aws:lambda:Invoke with typed payload'
+    lmb_acse_reward_acc -> store_db_1 '4. DynamoDB UpdateItem (Condition: version=1 -> version=2, points=4000)'
+    store_db_1 -> lmb_acse_reward_acc '5. 200 OK New Attributes'
+    lmb_acse_reward_acc -> acr_reward_point_acc '6. Typed Response Envelope'
+    acr_reward_point_acc -> acg_gateway '7. Tool Result'
+    acg_gateway -> external_llm '8. SUCCESS (pointsBalance: 4000, version: 2)'
+  }
+
+  dynamic view phase2_cursor_pagination {
+    title 'PHASE 2: Alternative Path - Cursor-based Pagination & Filtering'
+    external_llm -> acg_gateway '1. Intent: LIST_ACTIVE_COUPONS (limit: 3, category: ALL)'
+    acg_gateway -> acr_vads_coupons '2. tools/call: coupons_find_non_expired'
+    acr_vads_coupons -> lmb_coupons_non_expired '3. Lambda slices 3 of 8 items, generates base64 cursor'
+    lmb_coupons_non_expired -> acr_vads_coupons '4. Returns items [1..3] + nextCursorToken'
+    acr_vads_coupons -> acg_gateway '5. MCP enrichment protects LLM context window'
+    acg_gateway -> external_llm '6. Delivers Page 1 (hasMore: true)'
+  }
+
+  dynamic view phase3_circuit_breaker {
+    title 'PHASE 3: Edge Cases - Contract Drift Rejection & Circuit Breaker'
+    external_llm -> acg_gateway '1. Malformed payload: couponId = 98765 (number)'
+    acg_gateway -> external_llm '2. [RECHAZO] 400 CONTRACT_DRIFT_VALIDATION_FAILED with Schema Hint'
+    external_llm -> acg_gateway '3. Calls GET_CAMPAIGN_DESIGN (lmb-made-campaign-pjc [NO EXISTE])'
+    acg_gateway -> lmb_made_campaign_pjc '4. Downstream Lambda not found (502)'
+    acg_gateway -> acg_gateway '5. [CIRCUIT BREAKER] Trips state to OPEN'
+    acg_gateway -> external_llm '6. Fast-Fail 503 SERVICE_UNAVAILABLE + Degraded Fallback'
+  }
+
+  dynamic view phase4_dynamodb_occ {
+    title 'PHASE 4: Shared DynamoDB Table Collision & OCC Auto-Healing'
+    lmb_acse_reward_acc -> store_db_1 '1. Lambda A updates version: 1 -> 2 (+1000 pts)'
+    store_db_1 -> lmb_acse_reward_acc '2. 200 OK (DB Version is now 2)'
+    lmb_card_cashback_disb -> store_db_1 '3. Concurrent Lambda B attempts update with stale version=1'
+    store_db_1 -> lmb_card_cashback_disb '4. [COLLISION DETECTED] 409 ConditionalCheckFailedException'
+    lmb_card_cashback_disb -> store_db_1 '5. [AUTO-HEALING] Re-reads fresh state (ConsistentRead: true)'
+    lmb_card_cashback_disb -> store_db_1 '6. Re-evaluates on version 2 -> commits version 3 (+ $50 cashback)'
+    store_db_1 -> lmb_card_cashback_disb '7. 200 OK (Zero lost updates: 6000 pts + $150 cashback)'
   }
 
   view view_dom_1 of dom_1 {

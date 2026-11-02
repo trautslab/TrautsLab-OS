@@ -62,3 +62,4 @@ main().catch(err => {
   console.error("❌ Falló la ejecución de Fase 2:", err);
   process.exit(1);
 });
+

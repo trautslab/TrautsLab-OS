@@ -140,3 +140,4 @@ main().catch(err => {
   console.error("❌ Falló la ejecución de Fase 4:", err);
   process.exit(1);
 });
+

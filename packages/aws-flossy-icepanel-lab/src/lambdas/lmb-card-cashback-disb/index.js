@@ -3,7 +3,7 @@
  * Disburses card cashback benefits to customer accounts in DynamoDB.
  * Supports both UNPROTECTED (demonstrating Lost Update) and PROTECTED_OCC (Auto-healing) modes.
  */
-const { DynamoDBClient, GetItemCommand, UpdateItemCommand } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBClient, GetItemCommand, UpdateItemCommand, PutItemCommand } = require("@aws-sdk/client-dynamodb");
 
 const flociHost = process.env.AWS_LAMBDA_RUNTIME_API ? process.env.AWS_LAMBDA_RUNTIME_API.split(":")[0] : "localhost";
 const FLOCI_ENDPOINT = process.env.FLOCI_ENDPOINT && !process.env.FLOCI_ENDPOINT.includes("localhost")
@@ -102,6 +102,22 @@ exports.handler = async (event) => {
         },
         ReturnValues: "ALL_NEW"
       }));
+
+      // CQRS Projection: Write audit event to core-transactions-history-local
+      try {
+        await ddb.send(new PutItemCommand({
+          TableName: "core-transactions-history-local",
+          Item: {
+            accountId: { S: accountId },
+            transactionTimestamp: { N: String(Date.now()) },
+            transactionType: { S: "CASHBACK_DISBURSED" },
+            amount: { N: String(cashbackAmount) },
+            version: { N: String(updateRes.Attributes.version.N) }
+          }
+        }));
+      } catch (e) {
+        console.error("Non-blocking CQRS projection error:", e.message);
+      }
 
       return {
         statusCode: 200,
